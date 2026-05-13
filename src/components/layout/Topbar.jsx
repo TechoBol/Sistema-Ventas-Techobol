@@ -1,11 +1,9 @@
 import React from "react";
-import { Search, Bell, Menu, ChevronDown } from "lucide-react";
+import { Bell, Menu, ChevronDown, User } from "lucide-react";
 import {
   TopbarWrapper,
   LeftActions,
   MenuButton,
-  SearchBox,
-  SearchInput,
   Actions,
   IconButton,
   UserProfile,
@@ -25,17 +23,14 @@ function Topbar({ onOpenSidebar }) {
       </LeftActions>
 
       <Actions>
-        <SearchBox>
-          <Search size={17} />
-          <SearchInput placeholder="Buscar productos, clientes, ventas..." />
-        </SearchBox>
-
         <IconButton type="button">
           <Bell size={18} />
         </IconButton>
 
         <UserProfile>
-          <Avatar />
+          <Avatar>
+            <User size={18} strokeWidth={1.8} />
+          </Avatar>
           <UserText>
             <UserName>Carlos</UserName>
             <UserRole>Administrador</UserRole>

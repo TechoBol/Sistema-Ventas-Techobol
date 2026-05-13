@@ -1,9 +1,10 @@
 import styled from "styled-components";
+import { theme } from "./Theme";
 
 export const TopbarWrapper = styled.header`
   height: 64px;
   padding: 0 28px;
-  background: #f7f7f3;
+  background: ${theme.colors.background};
 
   display: flex;
   align-items: center;
@@ -34,55 +35,14 @@ export const MenuButton = styled.button`
     height: 40px;
     border: none;
     border-radius: 12px;
-    background: #ffffff;
-    color: #0f172a;
+    background: ${theme.colors.background};
+    color: ${theme.colors.text};
 
     display: flex;
     align-items: center;
     justify-content: center;
 
     cursor: pointer;
-  }
-`;
-
-export const SearchBox = styled.div`
-  width: 420px;
-  height: 42px;
-  padding: 0 16px;
-  border-radius: 22px;
-  background: #ffffff;
-  color: #94a3b8;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  @media (max-width: 1100px) {
-    width: 320px;
-  }
-
-  @media (max-width: 768px) {
-    width: 42px;
-    padding: 0;
-    justify-content: center;
-  }
-`;
-
-export const SearchInput = styled.input`
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-
-  font-size: 14px;
-  color: #334155;
-
-  &::placeholder {
-    color: #94a3b8;
-  }
-
-  @media (max-width: 768px) {
-    display: none;
   }
 `;
 
@@ -101,8 +61,8 @@ export const IconButton = styled.button`
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: #ffffff;
-  color: #0f172a;
+  background: ${theme.colors.background};
+  color: ${theme.colors.text};
 
   display: flex;
   align-items: center;
@@ -131,7 +91,15 @@ export const Avatar = styled.div`
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: #d9d9d9;
+
+  background: ${theme.colors.background};
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: ${theme.colors.text};
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   flex: 0 0 auto;
 `;
 
@@ -149,10 +117,10 @@ export const UserName = styled.p`
   margin: 0;
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: ${theme.colors.text};
 `;
 
 export const UserRole = styled.span`
   font-size: 12px;
-  color: #64748b;
+  color: ${theme.colors.textSecondary};
 `;

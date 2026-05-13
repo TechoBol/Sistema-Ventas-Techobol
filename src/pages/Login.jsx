@@ -4,15 +4,16 @@ import useAuthentication from "../hooks/useAuthentication";
 
 import {
   Wrapper,
+  Brand,
   Card,
-  Logo,
-  Subtitle,
+  Title,
   Input,
   PasswordWrapper,
   Button,
   Field,
-  IconWrapper
-} from "../components/ui/Login";
+  Label,
+  IconWrapper,
+} from "../components/ui/Login.styles";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -31,24 +32,20 @@ function Login() {
   return (
     <Wrapper>
       {/* FORM */}
+      <Brand>Megadis</Brand>
+
       <Card as="form" onSubmit={handleSubmit}>
-        <Logo>EcoZona</Logo>
-
-        <Subtitle>
-          Inicia sesión para continuar
-        </Subtitle>
-
+        <Title>Bienvenido!</Title>
         <Field>
+          <Label>Correo</Label>
           <Input
             type="email"
-            placeholder="Correo"
+            placeholder="Ingrese su correo"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-
             autoFocus
             autoComplete="email"
             enterKeyHint="next"
-
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -59,25 +56,30 @@ function Login() {
         </Field>
 
         <Field>
+          <Label>Contraseña</Label>
           <PasswordWrapper>
             <Input
               ref={passwordRef}
               type={showPassword ? "text" : "password"}
-              placeholder="Contraseña"
+              placeholder="Ingrese su contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-
               autoComplete="current-password"
               enterKeyHint="go"
             />
-
-            <IconWrapper onClick={() => setShowPassword(!showPassword)}>
+            
+            <IconWrapper
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </IconWrapper>
           </PasswordWrapper>
         </Field>
+
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Cargando..." : "Iniciar sesión"}
+          {isLoading ? "Cargando..." : "Iniciar Sesión"}
         </Button>
       </Card>
     </Wrapper>

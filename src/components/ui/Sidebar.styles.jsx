@@ -1,8 +1,9 @@
 import styled from "styled-components";
+import { theme } from "./Theme";
 
 export const SidebarWrapper = styled.aside`
   height: 100dvh;
-  background: #ffffff;
+  background: ${theme.colors.background};
   border-right: 1px solid #eeeeee;
   padding: 24px 16px;
   box-sizing: border-box;
@@ -42,7 +43,7 @@ export const Brand = styled.div`
 export const BrandText = styled.h2`
   font-size: 25px;
   margin: 0;
-  color: #fb0404;
+  color: ${theme.colors.primary};
 `;
 
 export const CloseButton = styled.button`
@@ -53,8 +54,8 @@ export const CloseButton = styled.button`
     height: 34px;
     border: none;
     border-radius: 10px;
-    background: #f8fafc;
-    color: #334155;
+    background: ${theme.colors.surface};
+    color: ${theme.colors.text};
 
     display: flex;
     align-items: center;
@@ -78,7 +79,7 @@ export const SectionTitle = styled.p`
   margin: 0 0 8px;
   font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
+  color: ${theme.colors.textSecondary};
   text-transform: uppercase;
   letter-spacing: 0.04em;
 `;
@@ -93,7 +94,7 @@ export const NavItem = styled.div`
     $active ? "#fff3eb" : "transparent"};
 
   color: ${({ $active }) =>
-    $active ? "#fb0404" : "#334155"};
+    $active ? theme.colors.primary : "#334155"};
 
   display: flex;
   align-items: center;
@@ -108,6 +109,6 @@ export const NavItem = styled.div`
 
   &:hover {
     background: #fff7f0;
-    color: #fb0404;
+    color: ${theme.colors.primary};
   }
 `;

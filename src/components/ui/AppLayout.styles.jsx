@@ -1,10 +1,11 @@
 import styled from "styled-components";
+import { theme } from "./Theme";
 
 export const LayoutWrapper = styled.div`
   min-height: 100dvh;
   display: grid;
   grid-template-columns: 260px 1fr;
-  background: #f7f7f3;
+  background: ${theme.colors.background};
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
@@ -33,6 +34,6 @@ export const MobileOverlay = styled.div`
     position: fixed;
     inset: 0;
     z-index: 20;
-    background: rgba(15, 23, 42, 0.35);
+    background: rgba(17, 42, 15, 0.35);
   }
 `;
