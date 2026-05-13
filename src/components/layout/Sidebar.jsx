@@ -28,7 +28,7 @@ import {
   NavSection,
   SectionTitle,
   NavItem,
-} from "../ui/Sidebar.styles";
+} from "../ui/layout/Sidebar.styles";
 
 const sidebarSections = [
   {

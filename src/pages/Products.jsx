@@ -19,6 +19,7 @@ import {
   SearchWrapper,
   ActionButton,
 } from "../components/ui/Products";
+import { Pencil, Plus } from "lucide-react";
 
 function Products() {
   const [showForm, setShowForm] = useState(false);
@@ -33,17 +34,20 @@ function Products() {
       field: "code",
       headerName: "Código",
       flex: 1,
+      minWidth: 110,
     },
 
     {
       field: "name",
       headerName: "Nombre",
       flex: 1.5,
+      minWidth: 110,
     },
     {
       field: "line",
       headerName: "Marca",
       flex: 1.2,
+      minWidth: 110,
 
       valueGetter: (_, row) => row?.line?.name || "-",
     },
@@ -52,12 +56,14 @@ function Products() {
       field: "brandName",
       headerName: "Linea",
       flex: 1.2,
+      minWidth: 110,
     },
 
     {
       field: "price",
       headerName: "Costo",
       flex: 1,
+      minWidth: 110,
 
       valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
     },
@@ -66,6 +72,7 @@ function Products() {
       field: "finalPrice",
       headerName: "Venta",
       flex: 1,
+      minWidth: 110,
 
       valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
     },
@@ -74,6 +81,7 @@ function Products() {
       field: "stockTotal",
       headerName: "Stock",
       flex: 0.8,
+      minWidth: 110,
     },
 
     {
@@ -85,12 +93,13 @@ function Products() {
 
       renderCell: (params) => (
         <ActionButton
+          title="Editar producto"
           onClick={() => {
             setSelectedProduct(params.row);
             setShowForm(true);
           }}
         >
-          Editar
+          <Pencil size={20} strokeWidth={2.3} />
         </ActionButton>
       ),
     },
@@ -119,7 +128,8 @@ function Products() {
                     setShowForm(true);
                   }}
                 >
-                  Añadir Producto +
+                  Añadir Producto
+                  <Plus size={18} strokeWidth={3} />
                 </AddButton>
               </TopActions>
             </PageHeader>
@@ -133,6 +143,9 @@ function Products() {
                 disableRowSelectionOnClick
                 hideFooter
                 getRowId={(row) => row.id}
+                localeText={{
+                  noRowsLabel: "No hay productos registrados",
+                }}
               />
             </TableContainer>
           </>

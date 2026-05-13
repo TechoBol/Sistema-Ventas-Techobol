@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { theme } from "./Theme";
 
 /* =========================================================
    PAGE
@@ -124,7 +125,7 @@ export const SearchWrapper = styled.div`
 export const SearchInput = styled.input`
   width: 100%;
   max-width: 380px;
-  height: 58px;
+  height: 50px;
 
   border: 1px solid #e5e7eb;
   border-radius: 20px;
@@ -168,7 +169,7 @@ export const AddButton = styled.button`
 
   padding: 0 24px;
 
-  background: #111827;
+  background: ${theme.colors.primary};
   color: white;
 
   font-size: 14px;
@@ -481,7 +482,7 @@ export const Button = styled.button`
 
   padding: 0 28px;
 
-  background: #111827;
+  background: ${theme.colors.primary};
   color: white;
 
   font-size: 15px;
@@ -491,7 +492,7 @@ export const Button = styled.button`
 
   transition: all 0.2s ease;
 
-  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.12);
+  box-shadow: 0 12px 24px rgba(49, 101, 212, 0.12);
 
   &:hover {
     transform: translateY(-1px);
@@ -499,7 +500,7 @@ export const Button = styled.button`
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
     transform: none;
   }
@@ -510,24 +511,26 @@ export const Button = styled.button`
 `;
 
 export const ActionButton = styled.button`
-  height: 34px;
+  width: 36px;
+  height: 36px;
 
   border: none;
-  border-radius: 10px;
-
-  padding: 0 14px;
-
-  background: #111827;
-  color: white;
-
-  font-size: 13px;
-  font-weight: 600;
+  background: transparent;
+  color: ${theme.colors.primary};
+  border-radius: 50%;
 
   cursor: pointer;
-
-  transition: 0.2s;
+  transition: all 0.2s ease;
 
   &:hover {
-    opacity: 0.92;
+    background: rgba(255, 31, 31, 0.08);
+    transform: scale(1.08);
   }
+`;
+
+export const FieldLabel = styled.label`
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  margin-left: 4px;
 `;

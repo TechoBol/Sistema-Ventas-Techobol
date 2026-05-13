@@ -11,7 +11,7 @@ import {
   UserText,
   UserName,
   UserRole,
-} from "../ui/Topbar.styles";
+} from "../ui/layout/Topbar.styles";
 
 function Topbar({ onOpenSidebar }) {
   return (

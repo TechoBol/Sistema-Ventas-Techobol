@@ -7,7 +7,7 @@ import {
   MainWrapper,
   ContentWrapper,
   MobileOverlay,
-} from "../ui/AppLayout.styles";
+} from "../ui/layout/AppLayout.styles";
 
 function AppLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

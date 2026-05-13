@@ -43,6 +43,7 @@ import {
   LeftColumn,
   RightColumn,
   ButtonRow,
+  FieldLabel,
 } from "../../components/ui/Products";
 
 function ProductForm({
@@ -73,7 +74,7 @@ function ProductForm({
       price: product?.price ?? "",
       finalPrice:
         product?.finalPrice ?? "",
-      stock: product?.stock ?? "",
+      stock: product?.stockTotal ?? "",
       lineId: product?.lineId ?? "",
       brandName:
         product?.brandName ?? "",
@@ -129,7 +130,7 @@ function ProductForm({
       ) !==
         Number(product?.finalPrice) ||
       Number(form.values.stock) !==
-        Number(product?.stock) ||
+        Number(product?.stockTotal) ||
       Number(form.values.lineId) !==
         Number(product?.lineId) ||
       form.values.brandName !==
@@ -242,6 +243,7 @@ function ProductForm({
 
               <Grid2>
                 <ContainerInput>
+                  <FieldLabel>Nombre</FieldLabel>
                   <Input
                     placeholder="Nombre"
                     {...form.getInputProps(
@@ -257,6 +259,7 @@ function ProductForm({
                 </ContainerInput>
 
                 <ContainerInput>
+                  <FieldLabel>Descripción</FieldLabel>
                   <Input
                     placeholder="Descripción"
                     {...form.getInputProps(
@@ -267,6 +270,7 @@ function ProductForm({
               </Grid2>
 
               <ContainerInput>
+                <FieldLabel>Código</FieldLabel>
                 <Input
                   placeholder="Código"
                   {...form.getInputProps(
@@ -289,6 +293,7 @@ function ProductForm({
 
               <Grid3>
                 <ContainerInput>
+                  <FieldLabel>Precio compra</FieldLabel>
                   <Input
                     type="number"
                     placeholder="Precio compra"
@@ -305,6 +310,7 @@ function ProductForm({
                 </ContainerInput>
 
                 <ContainerInput>
+                  <FieldLabel>Precio venta</FieldLabel>
                   <Input
                     type="number"
                     placeholder="Precio venta"
@@ -325,6 +331,7 @@ function ProductForm({
                 </ContainerInput>
 
                 <ContainerInput>
+                  <FieldLabel>Stock</FieldLabel>
                   <Input
                     type="number"
                     placeholder="Stock"
@@ -351,6 +358,7 @@ function ProductForm({
 
               <Grid2>
                 <ContainerInput>
+                  <FieldLabel>Marca</FieldLabel>
                   <Select
                     {...form.getInputProps(
                       "lineId",
@@ -372,6 +380,7 @@ function ProductForm({
                 </ContainerInput>
 
                 <ContainerInput>
+                  <FieldLabel>Linea</FieldLabel>
                   <Select
                     {...form.getInputProps(
                       "brandName",
