@@ -6,6 +6,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products"
 import Cart from "./pages/Cart";
+import Customer from "./pages/Customer";
+
 function App() {
   const { isLoggedIn } = useLoginStore();
 
@@ -23,6 +25,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/customer" element={<Customer />} />
           </>
         )}
 
