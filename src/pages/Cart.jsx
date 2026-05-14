@@ -150,7 +150,7 @@ const Cart = () => {
     Math.max(0, item.unitPrice * item.quantity - (item.itemDiscount || 0));
 
   /* ── checkout ── */
-  const { createSale } = useCart();
+  const { createSale,loading } = useCart();
   const [openCheckoutModal, setOpenCheckoutModal] = useState(false);
 
   const handleCheckout = async () => {
@@ -456,6 +456,7 @@ const Cart = () => {
           open={openCheckoutModal}
           total={total}
           paymentMethod={paymentMethod}
+          loading={loading}
           onClose={() => setOpenCheckoutModal(false)}
           onFinish={async (customerData) => {
             await finalizarVenta({

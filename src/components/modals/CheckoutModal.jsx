@@ -29,7 +29,7 @@ import {
 } from "../ui/CheckoutModal";
 import LocationPicker from "./LocationPicker";
 
-const CheckoutModal = ({ open, onClose, onFinish, total , paymentMethod }) => {
+const CheckoutModal = ({ open, onClose, onFinish, total , paymentMethod, loading }) => {
 
   const initialCustomerData = {
     name: "",
@@ -187,7 +187,7 @@ const CheckoutModal = ({ open, onClose, onFinish, total , paymentMethod }) => {
         <Footer>
           <SecondaryButton onClick={onClose}>Cancelar</SecondaryButton>
 
-          <FinishButton onClick={handleFinish}>Finalizar Venta</FinishButton>
+          <FinishButton disabled={loading} onClick={handleFinish}>{loading ? "Procesando..." : "Finalizar Venta"}</FinishButton>
         </Footer>
       </ModalCard>
     </Overlay>
