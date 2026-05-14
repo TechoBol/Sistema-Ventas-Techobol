@@ -20,7 +20,7 @@ export const useAmazonS3 = () => {
   );
 
   const uploadPDF = async (file: File, code:string) => {
-    const key = `ECOZONA/SALES/${code}.pdf`;
+    const key = `MEGADIS/SALES/${code}.pdf`;
 
     const signedUrl = await getSignedUrl(
       s3Ref.current,
@@ -46,7 +46,7 @@ export const useAmazonS3 = () => {
   };
 
   const uploadPDFTranfer = async (file: File, code:string) => {
-    const key = `ECOZONA/TRANSFERENCIAS/${code}.pdf`;
+    const key = `MEGADIS/TRANSFERENCIAS/${code}.pdf`;
 
     const signedUrl = await getSignedUrl(
       s3Ref.current,
@@ -71,31 +71,6 @@ export const useAmazonS3 = () => {
     return key;
   };
 
-  const uploadProductImage = async (file: File, name: string) => {
-    const extension = file.type.split("/")[1] || "jpg";
-    const key = `ECOZONA/PRODUCTS/${name}.${extension}`;
-
-    const signedUrl = await getSignedUrl(
-      s3Ref.current,
-      new PutObjectCommand({
-        Bucket: import.meta.env.VITE_S3_BUCKET_NAME,
-        Key: key,
-        ContentType: file.type,
-      }),
-      { expiresIn: 3600 },
-    );
-
-    const response = await fetch(signedUrl, {
-      method: "PUT",
-      body: file,
-      headers: { "Content-Type": file.type },
-    });
-
-    if (!response.ok) throw new Error("Error al subir la imagen");
-
-    return key;
-  };
-
   const getFileUrl = async (key: string) => {
     const signedUrl = await getSignedUrl(
       s3Ref.current,
@@ -109,5 +84,5 @@ export const useAmazonS3 = () => {
     return signedUrl;
   };
 
-  return { uploadProductImage, getFileUrl, uploadPDF,uploadPDFTranfer };
+  return { getFileUrl, uploadPDF,uploadPDFTranfer };
 };

@@ -10,7 +10,6 @@ import Receipts from "./pages/Receipts";
 
 function App() {
   const { isLoggedIn } = useLoginStore();
-
   return (
     <>
       <GlobalStyle />
@@ -19,7 +18,6 @@ function App() {
           path="/login"
           element={isLoggedIn ? <Navigate to="/dashboard" /> : <Login />}
         />
-
         {isLoggedIn && (
           <>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -29,7 +27,6 @@ function App() {
           </>
         )}
         {!isLoggedIn && <Route path="*" element={<Navigate to="/login" />} />}
-
         {isLoggedIn && (
           <Route path="*" element={<Navigate to="/dashboard" />} />
         )}

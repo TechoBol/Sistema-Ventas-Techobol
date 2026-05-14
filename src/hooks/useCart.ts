@@ -4,7 +4,6 @@ import { createSaleService } from "../services/cartService";
 import { useAmazonS3 } from "./useAmazonS3";
 import { generarPDF } from "../components/pdf/generarPDF.jsx";
 import { socketTesoreria } from "../services/SocketIOConnection.ts";
-import { successToast } from "../services/toasts";
 import { useCashFlow } from "./useCashFlow";
 
 export const useCart = () => {
@@ -47,6 +46,7 @@ export const useCart = () => {
 
       // 4. Subir PDF
       await uploadPDF(file, sale.code);
+      
       if (data.metodoPago === "Deposito bancario" || data.metodoPago === "QR") {
         const payloadCashFlow = {
           date: sale.date,
