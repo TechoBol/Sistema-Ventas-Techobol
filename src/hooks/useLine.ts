@@ -10,7 +10,7 @@ import {
   deleteBrandService,
 } from "../services/lineService";
 import { useNavigate } from "react-router-dom";
-import socket from "../services/SocketIOConnection";
+import {socket} from "../services/SocketIOConnection";
 import { successToast, errorToast } from "../services/toasts";
 
 export const useLines = () => {

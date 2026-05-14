@@ -25,13 +25,17 @@ import {
   SummaryRow,
   SummaryTotal,
   CheckoutButton,
+  PaymentPanel,
+  PaymentTitle,
+  RadioGroup,
+  RadioOption,
 } from "../components/ui/Cart";
 
 import { useInventoryStore } from "../components/store/inventoryStore";
 import { useCart } from "../hooks/useCart";
 import { useLoginStore } from "../components/store/loginStore";
 import Swal from "sweetalert2";
-import socket from "../services/SocketIOConnection";
+import { socket } from "../services/SocketIOConnection";
 import { getProducts } from "../services/inventoryService";
 import AppLayout from "../components/layout/AppLayout";
 import CheckoutModal from "../components/modals/CheckoutModal";
@@ -59,7 +63,7 @@ const Cart = () => {
   const [query, setQuery] = useState("");
   const [dropOpen, setDropOpen] = useState(false);
   const searchRef = useRef(null);
-
+  const [paymentMethod, setPaymentMethod] = useState("Efectivo");
   const filtered =
     query.trim() === ""
       ? (products ?? []).slice(0, 50) // primeros 50 cuando no hay query
@@ -162,93 +166,78 @@ const Cart = () => {
   };
 
   const finalizarVenta = async ({
-  metodoPago,
-  codigoTransaccion,
-  customerData,
-}) => {
+    metodoPago,
+    codigoTransaccion,
+    customerData,
+  }) => {
+    if (isProcessing) return;
 
-  if (isProcessing) return;
+    setIsProcessing(true);
 
-  setIsProcessing(true);
+    try {
+      const payload = {
+        customer: customerData,
 
-  try {
+        products: cartItems.map((item) => ({
+          productId: item.id,
 
-    const payload = {
+          quantity: item.quantity,
 
-      customer: customerData,
+          itemDiscount: Number(item.itemDiscount || 0),
+        })),
 
-      products: cartItems.map((item) => ({
+        subtotal,
 
-        productId: item.id,
+        total,
 
-        quantity: item.quantity,
+        metodoPago,
 
-        itemDiscount: Number(item.itemDiscount || 0),
+        codigoTransaccion,
+      };
 
-      })),
+      console.log("Payload venta:", payload);
 
-      subtotal,
+      const result = await createSale(
+        payload,
+        cartItems,
+        subtotal,
+        totalDiscount,
+        total,
+      );
 
-      total,
+      socket.emit("newCartProduct", result);
 
-      metodoPago,
+      // 🔥 LIMPIAR
+      setCartItems([]);
 
-      codigoTransaccion,
+      // 🔥 CERRAR MODAL
+      setOpenCheckoutModal(false);
 
-    };
+      // 🔥 ALERTA
+      await Swal.fire({
+        title: "Venta realizada",
 
-    console.log("Payload venta:", payload);
+        text: "La venta fue registrada correctamente",
 
-    const result = await createSale(
-      payload,
-      cartItems,
-      subtotal,
-      totalDiscount,
-      total,
-    );
+        icon: "success",
 
-    socket.emit("newCartProduct", result);
+        confirmButtonColor: "#fb0404",
+      });
 
-    // 🔥 LIMPIAR
-    setCartItems([]);
+    } catch (err) {
+      console.error(err);
 
-    // 🔥 CERRAR MODAL
-    setOpenCheckoutModal(false);
+      Swal.fire({
+        title: "Error",
 
-    // 🔥 ALERTA
-    await Swal.fire({
+        text: "No se pudo procesar la venta.",
 
-      title: "Venta realizada",
-
-      text: "La venta fue registrada correctamente",
-
-      icon: "success",
-
-      confirmButtonColor: "#fb0404",
-
-    });
-
-  } catch (err) {
-
-    console.error(err);
-
-    Swal.fire({
-
-      title: "Error",
-
-      text: "No se pudo procesar la venta.",
-
-      icon: "error",
-
-    });
-
-  } finally {
-
-    setIsProcessing(false);
-
-  }
-
-};
+        icon: "error",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   /* ── render ── */
   return (
@@ -390,38 +379,87 @@ const Cart = () => {
             </Table>
           </TableCard>
 
-          {/* panel resumen */}
-          <SummaryPanel>
-            <SummaryRow>
-              <span>Subtotal:</span>
-              <span>Bs {subtotal.toFixed(2)}</span>
-            </SummaryRow>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}
+          >
+            {/* panel tipo pago */}
+            <PaymentPanel>
+              <PaymentTitle>Tipo de pago</PaymentTitle>
 
-            <SummaryRow>
-              <span>Descuento:</span>
-              <span>Bs {totalDiscount.toFixed(2)}</span>
-            </SummaryRow>
+              <RadioGroup>
+                <RadioOption>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="Efectivo"
+                    checked={paymentMethod === "Efectivo"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  Efectivo
+                </RadioOption>
 
-            <SummaryTotal>
-              <span>Total:</span>
-              <span>Bs {total.toFixed(2)}</span>
-            </SummaryTotal>
+                <RadioOption>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="Deposito bancario"
+                    checked={paymentMethod === "Deposito bancario"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  Deposito bancario
+                </RadioOption>
 
-            <CheckoutButton
-              onClick={handleCheckout}
-              disabled={isProcessing || !cartItems.length}
-            >
-              {isProcessing ? "Procesando…" : "Siguiente"}
-            </CheckoutButton>
-          </SummaryPanel>
+                <RadioOption>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="QR"
+                    checked={paymentMethod === "QR"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  QR
+                </RadioOption>
+              </RadioGroup>
+            </PaymentPanel>
+
+            {/* panel resumen */}
+            <SummaryPanel>
+              <SummaryRow>
+                <span>Subtotal:</span>
+                <span>Bs {subtotal.toFixed(2)}</span>
+              </SummaryRow>
+
+              <SummaryRow>
+                <span>Descuento:</span>
+                <span>Bs {totalDiscount.toFixed(2)}</span>
+              </SummaryRow>
+
+              <SummaryTotal>
+                <span>Total:</span>
+                <span>Bs {total.toFixed(2)}</span>
+              </SummaryTotal>
+
+              <CheckoutButton
+                onClick={handleCheckout}
+                disabled={isProcessing || !cartItems.length}
+              >
+                {isProcessing ? "Procesando…" : "Siguiente"}
+              </CheckoutButton>
+            </SummaryPanel>
+          </div>
         </Body>
         <CheckoutModal
           open={openCheckoutModal}
           total={total}
+          paymentMethod={paymentMethod}
           onClose={() => setOpenCheckoutModal(false)}
           onFinish={async (customerData) => {
             await finalizarVenta({
-              metodoPago: "Efectivo",
+              metodoPago: paymentMethod,
               codigoTransaccion: null,
               customerData,
             });

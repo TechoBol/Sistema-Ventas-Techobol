@@ -1,5 +1,13 @@
-import React from "react";
-import { Bell, Menu, ChevronDown, User } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+
+import {
+  Bell,
+  Menu,
+  ChevronDown,
+  User,
+  LogOut,
+} from "lucide-react";
+
 import {
   TopbarWrapper,
   LeftActions,
@@ -11,9 +19,50 @@ import {
   UserText,
   UserName,
   UserRole,
+
+  UserMenuWrapper,
+  DropdownMenu,
+  DropdownHeader,
+  DropdownName,
+  DropdownRole,
+  DropdownItem,
+
 } from "../ui/layout/Topbar.styles";
 
+import { useLoginStore } from "../store/loginStore";
+
+import useAuthentication from "../../hooks/useAuthentication";
+
 function Topbar({ onOpenSidebar }) {
+
+  const { fullName, role } = useLoginStore();
+
+  const { logOut } = useAuthentication();
+
+  const [openMenu, setOpenMenu] = useState(false);
+
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
+        setOpenMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
   return (
     <TopbarWrapper>
       <LeftActions>
@@ -27,16 +76,37 @@ function Topbar({ onOpenSidebar }) {
           <Bell size={18} />
         </IconButton>
 
-        <UserProfile>
-          <Avatar>
-            <User size={18} strokeWidth={1.8} />
-          </Avatar>
-          <UserText>
-            <UserName>Carlos</UserName>
-            <UserRole>Administrador</UserRole>
-          </UserText>
-          <ChevronDown size={16} />
-        </UserProfile>
+        <UserMenuWrapper ref={menuRef}>
+          <UserProfile
+            type="button"
+            onClick={() => setOpenMenu((prev) => !prev)}
+          >
+            <Avatar>
+              <User size={18} strokeWidth={1.8} />
+            </Avatar>
+
+            <UserText>
+              <UserName>{fullName}</UserName>
+              <UserRole>{role}</UserRole>
+            </UserText>
+
+            <ChevronDown size={16} />
+          </UserProfile>
+
+          {openMenu && (
+            <DropdownMenu>
+              <DropdownHeader>
+                <DropdownName>{fullName}</DropdownName>
+                <DropdownRole>{role}</DropdownRole>
+              </DropdownHeader>
+
+              <DropdownItem onClick={logOut}>
+                <LogOut size={18} />
+                Cerrar sesión
+              </DropdownItem>
+            </DropdownMenu>
+          )}
+        </UserMenuWrapper>
       </Actions>
     </TopbarWrapper>
   );

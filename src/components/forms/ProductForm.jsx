@@ -20,7 +20,7 @@ import {
   errorToast,
 } from "../../services/toasts";
 
-import socket from "../../services/SocketIOConnection";
+import {socket} from "../../services/SocketIOConnection";
 
 import {
   FormWrapper,

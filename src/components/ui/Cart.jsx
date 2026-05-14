@@ -2,13 +2,13 @@
 import styled from "styled-components";
 
 /* ─── tokens que coinciden con Topbar/Sidebar ─────────────────────────── */
-const bg      = "#f7f7f3";   // igual que TopbarWrapper background
-const white   = "#ffffff";
-const red     = "#fb0404";   // igual que BrandText / NavItem $active
-const border  = "#eeeeee";   // igual que SidebarWrapper border-right
-const textPrimary   = "#0f172a";
+const bg = "#f7f7f3"; // igual que TopbarWrapper background
+const white = "#ffffff";
+const red = "#fb0404"; // igual que BrandText / NavItem $active
+const border = "#eeeeee"; // igual que SidebarWrapper border-right
+const textPrimary = "#0f172a";
 const textSecondary = "#64748b";
-const textMuted     = "#94a3b8";
+const textMuted = "#94a3b8";
 
 /* ─── layout raíz ────────────────────────────────────────────────────── */
 export const Wrapper = styled.div`
@@ -94,7 +94,7 @@ export const TableCard = styled.div`
   background: ${white};
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   min-height: 420px;
 `;
 
@@ -201,8 +201,12 @@ export const DiscountInput = styled.input`
   }
 
   &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button { -webkit-appearance: none; }
-  &[type="number"] { -moz-appearance: textfield; }
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  &[type="number"] {
+    -moz-appearance: textfield;
+  }
 `;
 
 export const DeleteButton = styled.button`
@@ -237,14 +241,58 @@ export const EmptyState = styled.div`
   font-size: 14px;
   gap: 8px;
 `;
+export const PaymentPanel = styled.div`
+  width: 260px;
+  background: ${white};
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 
+  @media (max-width: 900px) {
+    width: 100%;
+    box-sizing: border-box;
+  }
+`;
+
+export const PaymentTitle = styled.h3`
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: ${textPrimary};
+`;
+
+export const RadioGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+export const RadioOption = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: ${textPrimary};
+  cursor: pointer;
+
+  input {
+    accent-color: ${red};
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+`;
 /* ─── panel de resumen (derecha) ─────────────────────────────────────── */
 export const SummaryPanel = styled.div`
   width: 260px;
   background: ${white};
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -298,9 +346,17 @@ export const CheckoutButton = styled.button`
 `;
 
 /* ─── backward-compat aliases (por si algún componente aún los usa) ──── */
-export const BackButton       = styled.button`display:none`;
-export const ProductList      = styled.div`display:none`;
-export const ProductCard      = styled.div`display:none`;
-export const ProductImage     = styled.img`display:none`;
-export const Footer           = SummaryPanel;
-export const Total            = SummaryTotal;
+export const BackButton = styled.button`
+  display: none;
+`;
+export const ProductList = styled.div`
+  display: none;
+`;
+export const ProductCard = styled.div`
+  display: none;
+`;
+export const ProductImage = styled.img`
+  display: none;
+`;
+export const Footer = SummaryPanel;
+export const Total = SummaryTotal;
