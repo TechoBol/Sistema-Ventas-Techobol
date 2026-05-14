@@ -299,3 +299,50 @@ export const FinishButton = styled.button`
         transform: translateY(-2px);
     }
 `;
+export const TotalTop = styled.div`
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+`;
+
+export const PaymentInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+
+    @media (max-width: 768px) {
+        align-items: flex-start;
+    }
+`;
+
+export const PaymentLabel = styled.span`
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.85;
+`;
+
+export const PaymentBadge = styled.div`
+    padding: 8px 14px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,0.18);
+
+    backdrop-filter: blur(6px);
+
+    border: 1px solid rgba(255,255,255,0.15);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    color: white;
+
+    white-space: nowrap;
+`;

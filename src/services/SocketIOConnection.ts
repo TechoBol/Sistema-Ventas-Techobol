@@ -1,5 +1,5 @@
 import io from 'socket.io-client'
 
-const socket = io(`${import.meta.env.VITE_API_WITHOUT_API}`)
+export const socket = io(`${import.meta.env.VITE_API_WITHOUT_API}`)
+export const socketTesoreria = io(`${import.meta.env.VITE_API_WITHOUT_API_2}`)
 
-export default socket

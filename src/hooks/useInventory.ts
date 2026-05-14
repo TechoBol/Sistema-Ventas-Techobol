@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import useSWR from "swr";
 import { useLoginStore } from "../components/store/loginStore";
 import { getProducts } from "../services/InventoryService";
-import socket from "../services/SocketIOConnection";
+import {socket} from "../services/SocketIOConnection";
 import { useInventoryStore } from "../components/store/inventoryStore";
 import { notificationToast } from "../services/toasts";
 import { useNavigate } from "react-router-dom";

@@ -20,9 +20,17 @@ import {
   TotalCard,
   TotalLabel,
   TotalValue,
-} from "../ui/CheckoutModal";
 
-const CheckoutModal = ({ open, onClose, onFinish, total }) => {
+  TotalTop,
+  PaymentInfo,
+  PaymentLabel,
+  PaymentBadge,
+
+} from "../ui/CheckoutModal";
+import LocationPicker from "./LocationPicker";
+
+const CheckoutModal = ({ open, onClose, onFinish, total , paymentMethod }) => {
+
   const initialCustomerData = {
     name: "",
     nitCi: "",
@@ -34,9 +42,12 @@ const CheckoutModal = ({ open, onClose, onFinish, total }) => {
   };
 
   const [customerData, setCustomerData] = useState(initialCustomerData);
+  const [showMap, setShowMap] = useState(false);
+
   useEffect(() => {
     if (!open) {
       setCustomerData(initialCustomerData);
+      setShowMap(false)
     }
   }, [open]);
   if (!open) return null;
@@ -49,26 +60,7 @@ const CheckoutModal = ({ open, onClose, onFinish, total }) => {
   };
 
   const getLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocalización no soportada");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCustomerData((prev) => ({
-          ...prev,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        }));
-      },
-
-      (error) => {
-        console.error(error);
-
-        alert("No se pudo obtener ubicación");
-      },
-    );
+    setShowMap(true);
   };
 
   const handleFinish = () => {
@@ -89,10 +81,24 @@ const CheckoutModal = ({ open, onClose, onFinish, total }) => {
         </Header>
 
         <TotalCard>
-          <TotalLabel>Total Venta</TotalLabel>
+  <TotalTop>
+    <div>
+      <TotalLabel>Total Venta</TotalLabel>
 
-          <TotalValue>Bs {Number(total || 0).toFixed(2)}</TotalValue>
-        </TotalCard>
+      <TotalValue>
+        Bs {Number(total || 0).toFixed(2)}
+      </TotalValue>
+    </div>
+
+    <PaymentInfo>
+      <PaymentLabel>Método de pago</PaymentLabel>
+
+      <PaymentBadge>
+        {paymentMethod}
+      </PaymentBadge>
+    </PaymentInfo>
+  </TotalTop>
+</TotalCard>
 
         <FormGrid>
           {/* NOMBRE */}
@@ -164,19 +170,17 @@ const CheckoutModal = ({ open, onClose, onFinish, total }) => {
 
         {/* UBICACION */}
 
-        {customerData.latitude && customerData.longitude && (
-          <div
-            style={{
-              marginTop: 16,
-              fontSize: 13,
-              color: "#64748b",
-            }}
-          >
-            📍 Ubicación obtenida:
-            <br />
-            Lat: {customerData.latitude}
-            <br />
-            Lng: {customerData.longitude}
+        {showMap && (
+          <div style={{ marginTop: 20 }}>
+            <LocationPicker
+              onConfirm={(coords) => {
+                setCustomerData((prev) => ({
+                  ...prev,
+                  latitude: coords.lat,
+                  longitude: coords.lng,
+                }));
+              }}
+            />
           </div>
         )}
 
