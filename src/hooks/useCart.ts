@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useLoginStore } from "../components/store/loginStore";
 import { createSaleService } from "../services/cartService";
 import { useAmazonS3 } from "./useAmazonS3";
-import { generarPDF } from "../components/pdf/generarPDF.jsx";
+import { generarDocumentoVenta } from "../components/pdf/generarPDF.jsx";
 import { socketTesoreria } from "../services/SocketIOConnection.ts";
-import { successToast } from "../services/toasts";
 import { useCashFlow } from "./useCashFlow";
 
 export const useCart = () => {
@@ -32,45 +31,73 @@ export const useCart = () => {
         locationId: location.id,
       };
 
-      // 1. Crear venta
+      // =====================================================
+      // 1. CREAR VENTA
+      // =====================================================
+
       const venta = await createSaleService(payload, token);
 
       const sale = venta.sale;
 
-      // 2. Generar PDF
-      const pdfBlob = generarPDF(sale, fullName);
+      // =====================================================
+      // 2. GENERAR PDF
+      // (2 notas entrega + factura)
+      // =====================================================
 
-      // 3. Convertir Blob a File
+      const pdfBlob = generarDocumentoVenta(sale);
+
+      // =====================================================
+      // 3. CONVERTIR A FILE
+      // =====================================================
+
       const file = new File([pdfBlob], `venta_${sale.code}.pdf`, {
         type: "application/pdf",
       });
 
-      // 4. Subir PDF
+      // =====================================================
+      // 4. SUBIR PDF
+      // =====================================================
+
       await uploadPDF(file, sale.code);
+
+      // =====================================================
+      // 5. MOVIMIENTO TESORERIA
+      // =====================================================
+
       if (data.metodoPago === "Deposito bancario" || data.metodoPago === "QR") {
         const payloadCashFlow = {
           date: sale.date,
-          account: `Caja Central`,
+          account: "Caja Central",
           type: "income",
           amount: sale.total,
+          source: data.metodoPago,
           items: [
             {
               amount: sale.total,
+
               payer: `${sale.employee.name} ${sale.employee.lastName}`,
-              description: sale.code,
-              source: "Deposito",
+
+              description: `VENTA: ${sale.code} - PAGO MEDIANTE: ${data.metodoPago}`,
+
+              source: data.metodoPago,
             },
           ],
+
           isUSD: false,
         };
+
         const cashFlow = await addCashFlow(payloadCashFlow as any);
-        // 6. Socket
+
+        // socket
         socketTesoreria.emit("createCashFlow", cashFlow);
       }
+
       return sale;
     } catch (err) {
       console.error(err);
+
       setError("Error creando venta");
+
       throw err;
     } finally {
       setLoading(false);

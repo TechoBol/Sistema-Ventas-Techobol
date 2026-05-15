@@ -28,7 +28,7 @@ import {
   PaymentPanel,
   PaymentTitle,
   RadioGroup,
-  RadioOption,
+  RadioOption
 } from "../components/ui/Cart";
 
 import { useInventoryStore } from "../components/store/inventoryStore";
@@ -150,7 +150,7 @@ const Cart = () => {
     Math.max(0, item.unitPrice * item.quantity - (item.itemDiscount || 0));
 
   /* ── checkout ── */
-  const { createSale } = useCart();
+  const { createSale, loading } = useCart();
   const [openCheckoutModal, setOpenCheckoutModal] = useState(false);
 
   const handleCheckout = async () => {
@@ -223,7 +223,6 @@ const Cart = () => {
 
         confirmButtonColor: "#fb0404",
       });
-
     } catch (err) {
       console.error(err);
 
@@ -280,13 +279,27 @@ const Cart = () => {
 
           {dropOpen && (
             <ProductDropdown>
+              <DropHeader>
+                <DropHeaderCode>Código</DropHeaderCode>
+
+                <DropHeaderName>Producto</DropHeaderName>
+
+                <DropHeaderQty>Cant.</DropHeaderQty>
+
+                <DropHeaderPrice>Precio</DropHeaderPrice>
+              </DropHeader>
+
               {filtered.length === 0 ? (
-                <DropEmpty>Sin resultados</DropEmpty>
+                <CustomerEmpty>Sin resultados</CustomerEmpty>
               ) : (
                 filtered.map((p) => (
                   <DropItem key={p.id} onClick={() => addToCart(p)}>
                     <DropCode>{p.code}</DropCode>
+
                     <DropName>{p.name}</DropName>
+
+                    <DropCantidad>{p.inventories[0].quantity}</DropCantidad>
+
                     <DropPrice>Bs {p.finalPrice.toFixed(2)}</DropPrice>
                   </DropItem>
                 ))
@@ -456,6 +469,7 @@ const Cart = () => {
           open={openCheckoutModal}
           total={total}
           paymentMethod={paymentMethod}
+          loading={loading}
           onClose={() => setOpenCheckoutModal(false)}
           onFinish={async (customerData) => {
             await finalizarVenta({
@@ -495,9 +509,11 @@ const ProductDropdown = styled.div`
 const DropItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+
   padding: 10px 16px;
+
   cursor: pointer;
+
   transition: background 0.12s;
 
   &:hover {
@@ -506,27 +522,115 @@ const DropItem = styled.div`
 `;
 
 const DropCode = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+
   font-size: 12px;
   color: #94a3b8;
-  width: 70px;
-  flex-shrink: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const DropName = styled.span`
-  flex: 1;
+  width: 180px;
+  flex-shrink: 0;
+
   font-size: 14px;
   font-weight: 500;
   color: #0f172a;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
+const DropCantidad = styled.span`
+  width: 60px;
+  flex-shrink: 0;
+
+  text-align: left;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+`;
+
 const DropPrice = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+
+  text-align: left;
+
   font-size: 14px;
   font-weight: 600;
   color: #fb0404;
+`;
+const DropHeader = styled.div`
+  display: flex;
+  align-items: center;
+
+  padding: 10px 16px;
+
+  border-bottom: 1px solid #e2e8f0;
+
+  background: #f8fafc;
+
+  position: sticky;
+  top: 0;
+
+  z-index: 2;
+`;
+const DropHeaderCode = styled.span`
+  width: 80px;
   flex-shrink: 0;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #64748b;
+`;
+const DropHeaderName = styled.span`
+  width: 180px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #64748b;
 `;
 
+const DropHeaderQty = styled.span`
+  width: 60px;
+  flex-shrink: 0;
+
+  text-align: left;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #64748b;
+`;
+const DropHeaderPrice = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+
+  text-align: left;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #64748b;
+`;
+const CustomerEmpty = styled.div`
+    padding: 20px;
+
+    text-align: center;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: #94a3b8;
+`;
 export default Cart;

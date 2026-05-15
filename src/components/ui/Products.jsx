@@ -446,4 +446,55 @@ export const FieldLabel = styled.label`
   font-weight: 700;
   color: #475569;
   margin-left: 4px;
+`; 
+/* =========================================================
+   TOTAL BAR
+========================================================= */
+
+export const TotalBar = styled.div`
+  width: 100%;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  
+  gap: 16px;
+
+  padding: 18px 26px;
+
+  border-radius: 24px;
+
+  background: rgba(255, 255, 255, 0.78);
+
+  border: 1px solid rgba(255, 255, 255, 0.7);
+
+  backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 10px 35px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+  @media (max-width: 768px) {
+    justify-content: space-between;
+    padding: 16px 18px;
+  }
+`;
+
+export const TotalLabel = styled.span`
+  font-size: 20px;
+  margin-top: 10px;
+  font-weight: 700;
+  color: #64748b;
+`;
+
+export const TotalValue = styled.span`
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+
+  color: #0f172a;
+
+  @media (max-width: 768px) {
+    font-size: 22px;
+  }
 `;

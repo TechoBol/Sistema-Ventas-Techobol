@@ -6,11 +6,11 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products"
 import Cart from "./pages/Cart";
+import Receipts from "./pages/Receipts";
 import Customer from "./pages/Customer";
 
 function App() {
   const { isLoggedIn } = useLoginStore();
-
   return (
     <>
       <GlobalStyle />
@@ -19,18 +19,16 @@ function App() {
           path="/login"
           element={isLoggedIn ? <Navigate to="/dashboard" /> : <Login />}
         />
-
         {isLoggedIn && (
           <>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/receipts" element={<Receipts/>} />
             <Route path="/customer" element={<Customer />} />
           </>
         )}
-
         {!isLoggedIn && <Route path="*" element={<Navigate to="/login" />} />}
-
         {isLoggedIn && (
           <Route path="*" element={<Navigate to="/dashboard" />} />
         )}
