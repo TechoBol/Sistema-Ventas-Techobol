@@ -9,6 +9,7 @@ export const PageContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
+  padding: 28px 32px;
   gap: 28px;
 `;
 
@@ -19,7 +20,6 @@ export const PageContainer = styled.div`
 export const PageHeader = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 22px;
 `;
 
 export const HeaderTop = styled.div`
@@ -46,28 +46,25 @@ export const HeaderContent = styled.div`
   gap: 5px;
 `;
 
+// titulo y fecha
+export const HeaderTitle = styled.header`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 22px;
+`;
+
 export const Title = styled.h1`
   margin: 0;
-
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-
-  color: #0f172a;
-  line-height: 1;
-
-  @media (max-width: 768px) {
-    font-size: 28px;
-  }
+  font-size: 26px;
+  font-weight: 700;
+  color: ${theme.colors.text};
 `;
 
 export const Subtitle = styled.p`
+  font-size: 13px;
+  color: ${theme.colors.textSecondary};
   margin: 0;
-
-  font-size: 14px;
-  font-weight: 500;
-
-  color: #64748b;
 `;
 
 export const BackButton = styled.button`
@@ -112,7 +109,7 @@ export const TopActions = styled.div`
 
   gap: 18px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 700px) {
     flex-direction: column;
     align-items: stretch;
   }
@@ -125,7 +122,7 @@ export const SearchWrapper = styled.div`
 export const SearchInput = styled.input`
   width: 100%;
   max-width: 380px;
-  height: 50px;
+  height: 42px;
 
   border: 1px solid #e5e7eb;
   border-radius: 20px;
@@ -196,7 +193,7 @@ export const AddButton = styled.button`
     transform: scale(0.98);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 700px) {
     width: 100%;
   }
 `;
@@ -515,24 +512,6 @@ export const Button = styled.button`
 
   @media (max-width: 768px) {
     width: 100%;
-  }
-`;
-
-export const ActionButton = styled.button`
-  width: 36px;
-  height: 36px;
-
-  border: none;
-  background: transparent;
-  color: ${theme.colors.primary};
-  border-radius: 50%;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(255, 31, 31, 0.08);
-    transform: scale(1.08);
   }
 `;
 

@@ -43,6 +43,10 @@ export const MenuButton = styled.button`
     justify-content: center;
 
     cursor: pointer;
+
+    &:hover {
+      background: #f8fafc;
+    }
   }
 `;
 

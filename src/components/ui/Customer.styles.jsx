@@ -4,8 +4,7 @@ import { theme } from "./Theme";
 export const PageSurface = styled.section`
   width: 100%;
   min-height: calc(100dvh - 90px);
-  background: ${theme.colors.backgroundSoft};
-  padding: 42px 48px;
+  padding: 28px 32px;
   box-sizing: border-box;
 
   @media (max-width: 900px) {
@@ -18,7 +17,7 @@ export const PageWrapper = styled.div`
 `;
 
 // titulo y fecha
-export const PageHeader = styled.header`
+export const HeaderTitle = styled.header`
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -74,67 +73,8 @@ export const SearchInput = styled.input`
   }
 `;
 
-export const CustomerName = styled.span`
+export const ErrorMessage = styled.p`
+  margin: 0 0 16px;
+  color: ${theme.colors.error};
   font-weight: 600;
-  color: #06132b;
-`;
-
-export const CustomerCode = styled.span`
-  color: #7f91b1;
-  font-weight: 500;
-`;
-
-export const ActionsGroup = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-`;
-
-export const IconButton = styled.button`
-  width: 34px;
-  height: 34px;
-
-  border: 1px solid #edf0f5;
-  border-radius: 50%;
-  background: ${theme.colors.background};
-  color: #30425f;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  cursor: pointer;
-
-  transition:
-    color 0.18s ease,
-    background 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease;
-
-  &:hover {
-    color: ${theme.colors.primary};
-    background: #fff3f4;
-    border-color: #ffd2d6;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: scale(0.96);
-  }
-`;
-
-export const LocationButton = styled(IconButton)`
-  color: ${({ $active }) => ($active ? theme.colors.primary : "#9cabc1")};
-  background: ${({ $active }) => ($active ? "#fff3f4" : "#f8fafc")};
-  border-color: ${({ $active }) => ($active ? "#ffd2d6" : "#edf0f5")};
-  opacity: ${({ $active }) => ($active ? 1 : 0.7)};
-  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
-
-  &:hover {
-    color: ${({ $active }) => ($active ? theme.colors.primary : "#9cabc1")};
-    background: ${({ $active }) => ($active ? "#fff3f4" : "#f8fafc")};
-    border-color: ${({ $active }) => ($active ? "#ffd2d6" : "#edf0f5")};
-    transform: ${({ disabled }) => (disabled ? "none" : "translateY(-1px)")};
-  }
 `;

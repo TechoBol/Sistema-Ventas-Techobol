@@ -14,7 +14,11 @@ import {
   Settings,
   UserCog,
   X,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import MenuIcon from "@mui/icons-material/Menu";
 
 import { NavLink } from "react-router-dom";
 
@@ -24,16 +28,17 @@ import {
   Brand,
   BrandText,
   CloseButton,
+  CollapseButton,
   NavContent,
   NavSection,
   SectionTitle,
   NavItem,
+  NavItemText,
 } from "../ui/layout/Sidebar.styles";
 
 const sidebarSections = [
   {
     title: "Inicio",
-
     items: [
       {
         label: "Dashboard",
@@ -42,17 +47,14 @@ const sidebarSections = [
       },
     ],
   },
-
   {
     title: "Inventario",
-
     items: [
       {
         label: "Productos",
         icon: Package,
         path: "/products",
       },
-
       {
         label: "Kardex FV",
         icon: ClipboardList,
@@ -60,23 +62,19 @@ const sidebarSections = [
       },
     ],
   },
-
   {
     title: "Ventas",
-
     items: [
       {
         label: "Carrito de Venta",
         icon: ShoppingCart,
         path: "/cart",
       },
-
       {
         label: "Comprobantes",
         icon: ReceiptText,
         path: "/receipts",
       },
-
       {
         label: "Matriz de Ventas",
         icon: ClipboardMinus,
@@ -84,35 +82,29 @@ const sidebarSections = [
       },
     ],
   },
-
   {
     title: "Administración",
-
     items: [
       {
         label: "Márgenes y Utilidades",
         icon: BarChart3,
         path: "/profits",
       },
-
       {
         label: "Clientes",
         icon: Users,
         path: "/customer",
       },
-
       {
         label: "Reportes de Ventas",
         icon: BarChart3,
         path: "/sales-reports",
       },
-
       {
         label: "Sucursales",
         icon: Building2,
         path: "/locations",
       },
-
       {
         label: "Transferencias",
         icon: Truck,
@@ -120,17 +112,14 @@ const sidebarSections = [
       },
     ],
   },
-
   {
     title: "Configuración",
-
     items: [
       {
         label: "Usuarios",
         icon: UserCog,
         path: "/users",
       },
-
       {
         label: "Sistema",
         icon: Settings,
@@ -142,16 +131,32 @@ const sidebarSections = [
 
 function Sidebar({
   isOpen,
+  isCollapsed,
   onClose,
+  onToggleCollapse,
 }) {
   return (
-    <SidebarWrapper $isOpen={isOpen}>
-      <SidebarHeader>
+    <SidebarWrapper $isOpen={isOpen} $isCollapsed={isCollapsed}>
+      <SidebarHeader $isCollapsed={isCollapsed}>
         <Brand>
-          <BrandText>
-            Megadis
-          </BrandText>
+          {!isCollapsed && (
+            <BrandText>
+              Megadis
+            </BrandText>
+          )}
         </Brand>
+
+        <CollapseButton
+          type="button"
+          onClick={onToggleCollapse}
+          title={isCollapsed ? "Expandir menú" : "Contraer menú"}
+        >
+          {isCollapsed ? (
+            <MenuIcon size={18} />
+          ) : (
+            <MenuOpenIcon size={18} />
+          )}
+        </CollapseButton>
 
         <CloseButton
           type="button"
@@ -164,66 +169,59 @@ function Sidebar({
       <NavContent>
         {sidebarSections.map((section) => (
           <NavSection key={section.title}>
-            <SectionTitle>
-              {section.title}
-            </SectionTitle>
+            {!isCollapsed && (
+              <SectionTitle>
+                {section.title}
+              </SectionTitle>
+            )}
 
-            {section.items.map(
-              ({
-                label,
-                icon: Icon,
-                path,
-              }) => {
-                // Si no tiene path no renderiza link
-                if (!path) {
-                  return (
+            {section.items.map(({ label, icon: Icon, path }) => {
+              if (!path) {
+                return (
+                  <NavItem
+                    key={label}
+                    $active={false}
+                    $isCollapsed={isCollapsed}
+                    title={isCollapsed ? label : undefined}
+                  >
+                    <Icon size={18} />
+
+                    {!isCollapsed && (
+                      <NavItemText>{label}</NavItemText>
+                    )}
+                  </NavItem>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={label}
+                  to={path}
+                  style={{
+                    textDecoration: "none",
+                  }}
+                >
+                  {({ isActive }) => (
                     <NavItem
-                      key={label}
-                      $active={false}
+                      $active={isActive}
+                      $isCollapsed={isCollapsed}
+                      title={isCollapsed ? label : undefined}
+                      onClick={() => {
+                        if (window.innerWidth < 900) {
+                          onClose?.();
+                        }
+                      }}
                     >
                       <Icon size={18} />
 
-                      <span>{label}</span>
+                      {!isCollapsed && (
+                        <NavItemText>{label}</NavItemText>
+                      )}
                     </NavItem>
-                  );
-                }
-
-                return (
-                  <NavLink
-                    key={label}
-                    to={path}
-                    style={{
-                      textDecoration:
-                        "none",
-                    }}
-                  >
-                    {({
-                      isActive,
-                    }) => (
-                      <NavItem
-                        $active={
-                          isActive
-                        }
-                        onClick={() => {
-                          if (
-                            window.innerWidth <
-                            900
-                          ) {
-                            onClose?.();
-                          }
-                        }}
-                      >
-                        <Icon size={18} />
-
-                        <span>
-                          {label}
-                        </span>
-                      </NavItem>
-                    )}
-                  </NavLink>
-                );
-              },
-            )}
+                  )}
+                </NavLink>
+              );
+            })}
           </NavSection>
         ))}
       </NavContent>

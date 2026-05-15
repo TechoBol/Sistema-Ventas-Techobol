@@ -4,8 +4,11 @@ import { theme } from "../Theme";
 export const LayoutWrapper = styled.div`
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 260px 1fr;
-  background: ${theme.colors.background};
+  grid-template-columns: ${({ $isCollapsed }) =>
+    $isCollapsed ? "76px 1fr" : "260px 1fr"};
+  background: ${theme.colors.backgroundSoft};
+
+  transition: grid-template-columns 0.25s ease;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;

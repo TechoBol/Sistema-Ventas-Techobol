@@ -2,12 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 
 import {
   Bell,
-  Menu,
   ChevronDown,
   User,
   LogOut,
 } from "lucide-react";
-
+import MenuIcon from "@mui/icons-material/Menu";
 import {
   TopbarWrapper,
   LeftActions,
@@ -67,7 +66,7 @@ function Topbar({ onOpenSidebar }) {
     <TopbarWrapper>
       <LeftActions>
         <MenuButton type="button" onClick={onOpenSidebar}>
-          <Menu size={22} />
+          <MenuIcon size={22} />
         </MenuButton>
       </LeftActions>
 

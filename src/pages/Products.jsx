@@ -1,109 +1,96 @@
-import React, { useState } from "react";
-
-import { DataGrid } from "@mui/x-data-grid";
-
+import React, { useMemo, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
-
 import ProductForm from "../components/forms/ProductForm";
-
+import DataTable from "../components/table/DataTable";
 import useInventory from "../hooks/useInventory";
-
 import {
   PageContainer,
   PageHeader,
+  HeaderTitle,
   Title,
+  Subtitle,
   AddButton,
-  TableContainer,
   SearchInput,
   TopActions,
   SearchWrapper,
-  ActionButton,
 } from "../components/ui/Products";
 import { Pencil, Plus } from "lucide-react";
 
+const fechaHoy = () =>
+  new Date().toLocaleDateString("es-BO", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
 function Products() {
   const [showForm, setShowForm] = useState(false);
-
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const { products, search, onFilterTextBoxChanged, isLoading } =
     useInventory();
 
-  const columns = [
-    {
-      field: "code",
-      headerName: "Código",
-      flex: 1,
-      minWidth: 110,
-    },
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setShowForm(true);
+  };
 
-    {
-      field: "name",
-      headerName: "Nombre",
-      flex: 1.5,
-      minWidth: 110,
-    },
-    {
-      field: "line",
-      headerName: "Marca",
-      flex: 1.2,
-      minWidth: 110,
+  const columns = useMemo(
+    () => [
+      {
+        field: "code",
+        headerName: "Código",
+        flex: 1,
+      },
+      {
+        field: "name",
+        headerName: "Nombre",
+        flex: 1.5,
+      },
+      {
+        field: "line",
+        headerName: "Línea",
+        flex: 1.2,
+        valueGetter: (_, row) => row?.line?.name || "-",
+      },
+      {
+        field: "brandName",
+        headerName: "Marca",
+        flex: 1.2,
+      },
+      {
+        field: "price",
+        headerName: "Costo",
+        flex: 1,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
+      },
+      {
+        field: "finalPrice",
+        headerName: "Venta",
+        flex: 1,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
+      },
+      {
+        field: "stockTotal",
+        headerName: "Stock",
+        flex: 0.8,
+      },
+    ],
+    []
+  );
 
-      valueGetter: (_, row) => row?.line?.name || "-",
-    },
-
-    {
-      field: "brandName",
-      headerName: "Linea",
-      flex: 1.2,
-      minWidth: 110,
-    },
-
-    {
-      field: "price",
-      headerName: "Costo",
-      flex: 1,
-      minWidth: 110,
-
-      valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
-    },
-
-    {
-      field: "finalPrice",
-      headerName: "Venta",
-      flex: 1,
-      minWidth: 110,
-
-      valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
-    },
-
-    {
-      field: "stockTotal",
-      headerName: "Stock",
-      flex: 0.8,
-      minWidth: 110,
-    },
-
-    {
-      field: "actions",
-      headerName: "",
-      width: 120,
-      sortable: false,
-      filterable: false,
-
-      renderCell: (params) => (
-        <ActionButton
-          title="Editar producto"
-          onClick={() => {
-            setSelectedProduct(params.row);
-            setShowForm(true);
-          }}
-        >
-          <Pencil size={20} strokeWidth={2.3} />
-        </ActionButton>
-      ),
-    },
-  ];
+  const actions = useMemo(
+    () => [
+      {
+        key: "edit",
+        title: "Editar producto",
+        icon: Pencil,
+        onClick: handleEditProduct,
+      },
+    ],
+    []
+  );
 
   return (
     <AppLayout>
@@ -111,7 +98,11 @@ function Products() {
         {!showForm ? (
           <>
             <PageHeader>
-              <Title>Productos</Title>
+              {/* titulo y fecha */}
+              <HeaderTitle>
+                <Title>Productos</Title>
+                <Subtitle>{fechaHoy()}</Subtitle>
+              </HeaderTitle>
 
               <TopActions>
                 <SearchWrapper>
@@ -123,6 +114,7 @@ function Products() {
                 </SearchWrapper>
 
                 <AddButton
+                  type="button"
                   onClick={() => {
                     setSelectedProduct(null);
                     setShowForm(true);
@@ -134,20 +126,16 @@ function Products() {
               </TopActions>
             </PageHeader>
 
-            <TableContainer>
-              <DataGrid
-                rows={products || []}
-                columns={columns}
-                loading={isLoading}
-                autoHeight
-                disableRowSelectionOnClick
-                hideFooter
-                getRowId={(row) => row.id}
-                localeText={{
-                  noRowsLabel: "No hay productos registrados",
-                }}
-              />
-            </TableContainer>
+            <DataTable
+              rows={products || []}
+              columns={columns}
+              actions={actions}
+              loading={isLoading}
+              getRowId={(row) => row.id}
+              pageSize={7}
+              pageSizeOptions={[7, 10, 20]}
+              noRowsLabel="No hay productos registrados"
+            />
           </>
         ) : (
           <ProductForm
