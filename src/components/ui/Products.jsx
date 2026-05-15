@@ -515,3 +515,72 @@ export const ActionButton = styled.button`
     transform: scale(1.08);
   }
 `;
+export const TableContainer = styled.div`
+  width: 100%;
+  height: 600px;
+
+  background: rgba(255, 255, 255, 0.78);
+
+  border: 1px solid rgba(255, 255, 255, 0.7);
+
+  border-radius: 30px;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 10px 35px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+  .MuiDataGrid-root {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+  }
+
+  .MuiDataGrid-columnHeaders {
+    background: transparent;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .MuiDataGrid-columnHeaderTitle {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 13px;
+  }
+
+  .MuiDataGrid-cell {
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
+    font-size: 14px;
+  }
+
+  .MuiDataGrid-row:hover {
+    background: rgba(248, 250, 252, 0.75);
+  }
+
+  .MuiDataGrid-columnSeparator {
+    display: none;
+  }
+
+  .MuiDataGrid-cell:focus,
+  .MuiDataGrid-columnHeader:focus,
+  .MuiDataGrid-cell:focus-within,
+  .MuiDataGrid-columnHeader:focus-within {
+    outline: none;
+  }
+
+  /* FOOTER PAGINACIÓN */
+  .MuiDataGrid-footerContainer {
+    border-top: 1px solid #e5e7eb;
+    min-height: 56px;
+  }
+
+  .MuiTablePagination-root {
+    color: #475569;
+    font-size: 14px;
+  }
+`;
