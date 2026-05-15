@@ -98,7 +98,7 @@ const sidebarSections = [
       {
         label: "Clientes",
         icon: Users,
-        path: "/clients",
+        path: "/customer",
       },
 
       {

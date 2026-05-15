@@ -8,6 +8,14 @@ import { useSales } from "../hooks/useSale";
 
 import { useAmazonS3 } from "../hooks/useAmazonS3";
 
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
+import { FaTrash } from "react-icons/fa";
 import {
   PageContainer,
   PageHeader,
@@ -191,22 +199,62 @@ function Receipts() {
   // =====================================================
   // FILTER
   // =====================================================
+  const [startDate, setStartDate] = useState(null);
+
+  const [endDate, setEndDate] = useState(null);
 
   const filteredRows = useMemo(() => {
-    if (!search) return data || [];
-
-    const text = search.toLowerCase();
-
     return (data || []).filter((sale) => {
-      return (
-        sale?.code?.toLowerCase()?.includes(text) ||
-        sale?.customer?.name?.toLowerCase()?.includes(text) ||
-        sale?.customer?.nitCi?.toLowerCase()?.includes(text) ||
-        sale?.employee?.name?.toLowerCase()?.includes(text) ||
-        sale?.location?.name?.toLowerCase()?.includes(text)
-      );
+      // =====================================================
+      // FILTRO TEXTO
+      // =====================================================
+
+      if (search) {
+        const q = search.trim().toLowerCase();
+
+        const matchCode = sale?.code?.toLowerCase()?.includes(q);
+
+        const matchCliente = sale?.customer?.name?.toLowerCase()?.includes(q);
+
+        const matchNit = sale?.customer?.nitCi?.toLowerCase()?.includes(q);
+
+        const matchEmpleado = sale?.employee?.name?.toLowerCase()?.includes(q);
+
+        const matchSucursal = sale?.location?.name?.toLowerCase()?.includes(q);
+
+        const matchTipo = sale?.typeSale?.trim()?.toLowerCase()?.includes(q);
+
+        if (
+          !matchCode &&
+          !matchCliente &&
+          !matchNit &&
+          !matchEmpleado &&
+          !matchSucursal &&
+          !matchTipo
+        ) {
+          return false;
+        }
+      }
+
+      // =====================================================
+      // FILTRO FECHAS
+      // =====================================================
+
+      if (sale?.date) {
+        const saleDate = dayjs(sale.date);
+
+        if (startDate && saleDate.isBefore(startDate, "day")) {
+          return false;
+        }
+
+        if (endDate && saleDate.isAfter(endDate, "day")) {
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [data, search]);
+  }, [data, search, startDate, endDate]);
 
   // =====================================================
   // COLUMNS
@@ -346,6 +394,63 @@ function Receipts() {
                 placeholder="Buscar venta..."
               />
             </SearchWrapper>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+              <DatePicker
+                label="Desde"
+                value={startDate}
+                onChange={(value) => setStartDate(value)}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: {
+                      width: "150px",
+
+                      "& .MuiOutlinedInput-root": {
+                        height: "40px",
+                        borderRadius: "10px",
+                      },
+                    },
+                  },
+                }}
+              />
+
+              <DatePicker
+                label="Hasta"
+                value={endDate}
+                onChange={(value) => setEndDate(value)}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: {
+                      width: "150px",
+
+                      "& .MuiOutlinedInput-root": {
+                        height: "40px",
+                        borderRadius: "10px",
+                      },
+                    },
+                  },
+                }}
+              />
+
+              <button
+                onClick={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <FaTrash size={16} color="#999" />
+              </button>
+            </LocalizationProvider>
           </TopActions>
         </PageHeader>
 

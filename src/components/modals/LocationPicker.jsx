@@ -1,12 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
   MapContainer,
   TileLayer,
   Marker,
   useMapEvents,
+  useMap,
 } from "react-leaflet";
 
-const LocationMarker = ({ position, setPosition, onConfirm }) => {
+// =====================================================
+// 🔥 MOVER MAPA
+// =====================================================
+
+const ChangeMapView = ({ center }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (center) {
+      map.setView(center, 16);
+    }
+  }, [center]);
+
+  return null;
+};
+
+// =====================================================
+// 🔥 MARKER
+// =====================================================
+
+const LocationMarker = ({
+  position,
+  setPosition,
+  onConfirm,
+}) => {
   useMapEvents({
     click(e) {
       const coords = {
@@ -20,11 +46,32 @@ const LocationMarker = ({ position, setPosition, onConfirm }) => {
     },
   });
 
-  return position ? <Marker position={position} /> : null;
+  return position ? (
+    <Marker position={position} />
+  ) : null;
 };
 
-const LocationPicker = ({ onConfirm }) => {
-  const [position, setPosition] = useState(null);
+// =====================================================
+// 🔥 COMPONENTE
+// =====================================================
+
+const LocationPicker = ({
+  onConfirm,
+  value,
+}) => {
+  const [position, setPosition] =
+    useState(null);
+
+  // 🔥 sincronizar desde afuera
+
+  useEffect(() => {
+    if (
+      value?.lat &&
+      value?.lng
+    ) {
+      setPosition(value);
+    }
+  }, [value]);
 
   return (
     <div
@@ -36,14 +83,24 @@ const LocationPicker = ({ onConfirm }) => {
       }}
     >
       <MapContainer
-        center={[-17.3935, -66.157]}
+        center={
+          position || [
+            -17.3935,
+            -66.157,
+          ]
+        }
         zoom={13}
-        style={{ height: "100%", width: "100%" }}
+        style={{
+          height: "100%",
+          width: "100%",
+        }}
       >
         <TileLayer
           attribution="&copy; OpenStreetMap"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        <ChangeMapView center={position} />
 
         <LocationMarker
           position={position}
