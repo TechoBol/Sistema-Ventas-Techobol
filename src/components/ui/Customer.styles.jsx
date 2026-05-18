@@ -42,7 +42,7 @@ export const SearchBox = styled.div`
   width: 320px;
   height: 42px;
   padding: 0 16px;
-  margin-bottom: 24px;
+  //margin-bottom: 24px;
 
   border-radius: 22px;
   background: ${theme.colors.background};
@@ -89,31 +89,11 @@ export const Toolbar = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 14px;
+  margin-bottom: 24px;
 
   @media (max-width: 700px) {
     flex-direction: column;
     align-items: stretch;
-  }
-`;
-
-export const ToolbarLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  @media (max-width: 700px) {
-    width: 100%;
-  }
-`;
-
-export const ToolbarRight = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  @media (max-width: 700px) {
-    width: 100%;
   }
 `;
 
@@ -163,7 +143,7 @@ export const FilterButton = styled.button`
 
 export const PrimaryActionButton = styled.button`
   height: 42px;
-  padding: 0 18px;
+  padding: 0 16px;
 
   border: none;
   border-radius: 22px;

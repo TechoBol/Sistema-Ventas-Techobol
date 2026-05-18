@@ -18,8 +18,6 @@ import {
   SearchBox,
   SearchInput,
   Toolbar,
-  ToolbarLeft,
-  ToolbarRight,
   FilterButtonGroup,
   FilterButton,
   PrimaryActionButton,
@@ -192,27 +190,23 @@ function Transfer() {
           </HeaderTitle>
 
           <Toolbar>
-            <ToolbarLeft>
-              <SearchBox>
-                <Search size={18} />
-                <SearchInput
-                  type="text"
-                  placeholder="Buscar"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                />
-              </SearchBox>
-            </ToolbarLeft>
+            <SearchBox>
+              <Search size={18} />
+              <SearchInput
+                type="text"
+                placeholder="Buscar"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </SearchBox>
 
-            <ToolbarRight>
-              <PrimaryActionButton
-                type="button"
-                onClick={handleCreateTransfer}
-              >
-                <Send size={18} />
-                Realizar transferencia
-              </PrimaryActionButton>
-            </ToolbarRight>
+            <PrimaryActionButton
+              type="button"
+              onClick={handleCreateTransfer}
+            >
+              <Send size={18} />
+              Realizar transferencia
+            </PrimaryActionButton>
           </Toolbar>
 
           <FilterButtonGroup>

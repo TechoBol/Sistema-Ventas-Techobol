@@ -106,12 +106,11 @@ export const BackButton = styled.button`
 
 export const TopActions = styled.div`
   width: 100%;
-
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-
-  gap: 18px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
 
   @media (max-width: 700px) {
     flex-direction: column;
@@ -120,71 +119,60 @@ export const TopActions = styled.div`
 `;
 
 export const SearchWrapper = styled.div`
-  flex: 1;
+  width: 320px;
+  height: 42px;
+  padding: 0 16px;
+  //margin-bottom: 24px;
+
+  border-radius: 22px;
+  background: ${theme.colors.background};
+  color: ${theme.colors.textMuted};
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+
+  @media (max-width: 700px) {
+    width: 100%;
+  }
 `;
 
 export const SearchInput = styled.input`
   width: 100%;
-  max-width: 380px;
-  height: 42px;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
-
-  padding: 0 20px;
-
-  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  outline: none;
+  background: transparent;
 
   font-size: 14px;
-  font-weight: 500;
-
-  color: #0f172a;
-
-  outline: none;
-  box-sizing: border-box;
-
-  transition: all 0.2s ease;
-
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+  color: ${theme.colors.textPrimary};
 
   &::placeholder {
-    color: #94a3b8;
-  }
-
-  &:focus {
-    background: white;
-    border-color: #d1d5db;
-    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.04);
-  }
-
-  @media (max-width: 768px) {
-    max-width: 100%;
+    color: ${theme.colors.textMuted};
   }
 `;
 
 export const AddButton = styled.button`
-  height: 40px;
+  height: 42px;
+  padding: 0 16px;
 
   border: none;
-  border-radius: 20px;
-
-  padding: 0 24px;
+  border-radius: 22px;
 
   background: ${theme.colors.primary};
-  color: white;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  white-space: nowrap;
+  color: ${theme.colors.background};
 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+
+  font-size: 14px;
+  font-weight: 700;
 
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 
   box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
 
@@ -200,6 +188,12 @@ export const AddButton = styled.button`
   @media (max-width: 700px) {
     width: 100%;
   }
+`;
+
+export const FiltersGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
 `;
 
 export const ClearFiltersButton = styled.button`

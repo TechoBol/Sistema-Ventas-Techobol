@@ -19,7 +19,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import PrintIcon from "@mui/icons-material/Print";
 
 import { FaTrash } from "react-icons/fa";
-import { FileText } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 
 import { Document, Page, pdfjs } from "react-pdf";
 
@@ -34,6 +34,7 @@ import {
   Subtitle,
   SearchInput,
   TopActions,
+  FiltersGroup,
   SearchWrapper,
   TotalBar,
   TotalLabel,
@@ -322,6 +323,7 @@ function Receipts() {
 
           <TopActions>
             <SearchWrapper>
+              <Search size={18} />
               <SearchInput
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -329,6 +331,7 @@ function Receipts() {
               />
             </SearchWrapper>
 
+            <FiltersGroup>
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
               <DatePicker
                 label="Desde"
@@ -377,6 +380,7 @@ function Receipts() {
                 <FaTrash size={16} />
               </ClearFiltersButton>
             </LocalizationProvider>
+            </FiltersGroup>
           </TopActions>
         </PageHeader>
 

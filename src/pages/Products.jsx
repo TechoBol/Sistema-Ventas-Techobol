@@ -14,7 +14,7 @@ import {
   TopActions,
   SearchWrapper,
 } from "../components/ui/Products";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Search } from "lucide-react";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {
@@ -106,6 +106,7 @@ function Products() {
 
               <TopActions>
                 <SearchWrapper>
+                  <Search size={18} />
                   <SearchInput
                     value={search}
                     onChange={onFilterTextBoxChanged}
