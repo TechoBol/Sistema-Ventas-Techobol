@@ -9,6 +9,7 @@ export const TableContainer = styled.div`
   border-radius: 18px;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
   overflow: hidden;
+  padding: 0px 20px;
 
   .MuiDataGrid-root {
     min-height: 420px;

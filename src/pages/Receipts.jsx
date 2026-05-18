@@ -1,11 +1,9 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
-
-import { DataGrid } from "@mui/x-data-grid";
+import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 
 import AppLayout from "../components/layout/AppLayout";
+import DataTable from "../components/table/DataTable";
 
 import { useSales } from "../hooks/useSale";
-
 import { useAmazonS3 } from "../hooks/useAmazonS3";
 
 import dayjs from "dayjs";
@@ -15,36 +13,41 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-import { FaTrash } from "react-icons/fa";
-import {
-  PageContainer,
-  PageHeader,
-  Title,
-  TableContainer,
-  SearchInput,
-  TopActions,
-  SearchWrapper,
-  ActionButton,
-  TotalBar,
-  TotalLabel,
-  TotalValue,
-} from "../components/ui/Products";
-
-import { Eye, FileText, Pencil } from "lucide-react";
-
 import { Dialog, DialogContent, IconButton } from "@mui/material";
-
 import CloseIcon from "@mui/icons-material/Close";
-
 import DownloadIcon from "@mui/icons-material/Download";
-
 import PrintIcon from "@mui/icons-material/Print";
+
+import { FaTrash } from "react-icons/fa";
+import { FileText } from "lucide-react";
 
 import { Document, Page, pdfjs } from "react-pdf";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
-
 import "react-pdf/dist/Page/TextLayer.css";
+
+import {
+  PageContainer,
+  PageHeader,
+  HeaderTitle,
+  Title,
+  Subtitle,
+  SearchInput,
+  TopActions,
+  SearchWrapper,
+  TotalBar,
+  TotalLabel,
+  TotalValue,
+  ClearFiltersButton,
+} from "../components/ui/Products";
+
+const fechaHoy = () =>
+  new Date().toLocaleDateString("es-BO", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
 // =====================================================
 // PDF WORKER
@@ -54,24 +57,19 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 function Receipts() {
   const { data } = useSales();
-
   const { getFileUrl } = useAmazonS3();
 
-  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
 
-  // =====================================================
-  // PDF STATES
-  // =====================================================
+  const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const [openPdf, setOpenPdf] = useState(false);
-
   const [pdfBlobUrl, setPdfBlobUrl] = useState("");
-
   const [numPages, setNumPages] = useState(null);
-
   const [pageWidth, setPageWidth] = useState(600);
-
-  const containerRef = useRef(null);
+  const [currentCode, setCurrentCode] = useState("");
 
   // =====================================================
   // RESPONSIVE PDF
@@ -87,7 +85,6 @@ function Receipts() {
     };
 
     updateWidth();
-
     window.addEventListener("resize", updateWidth);
 
     return () => {
@@ -96,132 +93,19 @@ function Receipts() {
   }, [openPdf]);
 
   // =====================================================
-  // VIEW PDF
-  // =====================================================
-
-  const handleViewPDF = async (key, code) => {
-    try {
-      console.log("KEY:", key);
-
-      const signedUrl = await getFileUrl(key);
-
-      const response = await fetch(signedUrl);
-
-      if (!response.ok) {
-        throw new Error("No se pudo descargar PDF");
-      }
-
-      const blob = await response.blob();
-
-      const blobUrl = URL.createObjectURL(blob);
-
-      setPdfBlobUrl(blobUrl);
-
-      setCurrentCode(code);
-
-      setOpenPdf(true);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // =====================================================
-  // CLOSE PDF
-  // =====================================================
-
-  const handleClosePdf = () => {
-    setOpenPdf(false);
-
-    if (pdfBlobUrl) {
-      URL.revokeObjectURL(pdfBlobUrl);
-    }
-
-    setPdfBlobUrl("");
-
-    setNumPages(null);
-  };
-
-  // =====================================================
-  // PDF LOAD SUCCESS
-  // =====================================================
-
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    console.log("PDF PAGES:", numPages);
-
-    setNumPages(numPages);
-  };
-
-  // =====================================================
-  // DOWNLOAD PDF
-  // =====================================================
-  const [currentCode, setCurrentCode] = useState("");
-
-  const handleDownloadPdf = () => {
-    const a = document.createElement("a");
-
-    a.href = pdfBlobUrl;
-
-    a.download = `${currentCode}.pdf`;
-
-    a.click();
-  };
-
-  // =====================================================
-  // PRINT PDF
-  // =====================================================
-
-  const handlePrintPdf = () => {
-    const iframe = document.createElement("iframe");
-
-    iframe.style.position = "fixed";
-
-    iframe.style.right = "0";
-
-    iframe.style.bottom = "0";
-
-    iframe.style.width = "0";
-
-    iframe.style.height = "0";
-
-    iframe.style.border = "0";
-
-    iframe.src = pdfBlobUrl;
-
-    document.body.appendChild(iframe);
-
-    iframe.onload = () => {
-      iframe.contentWindow.focus();
-
-      iframe.contentWindow.print();
-    };
-  };
-
-  // =====================================================
   // FILTER
   // =====================================================
-  const [startDate, setStartDate] = useState(null);
-
-  const [endDate, setEndDate] = useState(null);
 
   const filteredRows = useMemo(() => {
     return (data || []).filter((sale) => {
-      // =====================================================
-      // FILTRO TEXTO
-      // =====================================================
-
       if (search) {
         const q = search.trim().toLowerCase();
 
         const matchCode = sale?.code?.toLowerCase()?.includes(q);
-
         const matchCliente = sale?.customer?.name?.toLowerCase()?.includes(q);
-
         const matchNit = sale?.customer?.nitCi?.toLowerCase()?.includes(q);
-
         const matchEmpleado = sale?.employee?.name?.toLowerCase()?.includes(q);
-
         const matchSucursal = sale?.location?.name?.toLowerCase()?.includes(q);
-
         const matchTipo = sale?.typeSale?.trim()?.toLowerCase()?.includes(q);
 
         if (
@@ -235,10 +119,6 @@ function Receipts() {
           return false;
         }
       }
-
-      // =====================================================
-      // FILTRO FECHAS
-      // =====================================================
 
       if (sale?.date) {
         const saleDate = dayjs(sale.date);
@@ -256,135 +136,189 @@ function Receipts() {
     });
   }, [data, search, startDate, endDate]);
 
-  // =====================================================
-  // COLUMNS
-  // =====================================================
-
-  const columns = [
-    {
-      field: "code",
-      headerName: "Código",
-      flex: 1,
-      minWidth: 130,
-    },
-
-    {
-      field: "customer",
-      headerName: "Cliente",
-      flex: 1.5,
-      minWidth: 180,
-
-      valueGetter: (_, row) => row?.customer?.name || "S/N",
-    },
-
-    {
-      field: "nitCi",
-      headerName: "NIT/CI",
-      flex: 1,
-      minWidth: 130,
-
-      valueGetter: (_, row) => row?.customer?.nitCi || "-",
-    },
-
-    {
-      field: "employee",
-      headerName: "Vendedor",
-      flex: 1.2,
-      minWidth: 160,
-
-      valueGetter: (_, row) =>
-        `${row?.employee?.name || ""} ${row?.employee?.lastName || ""}`,
-    },
-
-    {
-      field: "location",
-      headerName: "Sucursal",
-      flex: 1.2,
-      minWidth: 140,
-
-      valueGetter: (_, row) => row?.location?.name || "-",
-    },
-
-    {
-      field: "typeSale",
-      headerName: "Pago",
-      flex: 1,
-      minWidth: 120,
-    },
-
-    {
-      field: "subtotal",
-      headerName: "Subtotal",
-      flex: 1,
-      minWidth: 120,
-
-      valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
-    },
-
-    {
-      field: "discount",
-      headerName: "Descuento",
-      flex: 1,
-      minWidth: 120,
-
-      valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
-    },
-
-    {
-      field: "total",
-      headerName: "Total",
-      flex: 1,
-      minWidth: 120,
-
-      valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
-    },
-
-    {
-      field: "date",
-      headerName: "Fecha",
-      flex: 1.3,
-      minWidth: 180,
-
-      valueFormatter: (value) => new Date(value).toLocaleString(),
-    },
-
-    {
-      field: "actions",
-      headerName: "",
-      sortable: false,
-      filterable: false,
-      width: 100,
-      align: "center",
-      headerAlign: "center",
-
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <ActionButton
-            title="Ver PDF"
-            onClick={() => handleViewPDF(params.row.pdfUrl, params.row.code)}
-          >
-            <FileText size={20} />
-          </ActionButton>
-        </div>
-      ),
-    },
-  ];
   const totalAmount = useMemo(() => {
     return filteredRows.reduce((acc, row) => acc + Number(row.total || 0), 0);
   }, [filteredRows]);
+
+  // =====================================================
+  // PDF ACTIONS
+  // =====================================================
+
+  const handleViewPDF = useCallback(
+    async (key, code) => {
+      try {
+        if (!key) return;
+
+        const signedUrl = await getFileUrl(key);
+        const response = await fetch(signedUrl);
+
+        if (!response.ok) {
+          throw new Error("No se pudo descargar PDF");
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        setPdfBlobUrl(blobUrl);
+        setCurrentCode(code || "comprobante");
+        setOpenPdf(true);
+      } catch (error) {
+        console.error("Error al abrir PDF:", error);
+      }
+    },
+    [getFileUrl]
+  );
+
+  const handleClosePdf = useCallback(() => {
+    setOpenPdf(false);
+
+    if (pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+    }
+
+    setPdfBlobUrl("");
+    setNumPages(null);
+  }, [pdfBlobUrl]);
+
+  const handleDownloadPdf = useCallback(() => {
+    if (!pdfBlobUrl) return;
+
+    const a = document.createElement("a");
+    a.href = pdfBlobUrl;
+    a.download = `${currentCode || "comprobante"}.pdf`;
+    a.click();
+  }, [pdfBlobUrl, currentCode]);
+
+  const handlePrintPdf = useCallback(() => {
+    if (!pdfBlobUrl) return;
+
+    const iframe = document.createElement("iframe");
+
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.src = pdfBlobUrl;
+
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    };
+  }, [pdfBlobUrl]);
+
+  const onDocumentLoadSuccess = ({ numPages }) => {
+    setNumPages(numPages);
+  };
+
+  // =====================================================
+  // TABLE
+  // =====================================================
+
+  const columns = useMemo(
+    () => [
+      {
+        field: "code",
+        headerName: "Código",
+        flex: 1,
+        minWidth: 130,
+      },
+      {
+        field: "customer",
+        headerName: "Cliente",
+        flex: 1.5,
+        minWidth: 180,
+        valueGetter: (_, row) => row?.customer?.name || "S/N",
+      },
+      {
+        field: "nitCi",
+        headerName: "NIT/CI",
+        flex: 1,
+        minWidth: 130,
+        valueGetter: (_, row) => row?.customer?.nitCi || "-",
+      },
+      {
+        field: "employee",
+        headerName: "Vendedor",
+        flex: 1.2,
+        minWidth: 160,
+        valueGetter: (_, row) =>
+          `${row?.employee?.name || ""} ${row?.employee?.lastName || ""}`.trim() ||
+          "-",
+      },
+      {
+        field: "location",
+        headerName: "Sucursal",
+        flex: 1.2,
+        minWidth: 140,
+        valueGetter: (_, row) => row?.location?.name || "-",
+      },
+      {
+        field: "typeSale",
+        headerName: "Pago",
+        flex: 1,
+        minWidth: 120,
+        valueGetter: (_, row) => row?.typeSale || "-",
+      },
+      {
+        field: "subtotal",
+        headerName: "Subtotal",
+        flex: 1,
+        minWidth: 120,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
+      },
+      {
+        field: "discount",
+        headerName: "Descuento",
+        flex: 1,
+        minWidth: 120,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
+      },
+      {
+        field: "total",
+        headerName: "Total",
+        flex: 1,
+        minWidth: 120,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
+      },
+      {
+        field: "date",
+        headerName: "Fecha",
+        flex: 1.3,
+        minWidth: 180,
+        valueFormatter: (value) => {
+          if (!value) return "-";
+          return new Date(value).toLocaleString();
+        },
+      },
+    ],
+    []
+  );
+
+  const actions = useMemo(
+    () => [
+      {
+        key: "view-pdf",
+        title: "Ver PDF",
+        icon: FileText,
+        onClick: (sale) => handleViewPDF(sale.pdfUrl, sale.code),
+      },
+    ],
+    [handleViewPDF]
+  );
+
   return (
     <AppLayout>
       <PageContainer>
         <PageHeader>
-          <Title>Comprobantes</Title>
+          {/* titulo y fecha */}
+          <HeaderTitle>
+            <Title>Comprobantes</Title>
+            <Subtitle>{fechaHoy()}</Subtitle>
+          </HeaderTitle>
 
           <TopActions>
             <SearchWrapper>
@@ -405,7 +339,6 @@ function Receipts() {
                     size: "small",
                     sx: {
                       width: "150px",
-
                       "& .MuiOutlinedInput-root": {
                         height: "40px",
                         borderRadius: "10px",
@@ -424,7 +357,6 @@ function Receipts() {
                     size: "small",
                     sx: {
                       width: "150px",
-
                       "& .MuiOutlinedInput-root": {
                         height: "40px",
                         borderRadius: "10px",
@@ -434,57 +366,34 @@ function Receipts() {
                 }}
               />
 
-              <button
+              <ClearFiltersButton
+                type="button"
+                title="Limpiar filtros"
                 onClick={() => {
                   setStartDate(null);
                   setEndDate(null);
                 }}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
               >
-                <FaTrash size={16} color="#999" />
-              </button>
+                <FaTrash size={16} />
+              </ClearFiltersButton>
             </LocalizationProvider>
           </TopActions>
         </PageHeader>
 
-        <TableContainer>
-          <DataGrid
-            rows={filteredRows}
-            columns={columns}
-            disableRowSelectionOnClick
-            getRowId={(row) => row.id}
-            // PAGINACIÓN
-            pagination
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 8,
-                },
-              },
-            }}
-            pageSizeOptions={[8, 10, 20, 50]}
-            localeText={{
-              noRowsLabel: "No hay ventas registradas",
-            }}
-          />
-        </TableContainer>
+        <DataTable
+          rows={filteredRows}
+          columns={columns}
+          actions={actions}
+          getRowId={(row) => row.id}
+          pageSize={8}
+          pageSizeOptions={[8, 10, 20, 50]}
+          noRowsLabel="No hay ventas registradas"
+        />
 
         <TotalBar>
-          <TotalLabel>Total General: </TotalLabel>
-
+          <TotalLabel>Total General:</TotalLabel>
           <TotalValue>{totalAmount.toFixed(2)} Bs.</TotalValue>
         </TotalBar>
-
-        {/* ===================================================== */}
-        {/* PDF MODAL */}
-        {/* ===================================================== */}
 
         <Dialog
           open={openPdf}
@@ -514,10 +423,6 @@ function Receipts() {
               position: "relative",
             }}
           >
-            {/* ===================================================== */}
-            {/* BOTONES */}
-            {/* ===================================================== */}
-
             <div
               style={{
                 position: "absolute",
@@ -528,13 +433,10 @@ function Receipts() {
                 zIndex: 1000,
               }}
             >
-              {/* DESCARGAR */}
-
               <IconButton
                 onClick={handleDownloadPdf}
                 sx={{
                   background: "white",
-
                   "&:hover": {
                     background: "#f0f0f0",
                   },
@@ -543,13 +445,10 @@ function Receipts() {
                 <DownloadIcon />
               </IconButton>
 
-              {/* IMPRIMIR */}
-
               <IconButton
                 onClick={handlePrintPdf}
                 sx={{
                   background: "white",
-
                   "&:hover": {
                     background: "#f0f0f0",
                   },
@@ -558,13 +457,10 @@ function Receipts() {
                 <PrintIcon />
               </IconButton>
 
-              {/* CERRAR */}
-
               <IconButton
                 onClick={handleClosePdf}
                 sx={{
                   background: "white",
-
                   "&:hover": {
                     background: "#f0f0f0",
                   },
@@ -573,10 +469,6 @@ function Receipts() {
                 <CloseIcon />
               </IconButton>
             </div>
-
-            {/* ===================================================== */}
-            {/* PDF */}
-            {/* ===================================================== */}
 
             {pdfBlobUrl && (
               <Document

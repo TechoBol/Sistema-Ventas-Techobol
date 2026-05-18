@@ -11,6 +11,10 @@ export const PageContainer = styled.div`
   flex-direction: column;
   padding: 28px 32px;
   gap: 28px;
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
 `;
 
 /* =========================================================
@@ -195,6 +199,33 @@ export const AddButton = styled.button`
 
   @media (max-width: 700px) {
     width: 100%;
+  }
+`;
+
+export const ClearFiltersButton = styled.button`
+  width: 40px;
+  height: 40px;
+
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: ${theme.colors.primary};
+    background: rgba(242, 12, 31, 0.08);
+  }
+
+  @media (max-width: 700px) {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
   }
 `;
 
@@ -391,6 +422,13 @@ export const ErrorText = styled.span`
   color: #dc2626;
 `;
 
+export const FieldLabel = styled.label`
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  margin-left: 4px;
+`;
+
 /* =========================================================
    BUTTONS
 ========================================================= */
@@ -441,12 +479,6 @@ export const Button = styled.button`
   }
 `;
 
-export const FieldLabel = styled.label`
-  font-size: 13px;
-  font-weight: 700;
-  color: #475569;
-  margin-left: 4px;
-`; 
 /* =========================================================
    TOTAL BAR
 ========================================================= */
@@ -457,7 +489,7 @@ export const TotalBar = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  
+
   gap: 16px;
 
   padding: 18px 26px;
@@ -496,91 +528,5 @@ export const TotalValue = styled.span`
 
   @media (max-width: 768px) {
     font-size: 22px;
-  }
-`;
-export const ActionButton = styled.button`
-  width: 36px;
-  height: 36px;
-
-  border: none;
-  background: transparent;
-  color: ${theme.colors.primary};
-  border-radius: 50%;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(255, 31, 31, 0.08);
-    transform: scale(1.08);
-  }
-`;
-export const TableContainer = styled.div`
-  width: 100%;
-  height: 600px;
-
-  background: rgba(255, 255, 255, 0.78);
-
-  border: 1px solid rgba(255, 255, 255, 0.7);
-
-  border-radius: 30px;
-
-  padding: 20px;
-
-  box-sizing: border-box;
-
-  backdrop-filter: blur(10px);
-
-  box-shadow:
-    0 10px 35px rgba(15, 23, 42, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-
-  .MuiDataGrid-root {
-    border: none;
-    background: transparent;
-    font-family: inherit;
-  }
-
-  .MuiDataGrid-columnHeaders {
-    background: transparent;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .MuiDataGrid-columnHeaderTitle {
-    font-weight: 700;
-    color: #0f172a;
-    font-size: 13px;
-  }
-
-  .MuiDataGrid-cell {
-    border-bottom: 1px solid #f1f5f9;
-    color: #475569;
-    font-size: 14px;
-  }
-
-  .MuiDataGrid-row:hover {
-    background: rgba(248, 250, 252, 0.75);
-  }
-
-  .MuiDataGrid-columnSeparator {
-    display: none;
-  }
-
-  .MuiDataGrid-cell:focus,
-  .MuiDataGrid-columnHeader:focus,
-  .MuiDataGrid-cell:focus-within,
-  .MuiDataGrid-columnHeader:focus-within {
-    outline: none;
-  }
-
-  /* FOOTER PAGINACIÓN */
-  .MuiDataGrid-footerContainer {
-    border-top: 1px solid #e5e7eb;
-    min-height: 56px;
-  }
-
-  .MuiTablePagination-root {
-    color: #475569;
-    font-size: 14px;
   }
 `;
