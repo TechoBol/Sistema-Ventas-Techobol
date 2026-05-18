@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLoginStore } from "../components/store/loginStore";
-import socket from "../services/SocketIOConnection";
+import {socket} from "../services/SocketIOConnection";
 import { successToast, errorToast } from "../services/toasts";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,7 +14,7 @@ export const useEmployees = () => {
   const { token } = useLoginStore();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<any[]>([]);
 
   const goToTrabajadores = () => {
     navigate("/trabajadores");
@@ -70,7 +70,7 @@ export const useEmployees = () => {
   };
 
   useEffect(() => {
-    socket.on("employeeUpdated", (employee) => {
+    socket.on("employeeUpdated", (employee: any) => {
       setData((prev) => {
         const exists = prev.some((emp) => emp.id === employee.id);
         if (exists) {
@@ -82,7 +82,7 @@ export const useEmployees = () => {
       });
     });
 
-    socket.on("employeeRemoved", (employeeId) => {
+    socket.on("employeeRemoved", (employeeId: number) => {
       setData((prev) =>
         prev.filter((emp) => emp.id !== employeeId)
       );
