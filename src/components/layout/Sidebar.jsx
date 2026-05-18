@@ -66,7 +66,7 @@ const sidebarSections = [
     title: "Ventas",
     items: [
       {
-        label: "Carrito de Venta",
+        label: "Venta",
         icon: ShoppingCart,
         path: "/cart",
       },

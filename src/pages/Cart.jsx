@@ -93,11 +93,15 @@ const Cart = () => {
 
   const addToCart = (product) => {
     setCartItems((prev) => {
-      const exists = prev.find((i) => i.id === product.id);
+      const exists = prev.find((i) => i.productId === product.id);
+
+      const defaultUnit =
+        product.productUnits.find((u) => u.isDefault) ||
+        product.productUnits[0];
 
       if (exists) {
         return prev.map((i) =>
-          i.id === product.id
+          i.productId === product.id
             ? {
                 ...i,
                 quantity: i.quantity + 1,
@@ -109,12 +113,27 @@ const Cart = () => {
       return [
         ...prev,
         {
-          id: product.id,
+          productId: product.id,
+
           code: product.code,
+
           name: product.name,
-          unitPrice: Number(product.salePrice || 0),
+
           quantity: 1,
+
           itemDiscount: 0,
+
+          productUnits: product.productUnits,
+
+          selectedUnitId: defaultUnit.id,
+
+          equivalence: Number(defaultUnit.equivalence),
+
+          unitName: defaultUnit.unit.name,
+
+          unitPrice: Number(defaultUnit.salePrice),
+
+          stock: product?.inventories?.[0]?.quantity || 0,
         },
       ];
     });
@@ -123,25 +142,68 @@ const Cart = () => {
     setDropOpen(false);
   };
 
-  const removeItem = (id) => setCartItems((p) => p.filter((i) => i.id !== id));
-  const increaseQty = (id) =>
-    setCartItems((p) =>
-      p.map((i) => (i.id === id ? { ...i, quantity: i.quantity + 1 } : i)),
+  const changeUnit = (index, productUnitId) => {
+    setCartItems((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item;
+
+        const selectedUnit = item.productUnits.find(
+          (u) => u.id === Number(productUnitId),
+        );
+
+        return {
+          ...item,
+
+          selectedUnitId: selectedUnit.id,
+
+          equivalence: Number(selectedUnit.equivalence),
+
+          unitName: selectedUnit.unit.name,
+
+          unitPrice: Number(selectedUnit.salePrice),
+        };
+      }),
     );
-  const decreaseQty = (id) =>
+  };
+
+  const removeItem = (productId) =>
+    setCartItems((p) => p.filter((i) => i.productId !== productId));
+
+  const increaseQty = (productId) =>
     setCartItems((p) =>
       p.map((i) =>
-        i.id === id
+        i.productId === productId
+          ? {
+              ...i,
+              quantity: i.quantity + 1,
+            }
+          : i,
+      ),
+    );
+
+  const decreaseQty = (productId) =>
+    setCartItems((p) =>
+      p.map((i) =>
+        i.productId === productId
           ? i.quantity > 1
-            ? { ...i, quantity: i.quantity - 1 }
+            ? {
+                ...i,
+                quantity: i.quantity - 1,
+              }
             : i
           : i,
       ),
     );
-  const setItemDiscount = (id, val) =>
+
+  const setItemDiscount = (productId, val) =>
     setCartItems((p) =>
       p.map((i) =>
-        i.id === id ? { ...i, itemDiscount: Number(val) || 0 } : i,
+        i.productId === productId
+          ? {
+              ...i,
+              itemDiscount: Number(val) || 0,
+            }
+          : i,
       ),
     );
 
@@ -333,6 +395,7 @@ const Cart = () => {
                 <tr>
                   <TH>COD</TH>
                   <TH>Nombre</TH>
+                  <TH>Unidad</TH>
                   <TH style={{ textAlign: "center" }}>Cantidad</TH>
                   <TH style={{ textAlign: "right" }}>Precio Unit.</TH>
                   <TH style={{ textAlign: "right" }}>Descuento</TH>
@@ -351,19 +414,42 @@ const Cart = () => {
                     </td>
                   </tr>
                 ) : (
-                  cartItems.map((item) => (
-                    <TR key={item.id}>
+                  cartItems.map((item, index) => (
+                    <TR key={item.productId}>
                       <TD style={{ color: "#94a3b8", fontSize: 13 }}>
                         {item.code}
                       </TD>
                       <TD style={{ fontWeight: 500 }}>{item.name}</TD>
                       <TD>
+                        <select
+                          value={item.selectedUnitId}
+                          onChange={(e) => changeUnit(index, e.target.value)}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: 8,
+                            border: "1px solid #E2E8F0",
+                            background: "#fff",
+                            fontSize: 13,
+                          }}
+                        >
+                          {item.productUnits.map((unit) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unit.unit.name}
+                            </option>
+                          ))}
+                        </select>
+                      </TD>
+                      <TD>
                         <QuantityControls style={{ justifyContent: "center" }}>
-                          <QtyButton onClick={() => decreaseQty(item.id)}>
+                          <QtyButton
+                            onClick={() => decreaseQty(item.productId)}
+                          >
                             <Minus size={13} />
                           </QtyButton>
                           <QtyValue>{item.quantity}</QtyValue>
-                          <QtyButton onClick={() => increaseQty(item.id)}>
+                          <QtyButton
+                            onClick={() => increaseQty(item.productId)}
+                          >
                             <Plus size={13} />
                           </QtyButton>
                         </QuantityControls>
@@ -391,14 +477,16 @@ const Cart = () => {
                             onChange={(e) => {
                               const v = Number(e.target.value) || 0;
                               const max = item.unitPrice * item.quantity;
-                              setItemDiscount(item.id, Math.min(v, max));
+                              setItemDiscount(item.productId, Math.min(v, max));
                             }}
                           />
                         </div>
                       </TD>
                       <TD>Bs {itemSubtotal(item).toFixed(2)}</TD>
                       <TD style={{ textAlign: "center" }}>
-                        <DeleteButton onClick={() => removeItem(item.id)}>
+                        <DeleteButton
+                          onClick={() => removeItem(item.productId)}
+                        >
                           <Trash2 size={16} />
                         </DeleteButton>
                       </TD>
