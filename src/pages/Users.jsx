@@ -1,9 +1,7 @@
 import React, { useMemo, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
-
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
-
 import {
   PageSurface,
   PageWrapper,
@@ -15,6 +13,7 @@ import {
   Toolbar,
   PrimaryActionButton,
 } from "../components/ui/Customer.styles";
+import { useEmployees } from "../hooks/useEmployees";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {
@@ -24,45 +23,25 @@ const fechaHoy = () =>
     day: "numeric",
   });
 
-const usersMock = [
-  {
-    id: 1,
-    name: "Sergio",
-    lastName: "Soliz",
-    email: "sergio.soliz@gmail.com",
-    role: "Técnico en Sistemas",
-    numeral: "##000",
-    branch: "Barrientos",
-  },
-  {
-    id: 2,
-    name: "Andrea",
-    lastName: "Pelaez",
-    email: "andrea.pelaez@gmail.com",
-    role: "Encargado sistemas",
-    numeral: "##001",
-    branch: "Central",
-  },
-  {
-    id: 3,
-    name: "Carlos",
-    lastName: "Mendoza",
-    email: "carlos.mendoza@gmail.com",
-    role: "Administrador",
-    numeral: "##002",
-    branch: "Sucursal Norte",
-  },
-];
-
 function Users() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { data, deleteEmployee, isLoading } = useEmployees();
+
+  const users = useMemo(() => {
+    return data.map((employee) => ({
+      id: employee.id,
+      name: employee.name,
+      lastName: employee.lastName,
+      email: employee.email,
+      role: employee.role?.name ?? "Sin cargo",
+      branch: employee.location?.name ?? "Sin sucursal",
+    }));
+  }, [data]);
 
   const filteredUsers = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
-
-    if (!value) return usersMock;
-
-    return usersMock.filter((user) =>
+    if (!value) return users;
+    return users.filter((user) =>
       [
         user.name,
         user.lastName,
@@ -75,7 +54,7 @@ function Users() {
         .toLowerCase()
         .includes(value)
     );
-  }, [searchTerm]);
+  }, [searchTerm, users]);
 
   const userColumns = useMemo(
     () => [
@@ -134,11 +113,11 @@ function Users() {
         title: "Eliminar usuario",
         icon: Trash2,
         onClick: (user) => {
-          console.log("Eliminar usuario:", user);
+          deleteEmployee(user.id);
         },
       },
     ],
-    []
+    [deleteEmployee]
   );
 
   const handleAddEmployee = () => {
