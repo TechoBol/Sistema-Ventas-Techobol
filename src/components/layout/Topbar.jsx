@@ -1,11 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-import {
-  Bell,
-  ChevronDown,
-  User,
-  LogOut,
-} from "lucide-react";
+import { Bell, ChevronDown, User, LogOut ,PiggyBank} from "lucide-react";
 import MenuIcon from "@mui/icons-material/Menu";
 import {
   TopbarWrapper,
@@ -18,14 +13,12 @@ import {
   UserText,
   UserName,
   UserRole,
-
   UserMenuWrapper,
   DropdownMenu,
   DropdownHeader,
   DropdownName,
   DropdownRole,
   DropdownItem,
-
 } from "../ui/layout/Topbar.styles";
 
 import { useLoginStore } from "../store/loginStore";
@@ -33,7 +26,6 @@ import { useLoginStore } from "../store/loginStore";
 import useAuthentication from "../../hooks/useAuthentication";
 
 function Topbar({ onOpenSidebar }) {
-
   const { fullName, role } = useLoginStore();
 
   const { logOut } = useAuthentication();
@@ -44,10 +36,7 @@ function Topbar({ onOpenSidebar }) {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpenMenu(false);
       }
     };
@@ -55,10 +44,7 @@ function Topbar({ onOpenSidebar }) {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -98,7 +84,15 @@ function Topbar({ onOpenSidebar }) {
                 <DropdownName>{fullName}</DropdownName>
                 <DropdownRole>{role}</DropdownRole>
               </DropdownHeader>
-
+              <DropdownItem
+                onClick={() => {
+                  window.location.href =
+                    "https://techobol.finanzas.techocorp.tech/";
+                }}
+              >
+                <PiggyBank size={18} />
+                Ir a tesoreria
+              </DropdownItem>
               <DropdownItem onClick={logOut}>
                 <LogOut size={18} />
                 Cerrar sesión

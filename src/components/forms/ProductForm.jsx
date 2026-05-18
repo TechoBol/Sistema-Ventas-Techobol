@@ -334,6 +334,20 @@ function ProductForm({
     },
   );
 
+  useEffect(() => {
+    setProductUnits((prev) =>
+      prev.map((item, index) =>
+        index === 0
+          ? {
+              ...item,
+              unitCode:
+                form.values.baseUnitCode,
+            }
+          : item,
+      ),
+    );
+  }, [form.values.baseUnitCode]);
+
   return (
     <FormWrapper>
       <HeaderLeft>
