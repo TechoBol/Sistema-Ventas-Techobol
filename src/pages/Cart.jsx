@@ -244,6 +244,8 @@ const Cart = () => {
     metodoPago,
     codigoTransaccion,
     customerData,
+    generateInvoice,
+    bankName
   }) => {
     if (isProcessing) return;
 
@@ -282,6 +284,8 @@ const Cart = () => {
         subtotal,
         totalDiscount,
         total,
+        generateInvoice,
+        bankName
       );
 
       socket.emit("newCartProduct", result);
@@ -510,7 +514,6 @@ const Cart = () => {
             {/* panel tipo pago */}
             <PaymentPanel>
               <PaymentTitle>Tipo de pago</PaymentTitle>
-
               <RadioGroup>
                 <RadioOption>
                   <input
@@ -579,11 +582,13 @@ const Cart = () => {
           paymentMethod={paymentMethod}
           loading={loading}
           onClose={() => setOpenCheckoutModal(false)}
-          onFinish={async (customerData) => {
+          onFinish={async (customerData, generateInvoice, bankName) => {
             await finalizarVenta({
               metodoPago: paymentMethod,
               codigoTransaccion: null,
               customerData,
+              generateInvoice,
+              bankName,
             });
           }}
         />

@@ -7,8 +7,14 @@ import { logInAuth } from "../services/AuthenticationService";
 const useAuthentication = () => {
   const navigate = useNavigate();
 
-  const { setFullName, setRole, changeLogInState, setToken, setLocation, setLevel } =
-    useLoginStore();
+  const {
+    setFullName,
+    setRole,
+    changeLogInState,
+    setToken,
+    setLocation,
+    setLevel,
+  } = useLoginStore();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,9 +71,14 @@ const useAuthentication = () => {
     navigate("/login");
   };
 
+  const redirect = () => {
+    window.location.href = import.meta.env.VITE_FRONTED_DOMAIN_TESORERIA;
+  };
+
   return {
     signIn,
     logOut,
+    redirect,
     isLoading,
   };
 };

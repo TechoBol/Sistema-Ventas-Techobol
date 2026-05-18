@@ -41,6 +41,7 @@ import {
   TotalValue,
   ClearFiltersButton,
 } from "../components/ui/Products";
+import { errorToast } from "../services/toasts";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {
@@ -152,8 +153,12 @@ function Receipts() {
 
         const signedUrl = await getFileUrl(key);
         const response = await fetch(signedUrl);
-
+        if (response.status === 404) {
+          errorToast("No se generó factura para esta venta");
+          return;
+        }
         if (!response.ok) {
+
           throw new Error("No se pudo descargar PDF");
         }
 

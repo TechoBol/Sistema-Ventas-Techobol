@@ -36,6 +36,16 @@ import {
   CustomerHeaderCode,
   CustomerHeaderName,
   CustomerEmpty,
+  InvoiceBox,
+  InvoiceInfo,
+  InvoiceTitle,
+  InvoiceSubtitle,
+  SwitchWrapper,
+  SwitchInput,
+  SwitchSlider,
+  BankSelectWrapper,
+  BankSelectLabel,
+  BankSelect,
 } from "../ui/CheckoutModal";
 
 import LocationPicker from "./LocationPicker";
@@ -66,9 +76,28 @@ const CheckoutModal = ({
 
   const customerRef = useRef(null);
 
+  const [generateInvoice, setGenerateInvoice] = useState(false);
+
+  const [bankName, setBankName] = useState("");
+
   // 🔥 CUSTOMERS
   const { customers, setSearchTerm } = useCustomer();
 
+  const handleClose = () => {
+    setCustomerData(initialCustomerData);
+
+    setShowMap(false);
+
+    setOpenCustomerDrop(false);
+
+    setGenerateInvoice(false);
+
+    setBankName("");
+
+    setSearchTerm("");
+
+    onClose();
+  };
   // =====================================================
   // 🔥 RESET
   // =====================================================
@@ -101,6 +130,22 @@ const CheckoutModal = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open, handleClose]);
+
   if (!open) return null;
 
   // =====================================================
@@ -119,7 +164,7 @@ const CheckoutModal = ({
   // =====================================================
 
   const getLocation = () => {
-    setShowMap(true);
+    setShowMap(!showMap);
   };
 
   // =====================================================
@@ -127,7 +172,19 @@ const CheckoutModal = ({
   // =====================================================
 
   const handleFinish = () => {
-    onFinish(customerData);
+    if (paymentMethod === "Deposito bancario" && !bankName) {
+      alert("Seleccione un banco");
+
+      return;
+    }
+
+    onFinish({
+      ...customerData,
+      generateInvoice,
+      bankName,
+    });
+    
+    handleClose()
   };
 
   // =====================================================
@@ -172,7 +229,7 @@ const CheckoutModal = ({
             <Title>Datos Cliente</Title>
           </div>
 
-          <CloseButton onClick={onClose}>
+          <CloseButton onClick={handleClose}>
             <X size={20} />
           </CloseButton>
         </Header>
@@ -322,10 +379,45 @@ const CheckoutModal = ({
           </div>
         )}
 
-        {/* FOOTER */}
+        <InvoiceBox onClick={() => setGenerateInvoice((prev) => !prev)}>
+          <InvoiceInfo>
+            <InvoiceTitle>Generar factura</InvoiceTitle>
 
+            <InvoiceSubtitle>
+              Emitir factura electrónica para esta venta
+            </InvoiceSubtitle>
+          </InvoiceInfo>
+
+          <SwitchWrapper onClick={(e) => e.stopPropagation()}>
+            <SwitchInput
+              type="checkbox"
+              checked={generateInvoice}
+              onChange={(e) => setGenerateInvoice(e.target.checked)}
+            />
+
+            <SwitchSlider />
+          </SwitchWrapper>
+        </InvoiceBox>
+        {paymentMethod === "Deposito bancario" && (
+          <BankSelectWrapper>
+            <BankSelectLabel>Banco destino</BankSelectLabel>
+
+            <BankSelect
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+            >
+              <option value="">Seleccione un banco</option>
+
+              <option value="Banco Union">Banco Unión</option>
+
+              <option value="Banco BCP">Banco BCP</option>
+
+              <option value="Banco Bisa">Banco Bisa</option>
+            </BankSelect>
+          </BankSelectWrapper>
+        )}
         <Footer>
-          <SecondaryButton onClick={onClose}>Cancelar</SecondaryButton>
+          <SecondaryButton onClick={handleClose}>Cancelar</SecondaryButton>
 
           <FinishButton disabled={loading} onClick={handleFinish}>
             {loading ? "Procesando..." : "Finalizar Venta"}

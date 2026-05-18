@@ -28,7 +28,7 @@ import useAuthentication from "../../hooks/useAuthentication";
 function Topbar({ onOpenSidebar }) {
   const { fullName, role } = useLoginStore();
 
-  const { logOut } = useAuthentication();
+  const { logOut ,redirect} = useAuthentication();
 
   const [openMenu, setOpenMenu] = useState(false);
 
@@ -85,10 +85,7 @@ function Topbar({ onOpenSidebar }) {
                 <DropdownRole>{role}</DropdownRole>
               </DropdownHeader>
               <DropdownItem
-                onClick={() => {
-                  window.location.href =
-                    "https://techobol.finanzas.techocorp.tech/";
-                }}
+                onClick={redirect}
               >
                 <PiggyBank size={18} />
                 Ir a tesoreria

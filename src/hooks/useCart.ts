@@ -13,7 +13,7 @@ export const useCart = () => {
 
   const { token, location, fullName } = useLoginStore();
 
-  const { uploadPDF,uploadPDFFactura } = useAmazonS3();
+  const { uploadPDF, uploadPDFFactura } = useAmazonS3();
   const { addCashFlow } = useCashFlow();
 
   const createSale = async (
@@ -22,6 +22,8 @@ export const useCart = () => {
     subtotal: number,
     discount: number,
     total: number,
+    generateInvoice: boolean,
+    bankName: string
   ) => {
     try {
       setLoading(true);
@@ -31,60 +33,29 @@ export const useCart = () => {
         ...data,
         locationId: location.id,
       };
-
-      // =====================================================
-      // 1. CREAR VENTA
-      // =====================================================
-
       const venta = await createSaleService(payload, token);
-
       const sale = venta.sale;
-
-      // =====================================================
-      // 2. GENERAR PDF
-      // (2 notas entrega + factura)
-      // =====================================================
-
       const pdfBlob = generarDocumentoVenta(sale);
-
-      // =====================================================
-      // 3. CONVERTIR A FILE
-      // =====================================================
-
       const file = new File([pdfBlob], `venta_${sale.code}.pdf`, {
         type: "application/pdf",
       });
-
-      // =====================================================
-      // 4. SUBIR PDF
-      // =====================================================
-
       await uploadPDF(file, sale.code);
-
-      const pdfBlobFactura = generarFacturaVenta(sale);
-
-      // =====================================================
-      // 3. CONVERTIR A FILE
-      // =====================================================
-
-      const fileFactura = new File([pdfBlobFactura], `factura_${sale.code}.pdf`, {
-        type: "application/pdf",
-      });
-
-      // =====================================================
-      // 4. SUBIR PDF
-      // =====================================================
-
-      await uploadPDFFactura(fileFactura, sale.code);
-
-      // =====================================================
-      // 5. MOVIMIENTO TESORERIA
-      // =====================================================
+      if (generateInvoice) {
+        const pdfBlobFactura = generarFacturaVenta(sale);
+        const fileFactura = new File(
+          [pdfBlobFactura],
+          `factura_${sale.code}.pdf`,
+          {
+            type: "application/pdf",
+          },
+        );
+        await uploadPDFFactura(fileFactura, sale.code);
+      }
 
       if (data.metodoPago === "Deposito bancario" || data.metodoPago === "QR") {
         const payloadCashFlow = {
           date: sale.date,
-          account: "Caja Central",
+          account: data.metodoPago === "QR"? "Banco BCP" : bankName,
           type: "income",
           amount: sale.total,
           source: data.metodoPago,

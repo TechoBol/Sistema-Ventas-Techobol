@@ -468,3 +468,158 @@ export const CustomerHeaderName = styled.span`
 
   color: #64748b;
 `;
+
+// =====================================================
+// FACTURA SWITCH
+// =====================================================
+
+export const InvoiceBox = styled.div`
+  margin-top: 22px;
+
+  padding: 16px 18px;
+
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.9);
+
+  border: 1px solid #e2e8f0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+
+  @media (max-width: 768px) {
+    align-items: flex-start;
+  }
+`;
+
+export const InvoiceInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+export const InvoiceTitle = styled.span`
+  font-size: 15px;
+  font-weight: 700;
+
+  color: #0f172a;
+`;
+
+export const InvoiceSubtitle = styled.span`
+  margin-top: 4px;
+
+  font-size: 13px;
+
+  color: #64748b;
+`;
+
+// 🔥 SWITCH
+
+export const SwitchWrapper = styled.label`
+  position: relative;
+
+  width: 58px;
+  height: 32px;
+
+  display: inline-block;
+
+  cursor: pointer;
+`;
+
+export const SwitchInput = styled.input`
+  opacity: 0;
+
+  width: 0;
+  height: 0;
+
+  &:checked + span {
+    background: linear-gradient(135deg, #fb0404 0%, #dc2626 100%);
+  }
+
+  &:checked + span:before {
+    transform: translateX(26px);
+  }
+`;
+
+export const SwitchSlider = styled.span`
+  position: absolute;
+
+  inset: 0;
+
+  background: #cbd5e1;
+
+  border-radius: 999px;
+
+  transition: 0.2s;
+
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+
+  &:before {
+    content: "";
+
+    position: absolute;
+
+    width: 24px;
+    height: 24px;
+
+    left: 4px;
+    top: 4px;
+
+    background: white;
+
+    border-radius: 50%;
+
+    transition: 0.2s;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+`;
+
+export const BankSelectWrapper = styled.div`
+  margin-top: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const BankSelectLabel = styled.label`
+  font-size: 14px;
+  font-weight: 700;
+
+  color: #334155;
+`;
+
+export const BankSelect = styled.select`
+  width: 100%;
+
+  height: 48px;
+
+  border-radius: 14px;
+
+  border: 1px solid #e2e8f0;
+
+  background: white;
+
+  padding: 0 16px;
+
+  font-size: 14px;
+
+  outline: none;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03),
+    0 3px 10px rgba(0, 0, 0, 0.03);
+
+  &:focus {
+    border-color: #000;
+
+    box-shadow: 0 0 0 4px rgba(33, 33, 33, 0.08);
+  }
+`;
