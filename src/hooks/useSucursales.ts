@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLoginStore } from "../components/store/loginStore";
-import socket from "../services/SocketIOConnection";
+import {socket} from "../services/SocketIOConnection";
 import { successToast, errorToast } from "../services/toasts";
 import { useNavigate } from "react-router-dom";
 import {

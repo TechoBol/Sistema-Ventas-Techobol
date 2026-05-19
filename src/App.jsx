@@ -8,6 +8,7 @@ import Products from "./pages/Products"
 import Cart from "./pages/Cart";
 import Receipts from "./pages/Receipts";
 import Customer from "./pages/Customer";
+import Locations from "./pages/Locations";
 import Transfer from "./pages/Transfer";
 import Users from "./pages/Users";
 
@@ -28,6 +29,7 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/receipts" element={<Receipts/>} />
             <Route path="/customer" element={<Customer />} />
+            <Route path="/locations" element={<Locations />} />
             <Route path="/transfers" element={<Transfer />} />
             <Route path="/users" element={<Users />} />
           </>
