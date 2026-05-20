@@ -22,7 +22,7 @@ import {
   FilterButton,
   PrimaryActionButton,
   StatusBadge,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {

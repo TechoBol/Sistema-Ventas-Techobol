@@ -14,7 +14,7 @@ import {
   SearchBox,
   SearchInput,
   ErrorMessage,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {

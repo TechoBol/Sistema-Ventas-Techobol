@@ -13,7 +13,7 @@ import {
   SearchInput,
   Toolbar,
   PrimaryActionButton,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
 import { useSucursales } from "../hooks/useSucursales";
 
 const fechaHoy = () =>

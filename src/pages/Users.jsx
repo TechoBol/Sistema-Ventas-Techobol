@@ -13,7 +13,7 @@ import {
   SearchInput,
   Toolbar,
   PrimaryActionButton,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
 import { useEmployees } from "../hooks/useEmployees";
 import { useRoles } from "../hooks/useRoles";
 import { useSucursales } from "../hooks/useSucursales";
