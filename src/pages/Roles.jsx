@@ -2,9 +2,7 @@ import React, { useMemo, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
 import RoleModal from "../components/modals/RoleModal";
-
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
-
 import {
   PageSurface,
   PageWrapper,
@@ -16,6 +14,7 @@ import {
   Toolbar,
   PrimaryActionButton,
 } from "../components/ui/Page.styles";
+import { useRoles } from "../hooks/useRoles";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {
@@ -25,30 +24,16 @@ const fechaHoy = () =>
     day: "numeric",
   });
 
-const rolesMock = [
-  {
-    id: 1,
-    name: "Administrador",
-    description: "Acceso completo al sistema",
-    level: 1,
-  },
-  {
-    id: 2,
-    name: "Encargado sistemas",
-    description: "Gestión de usuarios, sucursales y configuración",
-    level: 2,
-  },
-  {
-    id: 3,
-    name: "Vendedor",
-    description: "Registro de ventas y consulta de productos",
-    level: 3,
-  },
-];
-
 function Roles() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [roles, setRoles] = useState(rolesMock);
+
+  const {
+    roles,
+    createRole,
+    updateRole,
+    deleteRole,
+    isLoading,
+  } = useRoles();
 
   const [modalState, setModalState] = useState({
     open: false,
@@ -56,18 +41,27 @@ function Roles() {
     selectedRole: null,
   });
 
+  const mappedRoles = useMemo(() => {
+    return roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+      description: role.description ?? "",
+      level: role.level ?? 1,
+    }));
+  }, [roles]);
+
   const filteredRoles = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
 
-    if (!value) return roles;
+    if (!value) return mappedRoles;
 
-    return roles.filter((role) =>
+    return mappedRoles.filter((role) =>
       [role.name, role.description, role.level]
         .join(" ")
         .toLowerCase()
         .includes(value)
     );
-  }, [searchTerm, roles]);
+  }, [searchTerm, mappedRoles]);
 
   const roleColumns = useMemo(
     () => [
@@ -117,35 +111,17 @@ function Roles() {
     });
   };
 
-  const handleSubmitRole = (formData) => {
-    if (modalState.mode === "edit") {
-      setRoles((currentRoles) =>
-        currentRoles.map((role) =>
-          role.id === modalState.selectedRole.id
-            ? {
-                ...role,
-                ...formData,
-              }
-            : role
-        )
-      );
+  const handleSubmitRole = async (formData) => {
+    if (modalState.mode === "edit" && modalState.selectedRole) {
+      await updateRole(modalState.selectedRole.id, formData);
     } else {
-      setRoles((currentRoles) => [
-        ...currentRoles,
-        {
-          id: Date.now(),
-          ...formData,
-        },
-      ]);
+      await createRole(formData);
     }
-
     closeModal();
   };
 
-  const handleDeleteRole = (roleToDelete) => {
-    setRoles((currentRoles) =>
-      currentRoles.filter((role) => role.id !== roleToDelete.id)
-    );
+  const handleDeleteRole = async (roleToDelete) => {
+    await deleteRole(roleToDelete.id);
   };
 
   const roleActions = useMemo(
@@ -163,7 +139,7 @@ function Roles() {
         onClick: handleDeleteRole,
       },
     ],
-    []
+    [deleteRole]
   );
 
   return (
@@ -209,6 +185,7 @@ function Roles() {
         initialData={modalState.selectedRole}
         onClose={closeModal}
         onSubmit={handleSubmitRole}
+        loading={isLoading}
       />
     </AppLayout>
   );
