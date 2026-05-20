@@ -65,7 +65,7 @@ function LocationModal({
 
     const payload = {
       name: formData.name.trim(),
-      abbreviation: formData.abbreviation.trim(),
+      abbreviation: formData.abbreviation.trim().toUpperCase(),
       type: formData.type,
       address: formData.address.trim() || null,
     };
@@ -99,10 +99,10 @@ function LocationModal({
             <Label>Abreviación</Label>
             <Input
               type="text"
-              placeholder="Abrev."
+              placeholder="Abreviación"
               value={formData.abbreviation}
               onChange={(event) =>
-                handleChange("abbreviation", event.target.value)
+                handleChange("abbreviation", event.target.value.toUpperCase())
               }
             />
           </Field>
