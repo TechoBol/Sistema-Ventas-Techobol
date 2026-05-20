@@ -467,10 +467,10 @@ function ProductForm({ onBack, product = null }) {
 
               <Grid2>
                 <ContainerInput>
-                  <FieldLabel>Línea</FieldLabel>
+                  <FieldLabel>Marca</FieldLabel>
 
                   <Select {...form.getInputProps("lineId")}>
-                    <option value="">Selecciona línea</option>
+                    <option value="">Selecciona marca</option>
 
                     {lines?.map((line) => (
                       <option key={line.id} value={line.id}>
@@ -485,10 +485,10 @@ function ProductForm({ onBack, product = null }) {
                 </ContainerInput>
 
                 <ContainerInput>
-                  <FieldLabel>Marca</FieldLabel>
+                  <FieldLabel>Línea</FieldLabel>
 
                   <Select {...form.getInputProps("brandName")}>
-                    <option value="">Selecciona marca</option>
+                    <option value="">Selecciona línea</option>
 
                     {brands.map((brand) => (
                       <option key={brand} value={brand}>

@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 
-import AppLayout from "../components/layout/AppLayout";
 import ProductForm from "../components/forms/ProductForm";
 import DataTable from "../components/table/DataTable";
 
@@ -18,6 +17,7 @@ import {
   SearchWrapper,
 } from "../components/ui/Products";
 import { Pencil, Plus, Search } from "lucide-react";
+import { useLoginStore } from "../components/store/loginStore";
 
 const fechaHoy = () =>
   new Date().toLocaleDateString("es-BO", {
@@ -31,7 +31,7 @@ function Products() {
   const [showForm, setShowForm] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const { location } = useLoginStore();
   const { products, search, onFilterTextBoxChanged, isLoading } =
     useInventory();
 
@@ -64,14 +64,14 @@ function Products() {
 
       {
         field: "line",
-        headerName: "Línea",
+        headerName: "Marca",
         flex: 1.2,
         valueGetter: (_, row) => row?.line?.name || "-",
       },
 
       {
         field: "brandName",
-        headerName: "Marca",
+        headerName: "Línea",
         flex: 1.2,
         valueGetter: (_, row) => row?.brandName || "-",
       },
@@ -114,9 +114,18 @@ function Products() {
       },
 
       {
-        field: "stockTotal",
+        field: "stock",
         headerName: "Stock",
         flex: 0.8,
+      
+        valueGetter: (_, row) => {
+          const inventory = row?.inventories?.find(
+            (inv) => inv.locationId === location?.id
+          );
+      
+          return inventory?.quantity || 0;
+        },
+      
         valueFormatter: (value) =>
           `${Number(value || 0).toFixed(2)}`,
       },
@@ -145,7 +154,7 @@ function Products() {
   ////////////////////////////////////////////////////////////
 
   return (
-    <AppLayout>
+    <>
       <PageContainer>
         {!showForm ? (
           <>
@@ -200,7 +209,7 @@ function Products() {
           />
         )}
       </PageContainer>
-    </AppLayout>
+    </>
   );
 }
 

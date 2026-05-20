@@ -148,6 +148,7 @@ function Sidebar({
 
         <CollapseButton
           type="button"
+          $isCollapsed={isCollapsed}
           onClick={onToggleCollapse}
           title={isCollapsed ? "Expandir menú" : "Contraer menú"}
         >

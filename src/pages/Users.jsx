@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import {
@@ -125,7 +124,7 @@ function Users() {
   };
 
   return (
-    <AppLayout>
+    <>
       <PageSurface>
         <PageWrapper>
           <HeaderTitle>
@@ -160,7 +159,7 @@ function Users() {
           />
         </PageWrapper>
       </PageSurface>
-    </AppLayout>
+    </>
   );
 }
 

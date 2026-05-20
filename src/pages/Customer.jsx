@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import AppLayout from "../components/layout/AppLayout";
 import { Search, Pencil, ChevronDown, ShoppingBag } from "lucide-react";
 import DataTable from "../components/table/DataTable";
 import { useCustomer } from "../hooks/useCustomer";
@@ -83,7 +82,7 @@ function Customer() {
   };
 
   return (
-    <AppLayout>
+    <>
       <PageSurface>
         <PageWrapper>
           {/* titulo y fecha */}
@@ -120,7 +119,7 @@ function Customer() {
           />
         </PageWrapper>
       </PageSurface>
-    </AppLayout>
+    </>
   );
 }
 

@@ -1,15 +1,17 @@
 import React, { useMemo } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { MapPin, File } from "lucide-react";
+import Tooltip from "@mui/material/Tooltip";
 
 import {
   TableContainer,
   TableActionGroup,
   TableIconButton,
   TableLocationButton,
+  tooltipProps,
+  actionTooltipProps,
 } from "../ui/DataTable.styles";
 
-{/* mensaje para cuando la tabla este vacia */}
 function CustomNoRowsOverlay() {
   return (
     <div
@@ -44,16 +46,62 @@ function DataTable({
   locationConfig,
 }) {
   const normalizedColumns = useMemo(() => {
-    const baseColumns = columns.map((column) => ({
-      flex: column.flex ?? 1,
-      minWidth: column.minWidth ?? 140,
-      sortable: true,
-      filterable: true,
-      disableColumnMenu: true,
-      headerAlign: column.headerAlign ?? "left",
-      align: column.align ?? "left",
-      ...column,
-    }));
+    const baseColumns = columns.map((column) => {
+      const hasCustomRender = !!column.renderCell;
+
+      return {
+        flex: column.flex ?? 1,
+        minWidth: column.minWidth ?? 140,
+        sortable: true,
+        filterable: true,
+        disableColumnMenu: true,
+        headerAlign: column.headerAlign ?? "left",
+        align: column.align ?? "left",
+
+        ...column,
+
+        renderCell: hasCustomRender
+          ? column.renderCell
+          : (params) => {
+              const value = params.formattedValue ?? params.value;
+
+              if (
+                value === null ||
+                value === undefined ||
+                value === "" ||
+                value === "-"
+              ) {
+                return (
+                  <div
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      width: "100%",
+                    }}
+                  >
+                    -
+                  </div>
+                );
+              }
+
+              return (
+                <Tooltip title={value} {...tooltipProps}>
+                  <div
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      width: "100%",
+                    }}
+                  >
+                    {value}
+                  </div>
+                </Tooltip>
+              );
+            },
+      };
+    });
 
     const finalColumns = [...baseColumns];
 
@@ -78,23 +126,30 @@ function DataTable({
             longitude !== undefined;
 
           return (
-            <TableLocationButton
-              type="button"
-              $active={hasLocation}
-              disabled={!hasLocation}
-              title={
-                hasLocation
-                  ? "Ver ubicación"
-                  : "Sin ubicación registrada"
-              }
-              onClick={(event) => {
-                event.stopPropagation();
-                if (!hasLocation) return;
-                locationConfig.onOpen?.(row);
-              }}
+            <Tooltip
+              title={hasLocation ? "Ver ubicación" : "Sin ubicación registrada"}
+              {...tooltipProps}
             >
-              <MapPin size={17} />
-            </TableLocationButton>
+              <span>
+                <TableLocationButton
+                  type="button"
+                  $active={hasLocation}
+                  disabled={!hasLocation}
+                  title={
+                    hasLocation ? "Ver ubicación" : "Sin ubicación registrada"
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+
+                    if (!hasLocation) return;
+
+                    locationConfig.onOpen?.(row);
+                  }}
+                >
+                  <MapPin size={17} />
+                </TableLocationButton>
+              </span>
+            </Tooltip>
           );
         },
       });
@@ -113,17 +168,21 @@ function DataTable({
               const Icon = action.icon;
 
               return (
-                <TableIconButton
+                <Tooltip
                   key={action.key}
-                  type="button"
                   title={action.title}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    action.onClick?.(params.row);
-                  }}
+                  {...actionTooltipProps}
                 >
-                  <Icon size={17} />
-                </TableIconButton>
+                  <TableIconButton
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      action.onClick?.(params.row);
+                    }}
+                  >
+                    <Icon size={17} />
+                  </TableIconButton>
+                </Tooltip>
               );
             })}
           </TableActionGroup>

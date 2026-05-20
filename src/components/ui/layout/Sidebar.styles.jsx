@@ -5,8 +5,7 @@ export const SidebarWrapper = styled.aside`
   height: 100dvh;
   background: ${theme.colors.background};
   border-right: 1px solid #eeeeee;
-  padding: ${({ $isCollapsed }) =>
-    $isCollapsed ? "20px 10px" : "24px 16px"};
+  padding: ${({ $isCollapsed }) => ($isCollapsed ? "20px 10px" : "24px 16px")};
   box-sizing: border-box;
 
   display: flex;
@@ -16,9 +15,7 @@ export const SidebarWrapper = styled.aside`
   top: 0;
   z-index: 30;
 
-  transition:
-    width 0.25s ease,
-    padding 0.25s ease;
+  transition: width 0.25s ease, padding 0.25s ease;
 
   @media (max-width: 900px) {
     position: fixed;
@@ -41,7 +38,7 @@ export const SidebarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: ${({ $isCollapsed }) =>
-    $isCollapsed ? "center" : "space-between"};
+    $isCollapsed ? "flex-start" : "space-between"};
   gap: 8px;
 
   @media (max-width: 900px) {
@@ -73,6 +70,8 @@ export const CollapseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "-6px" : "0")};
 
   cursor: pointer;
 
@@ -106,15 +105,13 @@ export const CloseButton = styled.button`
 `;
 
 export const NavContent = styled.nav`
-  margin-top: ${({ $isCollapsed }) =>
-    $isCollapsed ? "28px" : "34px"};
+  margin-top: ${({ $isCollapsed }) => ($isCollapsed ? "28px" : "34px")};
 
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
 
-  padding-right: ${({ $isCollapsed }) =>
-    $isCollapsed ? "0" : "4px"};
+  padding-right: ${({ $isCollapsed }) => ($isCollapsed ? "0" : "4px")};
 
   /* Firefox */
   scrollbar-width: thin;
@@ -159,15 +156,13 @@ export const SectionTitle = styled.p`
 export const NavItem = styled.div`
   width: 100%;
   height: 40px;
-  padding: ${({ $isCollapsed }) =>
-    $isCollapsed ? "0" : "0 12px"};
+  margin-bottom: 2px;
+  padding: ${({ $isCollapsed }) => ($isCollapsed ? "0" : "0 12px")};
   border-radius: 10px;
 
-  background: ${({ $active }) =>
-    $active ? "#fff3eb" : "transparent"};
+  background: ${({ $active }) => ($active ? "#fff3eb" : "transparent")};
 
-  color: ${({ $active }) =>
-    $active ? theme.colors.primary : "#334155"};
+  color: ${({ $active }) => ($active ? theme.colors.primary : "#334155")};
 
   display: flex;
   align-items: center;
