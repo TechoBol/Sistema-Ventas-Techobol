@@ -66,7 +66,7 @@ export const Field = styled.div`
 
 export const Label = styled.label`
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: ${theme.colors.textPrimary};
 
   @media (max-width: 700px) {
@@ -273,4 +273,36 @@ export const ModalHint = styled.p`
   margin: -8px 0 0;
   font-size: 13px;
   color: ${theme.colors.textSecondary};
+`;
+
+export const Textarea = styled.textarea`
+  width: 100%;
+  min-height: 92px;
+
+  border: 1px solid #d7d7d7;
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-sizing: border-box;
+
+  background: ${theme.colors.background};
+  font-size: 14px;
+  color: ${theme.colors.text};
+
+  outline: none;
+  resize: vertical;
+
+  box-shadow: 0 4px 8px rgba(15, 23, 42, 0.08);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &::placeholder {
+    color: ${theme.colors.textMuted || "#94a3b8"};
+  }
+
+  &:focus {
+    border-color: #cbd5e1;
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.04);
+  }
 `;

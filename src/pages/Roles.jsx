@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
+import RoleModal from "../components/modals/RoleModal";
+
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
+
 import {
   PageSurface,
   PageWrapper,
@@ -45,19 +48,26 @@ const rolesMock = [
 
 function Roles() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [roles, setRoles] = useState(rolesMock);
+
+  const [modalState, setModalState] = useState({
+    open: false,
+    mode: "create",
+    selectedRole: null,
+  });
 
   const filteredRoles = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
 
-    if (!value) return rolesMock;
+    if (!value) return roles;
 
-    return rolesMock.filter((role) =>
+    return roles.filter((role) =>
       [role.name, role.description, role.level]
         .join(" ")
         .toLowerCase()
         .includes(value)
     );
-  }, [searchTerm]);
+  }, [searchTerm, roles]);
 
   const roleColumns = useMemo(
     () => [
@@ -83,31 +93,78 @@ function Roles() {
     []
   );
 
+  const openCreateModal = () => {
+    setModalState({
+      open: true,
+      mode: "create",
+      selectedRole: null,
+    });
+  };
+
+  const openEditModal = (role) => {
+    setModalState({
+      open: true,
+      mode: "edit",
+      selectedRole: role,
+    });
+  };
+
+  const closeModal = () => {
+    setModalState({
+      open: false,
+      mode: "create",
+      selectedRole: null,
+    });
+  };
+
+  const handleSubmitRole = (formData) => {
+    if (modalState.mode === "edit") {
+      setRoles((currentRoles) =>
+        currentRoles.map((role) =>
+          role.id === modalState.selectedRole.id
+            ? {
+                ...role,
+                ...formData,
+              }
+            : role
+        )
+      );
+    } else {
+      setRoles((currentRoles) => [
+        ...currentRoles,
+        {
+          id: Date.now(),
+          ...formData,
+        },
+      ]);
+    }
+
+    closeModal();
+  };
+
+  const handleDeleteRole = (roleToDelete) => {
+    setRoles((currentRoles) =>
+      currentRoles.filter((role) => role.id !== roleToDelete.id)
+    );
+  };
+
   const roleActions = useMemo(
     () => [
       {
         key: "edit",
         title: "Editar rol",
         icon: Pencil,
-        onClick: (role) => {
-          console.log("Editar rol:", role);
-        },
+        onClick: openEditModal,
       },
       {
         key: "delete",
         title: "Eliminar rol",
         icon: Trash2,
-        onClick: (role) => {
-          console.log("Eliminar rol:", role);
-        },
+        onClick: handleDeleteRole,
       },
     ],
     []
   );
-
-  const handleAddRole = () => {
-    console.log("Agregar rol");
-  };
 
   return (
     <AppLayout>
@@ -129,7 +186,7 @@ function Roles() {
               />
             </SearchBox>
 
-            <PrimaryActionButton type="button" onClick={handleAddRole}>
+            <PrimaryActionButton type="button" onClick={openCreateModal}>
               <Plus size={17} />
               Agregar rol
             </PrimaryActionButton>
@@ -145,6 +202,14 @@ function Roles() {
           />
         </PageWrapper>
       </PageSurface>
+
+      <RoleModal
+        open={modalState.open}
+        mode={modalState.mode}
+        initialData={modalState.selectedRole}
+        onClose={closeModal}
+        onSubmit={handleSubmitRole}
+      />
     </AppLayout>
   );
 }
