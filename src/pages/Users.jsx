@@ -178,10 +178,6 @@ function Users() {
     [deleteEmployee]
   );
 
-  const handleAddEmployee = () => {
-    console.log("Agregar empleado");
-  };
-
   return (
     <>
       <PageSurface>

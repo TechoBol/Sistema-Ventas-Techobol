@@ -306,3 +306,79 @@ export const Textarea = styled.textarea`
     box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.04);
   }
 `;
+
+// LISTA DINAMICA
+export const DynamicFieldHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+export const IconAddButton = styled.button`
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(242, 12, 31, 0.08);
+  color: ${theme.colors.primary};
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover {
+    background: rgba(242, 12, 31, 0.14);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+`;
+
+export const DynamicList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+export const DynamicRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+`;
+
+export const RemoveLineButton = styled.button`
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f3f4f6;
+  color: ${theme.colors.textSecondary};
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover {
+    background: #fff3f4;
+    color: ${theme.colors.primary};
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+`;

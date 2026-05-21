@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
-
+import BrandModal from "../components/modals/BrandModal";
 import { Search, Pencil, Trash2, Plus, ChevronDown } from "lucide-react";
 import Popover from "@mui/material/Popover";
 
@@ -123,19 +123,25 @@ function BrandLinesPreview({ lines = [] }) {
 
 function Brands() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [brands, setBrands] = useState(brandsMock);
+  const [modalState, setModalState] = useState({
+    open: false,
+    mode: "create",
+    selectedBrand: null,
+  });
 
   const filteredBrands = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
 
-    if (!value) return brandsMock;
+    if (!value) return brands;
 
-    return brandsMock.filter((brand) =>
+    return brands.filter((brand) =>
       [brand.name, ...(brand.lines || [])]
         .join(" ")
         .toLowerCase()
         .includes(value)
     );
-  }, [searchTerm]);
+  }, [searchTerm, brands]);
 
   const brandColumns = useMemo(
     () => [
@@ -157,31 +163,78 @@ function Brands() {
     []
   );
 
+  // ACCIONES MODAL
+  const openCreateModal = () => {
+    setModalState({
+      open: true,
+      mode: "create",
+      selectedBrand: null,
+    });
+  };
+
+  const openEditModal = (brand) => {
+    setModalState({
+      open: true,
+      mode: "edit",
+      selectedBrand: brand,
+    });
+  };
+
+  const closeModal = () => {
+    setModalState({
+      open: false,
+      mode: "create",
+      selectedBrand: null,
+    });
+  };
+
+  const handleSubmitBrand = (formData) => {
+    if (modalState.mode === "edit" && modalState.selectedBrand) {
+      setBrands((currentBrands) =>
+        currentBrands.map((brand) =>
+          brand.id === modalState.selectedBrand.id
+            ? {
+                ...brand,
+                ...formData,
+              }
+            : brand
+        )
+      );
+    } else {
+      setBrands((currentBrands) => [
+        ...currentBrands,
+        {
+          id: Date.now(),
+          ...formData,
+        },
+      ]);
+    }
+    closeModal();
+  };
+
+  const handleDeleteBrand = (brandToDelete) => {
+    setBrands((currentBrands) =>
+      currentBrands.filter((brand) => brand.id !== brandToDelete.id)
+    );
+  };
+
   const brandActions = useMemo(
     () => [
       {
         key: "edit",
         title: "Editar marca",
         icon: Pencil,
-        onClick: (brand) => {
-          console.log("Editar marca:", brand);
-        },
+        onClick: openEditModal,
       },
       {
         key: "delete",
         title: "Eliminar marca",
         icon: Trash2,
-        onClick: (brand) => {
-          console.log("Eliminar marca:", brand);
-        },
+        onClick: handleDeleteBrand,
       },
     ],
     []
   );
-
-  const handleAddBrand = () => {
-    console.log("Agregar marca");
-  };
 
   return (
     <PageSurface>
@@ -202,7 +255,7 @@ function Brands() {
             />
           </SearchBox>
 
-          <PrimaryActionButton type="button" onClick={handleAddBrand}>
+          <PrimaryActionButton type="button" onClick={openCreateModal}>
             <Plus size={17} />
             Agregar marca
           </PrimaryActionButton>
@@ -216,6 +269,14 @@ function Brands() {
           pageSizeOptions={[7, 10, 20]}
         />
       </PageWrapper>
+      {/* MODAL */}
+      <BrandModal
+        open={modalState.open}
+        mode={modalState.mode}
+        initialData={modalState.selectedBrand}
+        onClose={closeModal}
+        onSubmit={handleSubmitBrand}
+      />
     </PageSurface>
   );
 }
