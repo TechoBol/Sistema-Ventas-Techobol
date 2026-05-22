@@ -1,34 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLoginStore } from "../components/store/loginStore";
 import { getDashboardSummaryService } from "../services/dashboardService";
 import { socket } from "../services/SocketIOConnection";
 
 export const useDashboard = () => {
   const { token } = useLoginStore();
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const getDashboard = async () => {
-    setIsLoading(true);
-    const res = await getDashboardSummaryService(token);
-    setData(res);
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    getDashboard();
-  }, []);
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: () => getDashboardSummaryService(token),
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
-    socket.on("cartProduct", getDashboard);
-    return () => {
-      socket.off("cartProduct", getDashboard);
+    const handleVenta = () => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     };
-  }, []);
+
+    socket.on("cartProduct", handleVenta);
+    return () => socket.off("cartProduct", handleVenta);
+  }, [queryClient]);
 
   return {
     data,
     isLoading,
-    refresh: getDashboard,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
   };
 };

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { GlobalStyle } from "./components/ui/GlobalStyle";
-
 import { useLoginStore } from "./components/store/loginStore";
 
 import AppLayout from "./components/layout/AppLayout";
@@ -16,9 +16,11 @@ import Locations from "./pages/Locations";
 import Transfer from "./pages/Transfer";
 import Users from "./pages/Users";
 import Roles from "./pages/Roles";
-import InventoryFisico from "./pages/InventoryFisico"
+import InventoryFisico from "./pages/InventoryFisico";
 import MatrizVenta from "./pages/MatrizVenta";
 import Brands from "./pages/Brands";
+
+const queryClient = new QueryClient();
 
 function App() {
   const { isLoggedIn } = useLoginStore();
@@ -35,7 +37,14 @@ function App() {
 
         {isLoggedIn && (
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard"
+              element={
+                <QueryClientProvider client={queryClient}>
+                  <Dashboard />
+                </QueryClientProvider>
+              }
+            />
             <Route path="/products" element={<Products />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/receipts" element={<Receipts />} />
@@ -46,7 +55,6 @@ function App() {
             <Route path="/roles" element={<Roles />} />
             <Route path="/kardex" element={<InventoryFisico />} />
             <Route path="/sales-matrix" element={<MatrizVenta />} />
-            <Route path="/roles" element={<Roles />} />
             <Route path="/brands" element={<Brands />} />
           </Route>
         )}
