@@ -8,14 +8,25 @@ const fetcher = ([_, token]: [string, string]) => getCustomersService(token);
 
 const mapCustomerToTable = (customer: any) => ({
   id: customer.id,
+
   name: customer.name ?? "",
+
   ci: customer.nitCi ?? "",
+
   phone: customer.phone ?? "",
+
   address: customer.address ?? "",
+
   businessName: customer.businessName ?? "",
+
   latitude: customer.latitude ?? null,
+
   longitude: customer.longitude ?? null,
+
+  addresses: customer.addresses ?? [],
+
   isVisible: customer.isVisible,
+
   createdAt: customer.createdAt,
 });
 

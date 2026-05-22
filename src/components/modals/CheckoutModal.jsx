@@ -64,6 +64,7 @@ const CheckoutModal = ({
     businessName: "",
     phone: "",
     address: "",
+
     latitude: null,
     longitude: null,
   };
@@ -79,7 +80,11 @@ const CheckoutModal = ({
   const [generateInvoice, setGenerateInvoice] = useState(false);
 
   const [bankName, setBankName] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
+  const [customerAddresses, setCustomerAddresses] = useState([]);
+
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
   // 🔥 CUSTOMERS
   const { customers, setSearchTerm } = useCustomer();
 
@@ -177,29 +182,51 @@ const CheckoutModal = ({
 
       return;
     }
-    console.log(generateInvoice)
+    console.log(generateInvoice);
     onFinish({
       ...customerData,
       generateInvoice,
       bankName,
     });
-    
-    handleClose()
+
+    handleClose();
   };
 
   // =====================================================
   // 🔥 SELECT CUSTOMER
   // =====================================================
 
+  // =====================================================
+  // 🔥 SELECT CUSTOMER
+  // =====================================================
+
   const selectCustomer = (customer) => {
+    console.log(customers);
+    console.log(customer);
+    setSelectedCustomer(customer);
+
+    setCustomerAddresses(customer.addresses || []);
+
+    // 🔥 DIRECCION PRINCIPAL
+    const primaryAddress =
+      customer.addresses?.find((a) => a.isPrimary) || customer.addresses?.[0];
+
+    setSelectedAddressId(primaryAddress?.id || null);
+
     setCustomerData({
       name: customer.name || "",
+
       nitCi: customer.ci || "",
+
       businessName: customer.businessName || "",
+
       phone: customer.phone || "",
-      address: customer.address || "",
-      latitude: customer.latitude,
-      longitude: customer.longitude,
+
+      address: primaryAddress?.address || "",
+
+      latitude: primaryAddress?.latitude || null,
+
+      longitude: primaryAddress?.longitude || null,
     });
 
     setSearchTerm("");
@@ -348,7 +375,12 @@ const CheckoutModal = ({
             <AddressWrapper>
               <Input
                 value={customerData.address}
-                onChange={(e) => handleChange("address", e.target.value)}
+                onChange={(e) => {
+                  handleChange("address", e.target.value);
+
+                  // 🔥 NUEVA DIRECCION
+                  setSelectedAddressId(null);
+                }}
                 placeholder="Dirección del domicilio o negocio"
               />
 
@@ -357,6 +389,93 @@ const CheckoutModal = ({
               </LocationButton>
             </AddressWrapper>
           </FullWidth>
+          {/* 🔥 DIRECCIONES DEL CLIENTE */}
+
+          {selectedCustomer && (
+            <FullWidth>
+              <Label>Direcciones guardadas</Label>
+
+              <select
+                value={selectedAddressId || "new"}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  //////////////////////////////////////////////////
+                  // 🔥 NUEVA DIRECCION
+                  //////////////////////////////////////////////////
+
+                  if (value === "new") {
+                    setSelectedAddressId(null);
+
+                    setCustomerData((prev) => ({
+                      ...prev,
+
+                      address: "",
+
+                      latitude: null,
+
+                      longitude: null,
+                    }));
+
+                    return;
+                  }
+
+                  //////////////////////////////////////////////////
+                  // 🔥 DIRECCION EXISTENTE
+                  //////////////////////////////////////////////////
+
+                  const addressId = Number(value);
+
+                  setSelectedAddressId(addressId);
+
+                  const selected = customerAddresses.find(
+                    (a) => a.id === addressId,
+                  );
+
+                  if (!selected) return;
+
+                  setCustomerData((prev) => ({
+                    ...prev,
+
+                    address: selected.address || "",
+
+                    latitude: selected.latitude || null,
+
+                    longitude: selected.longitude || null,
+                  }));
+                }}
+                style={{
+                  width: "100%",
+
+                  padding: "12px 14px",
+
+                  borderRadius: "12px",
+
+                  border: "1px solid #E2E8F0",
+
+                  background: "#fff",
+
+                  fontSize: "14px",
+
+                  color: "#0f172a",
+
+                  outline: "none",
+
+                  marginTop: "6px",
+                }}
+              >
+                {/* 🔥 CREAR NUEVA */}
+                <option value="new">+ Nueva dirección</option>
+
+                {/* 🔥 DIRECCIONES */}
+                {customerAddresses.map((address) => (
+                  <option key={address.id} value={address.id}>
+                    {address.address}
+                  </option>
+                ))}
+              </select>
+            </FullWidth>
+          )}
         </FormGrid>
 
         {/* MAPA */}
@@ -364,6 +483,7 @@ const CheckoutModal = ({
         {showMap && (
           <div style={{ marginTop: 20 }}>
             <LocationPicker
+              key={`${customerData.latitude}-${customerData.longitude}`}
               value={{
                 lat: customerData.latitude,
                 lng: customerData.longitude,

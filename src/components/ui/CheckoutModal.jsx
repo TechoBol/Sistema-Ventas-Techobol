@@ -623,3 +623,36 @@ export const BankSelect = styled.select`
     box-shadow: 0 0 0 4px rgba(33, 33, 33, 0.08);
   }
 `;
+
+export const AddressSelect = styled.select`
+  width: 100%;
+
+  height: 48px;
+
+  border-radius: 14px;
+
+  border: 1px solid #e2e8f0;
+
+  background: white;
+
+  padding: 0 16px;
+
+  font-size: 14px;
+
+  outline: none;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03),
+    0 3px 10px rgba(0, 0, 0, 0.03);
+
+  &:focus {
+    border-color: #000;
+
+    box-shadow: 0 0 0 4px rgba(33, 33, 33, 0.08);
+  }
+`;
+
+export const AddressOption = styled.option``;

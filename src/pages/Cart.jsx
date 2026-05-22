@@ -241,9 +241,9 @@ const Cart = () => {
   const finalizarVenta = async ({
     metodoPago,
     codigoTransaccion,
-    customerData,
     generateInvoice,
     bankName,
+    ...customerData
   }) => {
     if (isProcessing) return;
 
@@ -585,10 +585,14 @@ const Cart = () => {
           onFinish={async ({ generateInvoice, bankName, ...customerData }) => {
             await finalizarVenta({
               metodoPago: paymentMethod,
+
               codigoTransaccion: null,
-              customerData,
+
               generateInvoice,
+
               bankName,
+
+              ...customerData,
             });
           }}
         />
