@@ -40,6 +40,7 @@ export const useCart = () => {
         type: "application/pdf",
       });
       await uploadPDF(file, sale.code);
+      console.log(generateInvoice)
       if (generateInvoice) {
         const pdfBlobFactura = generarFacturaVenta(sale);
         const fileFactura = new File(

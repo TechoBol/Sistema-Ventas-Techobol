@@ -5,8 +5,7 @@ export const SidebarWrapper = styled.aside`
   height: 100dvh;
   background: ${theme.colors.background};
   border-right: 1px solid #eeeeee;
-  padding: ${({ $isCollapsed }) =>
-    $isCollapsed ? "20px 10px" : "24px 16px"};
+  padding: ${({ $isCollapsed }) => ($isCollapsed ? "20px 10px" : "24px 16px")};
   box-sizing: border-box;
 
   display: flex;
@@ -16,9 +15,7 @@ export const SidebarWrapper = styled.aside`
   top: 0;
   z-index: 30;
 
-  transition:
-    width 0.25s ease,
-    padding 0.25s ease;
+  transition: width 0.25s ease, padding 0.25s ease;
 
   @media (max-width: 900px) {
     position: fixed;
@@ -41,7 +38,7 @@ export const SidebarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: ${({ $isCollapsed }) =>
-    $isCollapsed ? "center" : "space-between"};
+    $isCollapsed ? "flex-start" : "space-between"};
   gap: 8px;
 
   @media (max-width: 900px) {
@@ -73,6 +70,8 @@ export const CollapseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "-6px" : "0")};
 
   cursor: pointer;
 
@@ -106,15 +105,13 @@ export const CloseButton = styled.button`
 `;
 
 export const NavContent = styled.nav`
-  margin-top: ${({ $isCollapsed }) =>
-    $isCollapsed ? "28px" : "34px"};
+  margin-top: ${({ $isCollapsed }) => ($isCollapsed ? "28px" : "34px")};
 
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
 
-  padding-right: ${({ $isCollapsed }) =>
-    $isCollapsed ? "0" : "4px"};
+  padding-right: ${({ $isCollapsed }) => ($isCollapsed ? "0" : "4px")};
 
   /* Firefox */
   scrollbar-width: thin;
@@ -159,15 +156,13 @@ export const SectionTitle = styled.p`
 export const NavItem = styled.div`
   width: 100%;
   height: 40px;
-  padding: ${({ $isCollapsed }) =>
-    $isCollapsed ? "0" : "0 12px"};
+  margin-bottom: 2px;
+  padding: ${({ $isCollapsed }) => ($isCollapsed ? "0" : "0 12px")};
   border-radius: 10px;
+  border: none;
+  background: ${({ $active }) => ($active ? "#fff3eb" : "transparent")};
 
-  background: ${({ $active }) =>
-    $active ? "#fff3eb" : "transparent"};
-
-  color: ${({ $active }) =>
-    $active ? theme.colors.primary : "#334155"};
+  color: ${({ $active }) => ($active ? theme.colors.primary : "#334155")};
 
   display: flex;
   align-items: center;
@@ -194,5 +189,60 @@ export const NavItem = styled.div`
 `;
 
 export const NavItemText = styled.span`
+  white-space: nowrap;
+`;
+
+// SUB-MENU
+export const ToggleIcon = styled.span`
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 0.2s ease;
+  transform: ${({ $isOpen }) =>
+    $isOpen ? "rotate(180deg)" : "rotate(0deg)"};
+`;
+
+export const SubNavList = styled.div`
+  margin: 6px 0 8px 18px;
+  padding-left: 14px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  border-left: 2px solid rgba(148, 163, 184, 0.18);
+`;
+
+export const SubNavItem = styled.div`
+  width: 100%;
+  height: 36px;
+  padding: 0 14px;
+  box-sizing: border-box;
+
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+
+  color: ${({ $active }) =>
+    $active ? theme.colors.primary : "#425065"};
+
+  background: ${({ $active }) =>
+    $active ? "rgba(242, 12, 31, 0.08)" : "transparent"};
+
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    color: ${theme.colors.primary};
+    background: rgba(242, 12, 31, 0.06);
+  }
+`;
+
+export const SubNavItemText = styled.span`
   white-space: nowrap;
 `;

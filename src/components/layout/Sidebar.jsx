@@ -1,5 +1,4 @@
-import React from "react";
-
+import React, { useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -14,13 +13,16 @@ import {
   Settings,
   UserCog,
   X,
-  ChevronRight,
-  ChevronLeft,
+  ChevronDown,
 } from "lucide-react";
+
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import MenuIcon from "@mui/icons-material/Menu";
+import Tooltip from "@mui/material/Tooltip";
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+
+import { actionTooltipProps } from "../ui/DataTable.styles";
 
 import {
   SidebarWrapper,
@@ -34,6 +36,10 @@ import {
   SectionTitle,
   NavItem,
   NavItemText,
+  ToggleIcon,
+  SubNavList,
+  SubNavItem,
+  SubNavItemText,
 } from "../ui/layout/Sidebar.styles";
 
 const sidebarSections = [
@@ -71,7 +77,7 @@ const sidebarSections = [
         path: "/cart",
       },
       {
-        label: "Comprobantes",
+        label: "Recibos/Facturas",
         icon: ReceiptText,
         path: "/receipts",
       },
@@ -123,7 +129,16 @@ const sidebarSections = [
       {
         label: "Sistema",
         icon: Settings,
-        path: "/settings",
+        children: [
+          {
+            label: "Roles",
+            path: "/roles",
+          },
+          {
+            label: "Marcas",
+            path: "/brands",
+          },
+        ],
       },
     ],
   },
@@ -135,21 +150,57 @@ function Sidebar({
   onClose,
   onToggleCollapse,
 }) {
+  const location = useLocation();
+
+  const defaultOpenMenus = useMemo(() => {
+    const openMenus = {};
+
+    sidebarSections.forEach((section) => {
+      section.items.forEach((item) => {
+        const hasActiveChild = item.children?.some(
+          (child) => child.path === location.pathname
+        );
+
+        if (hasActiveChild) {
+          openMenus[item.label] = true;
+        }
+      });
+    });
+
+    return openMenus;
+  }, [location.pathname]);
+
+  const [openMenus, setOpenMenus] = useState(defaultOpenMenus);
+
+  const closeOnMobile = () => {
+    if (window.innerWidth < 900) {
+      onClose?.();
+    }
+  };
+
+  const toggleSubmenu = (label) => {
+    if (isCollapsed) return;
+
+    setOpenMenus((current) => ({
+      ...current,
+      [label]: !current[label],
+    }));
+  };
+
   return (
-    <SidebarWrapper $isOpen={isOpen} $isCollapsed={isCollapsed}>
+    <SidebarWrapper
+      $isOpen={isOpen}
+      $isCollapsed={isCollapsed}
+    >
       <SidebarHeader $isCollapsed={isCollapsed}>
         <Brand>
-          {!isCollapsed && (
-            <BrandText>
-              Megadis
-            </BrandText>
-          )}
+          {!isCollapsed && <BrandText>Megadis</BrandText>}
         </Brand>
 
         <CollapseButton
           type="button"
+          $isCollapsed={isCollapsed}
           onClick={onToggleCollapse}
-          title={isCollapsed ? "Expandir menú" : "Contraer menú"}
         >
           {isCollapsed ? (
             <MenuIcon size={18} />
@@ -158,66 +209,118 @@ function Sidebar({
           )}
         </CollapseButton>
 
-        <CloseButton
-          type="button"
-          onClick={onClose}
-        >
+        <CloseButton type="button" onClick={onClose}>
           <X size={20} />
         </CloseButton>
       </SidebarHeader>
 
-      <NavContent>
+      <NavContent $isCollapsed={isCollapsed}>
         {sidebarSections.map((section) => (
           <NavSection key={section.title}>
             {!isCollapsed && (
-              <SectionTitle>
-                {section.title}
-              </SectionTitle>
+              <SectionTitle>{section.title}</SectionTitle>
             )}
 
-            {section.items.map(({ label, icon: Icon, path }) => {
-              if (!path) {
-                return (
-                  <NavItem
-                    key={label}
-                    $active={false}
-                    $isCollapsed={isCollapsed}
-                    title={isCollapsed ? label : undefined}
-                  >
-                    <Icon size={18} />
+            {section.items.map((item) => {
+              const Icon = item.icon;
 
-                    {!isCollapsed && (
-                      <NavItemText>{label}</NavItemText>
+              const hasChildren = Boolean(item.children?.length);
+
+              const isSubmenuOpen = Boolean(
+                openMenus[item.label]
+              );
+
+              const hasActiveChild = item.children?.some(
+                (child) => child.path === location.pathname
+              );
+
+              if (hasChildren) {
+                return (
+                  <div key={item.label}>
+                    <Tooltip
+                      title={isCollapsed ? item.label : ""}
+                      {...actionTooltipProps}
+                    >
+                      <NavItem
+                        as="button"
+                        type="button"
+                        $active={hasActiveChild}
+                        $isCollapsed={isCollapsed}
+                        onClick={() =>
+                          toggleSubmenu(item.label)
+                        }
+                      >
+                        <Icon size={18} />
+
+                        {!isCollapsed && (
+                          <>
+                            <NavItemText>
+                              {item.label}
+                            </NavItemText>
+
+                            <ToggleIcon
+                              $isOpen={isSubmenuOpen}
+                            >
+                              <ChevronDown size={16} />
+                            </ToggleIcon>
+                          </>
+                        )}
+                      </NavItem>
+                    </Tooltip>
+
+                    {!isCollapsed && isSubmenuOpen && (
+                      <SubNavList>
+                        {item.children.map((child) => (
+                          <NavLink
+                            key={child.label}
+                            to={child.path}
+                            style={{
+                              textDecoration: "none",
+                            }}
+                            onClick={closeOnMobile}
+                          >
+                            {({ isActive }) => (
+                              <SubNavItem
+                                $active={isActive}
+                              >
+                                <SubNavItemText>
+                                  {child.label}
+                                </SubNavItemText>
+                              </SubNavItem>
+                            )}
+                          </NavLink>
+                        ))}
+                      </SubNavList>
                     )}
-                  </NavItem>
+                  </div>
                 );
               }
 
               return (
                 <NavLink
-                  key={label}
-                  to={path}
-                  style={{
-                    textDecoration: "none",
-                  }}
+                  key={item.label}
+                  to={item.path}
+                  style={{ textDecoration: "none" }}
+                  onClick={closeOnMobile}
                 >
                   {({ isActive }) => (
-                    <NavItem
-                      $active={isActive}
-                      $isCollapsed={isCollapsed}
-                      title={isCollapsed ? label : undefined}
-                      onClick={() => {
-                        if (window.innerWidth < 900) {
-                          onClose?.();
-                        }
-                      }}
+                    <Tooltip
+                      title={isCollapsed ? item.label : ""}
+                      {...actionTooltipProps}
                     >
-                      <Icon size={18} />
+                      <NavItem
+                        $active={isActive}
+                        $isCollapsed={isCollapsed}
+                      >
+                        <Icon size={18} />
 
-                      {!isCollapsed && (
-                        <NavItemText>{label}</NavItemText>
-                      )}
-                    </NavItem>
+                        {!isCollapsed && (
+                          <NavItemText>
+                            {item.label}
+                          </NavItemText>
+                        )}
+                      </NavItem>
+                    </Tooltip>
                   )}
                 </NavLink>
               );

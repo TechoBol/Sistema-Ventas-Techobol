@@ -60,7 +60,7 @@ export const useEmployees = () => {
       await deleteEmployeeService(id, token);
       socket.emit("deleteEmployee", id);
       successToast("Trabajador eliminado");
-      socket.emit("deleteLocation", id);
+      //socket.emit("deleteLocation", id);
       getEmployees();
     } catch (error) {
       errorToast("Error al eliminar el trabajador");

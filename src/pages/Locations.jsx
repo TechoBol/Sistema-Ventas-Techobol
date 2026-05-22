@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
 import LocationModal from "../components/modals/LocationModal";
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
@@ -13,16 +12,19 @@ import {
   SearchInput,
   Toolbar,
   PrimaryActionButton,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
 import { useSucursales } from "../hooks/useSucursales";
 
-const fechaHoy = () =>
-  new Date().toLocaleDateString("es-BO", {
+const fechaHoy = () => {
+  const fecha = new Date().toLocaleDateString("es-BO", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+};
 
 const mapLocationType = (type) => {
   if (type === "WAREHOUSE") return "Almacén";
@@ -160,7 +162,7 @@ function Locations() {
   );
 
   return (
-    <AppLayout>
+    <>
       <PageSurface>
         <PageWrapper>
           <HeaderTitle>
@@ -204,7 +206,7 @@ function Locations() {
         onSubmit={handleSubmitLocation}
         loading={loading || isLoading}
       />
-    </AppLayout>
+    </>
   );
 }
 

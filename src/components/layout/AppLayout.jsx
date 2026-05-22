@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
+
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
@@ -9,13 +11,31 @@ import {
   MobileOverlay,
 } from "../ui/layout/AppLayout.styles";
 
-function AppLayout({ children }) {
+function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // estado para escritorio
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] =
+    useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(
+      "sidebar-collapsed"
+    );
+
+    if (saved !== null) {
+      setIsSidebarCollapsed(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "sidebar-collapsed",
+      JSON.stringify(isSidebarCollapsed)
+    );
+  }, [isSidebarCollapsed]);
 
   const openSidebar = () => setIsSidebarOpen(true);
+
   const closeSidebar = () => setIsSidebarOpen(false);
 
   const toggleDesktopSidebar = () => {
@@ -36,13 +56,15 @@ function AppLayout({ children }) {
         onToggleCollapse={toggleDesktopSidebar}
       />
 
-      {isSidebarOpen && <MobileOverlay onClick={closeSidebar} />}
+      {isSidebarOpen && (
+        <MobileOverlay onClick={closeSidebar} />
+      )}
 
       <MainWrapper>
         <Topbar onOpenSidebar={toggleDesktopSidebar} />
 
         <ContentWrapper>
-          {children}
+          <Outlet />
         </ContentWrapper>
       </MainWrapper>
     </LayoutWrapper>

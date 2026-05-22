@@ -111,3 +111,65 @@ export const TableLocationButton = styled(TableIconButton)`
     transform: ${({ disabled }) => (disabled ? "none" : "translateY(-1px)")};
   }
 `;
+
+export const tooltipProps = {
+  arrow: true,
+  placement: "top-start",
+  slotProps: {
+    popper: {
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: [0, -15],
+          },
+        },
+      ],
+    },
+
+    tooltip: {
+      sx: {
+        backgroundColor: theme.colors.primary,
+        color: "#fff",
+        fontSize: "13px",
+        padding: "8px 12px",
+        borderRadius: "10px",
+        fontWeight: 500,
+        boxShadow: "0 10px 25px rgba(0,0,0,0.18)",
+        textAlign: "left",
+      },
+    },
+
+    arrow: {
+      sx: {
+        color: theme.colors.primary,
+        marginLeft: "-25%",
+      },
+    },
+  },
+};
+
+export const actionTooltipProps = {
+  arrow: true,
+  placement: "top",
+  slotProps: {
+    tooltip: {
+      sx: {
+        backgroundColor: theme.colors.primary,
+        color: "#fff",
+        fontSize: "13px",
+        padding: "8px 12px",
+        borderRadius: "10px",
+        fontWeight: 500,
+        boxShadow: "0 10px 25px rgba(0,0,0,0.18)",
+        textAlign: "left",
+        marginTop: "4px",
+      },
+    },
+    arrow: {
+      sx: {
+        color: theme.colors.primary,
+      },
+    },
+  },
+};

@@ -177,7 +177,7 @@ const CheckoutModal = ({
 
       return;
     }
-
+    console.log(generateInvoice)
     onFinish({
       ...customerData,
       generateInvoice,

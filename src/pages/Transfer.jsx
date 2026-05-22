@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from "react";
-import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
+import CreateTransferModal from "../components/modals/CreateTransferModal";
 
-import {
-  Search,
-  Eye,
-  FileText,
-  Send,
-} from "lucide-react";
+import { useTransfers } from "../hooks/useTransfers";
+import { useSucursales } from "../hooks/useSucursales";
+
+import { useLoginStore } from "../components/store/loginStore";
+
+import { Search, Eye, FileText, Send } from "lucide-react";
 
 import {
   PageSurface,
@@ -22,66 +22,96 @@ import {
   FilterButton,
   PrimaryActionButton,
   StatusBadge,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
+import useInventory from "../hooks/useInventory";
+import TransferDetailModal from "../components/modals/TransferDetailModal";
+import { useAmazonS3 } from "../hooks/useAmazonS3";
 
-const fechaHoy = () =>
-  new Date().toLocaleDateString("es-BO", {
+const fechaHoy = () => {
+  const fecha = new Date().toLocaleDateString("es-BO", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
-const transferMock = [
-  {
-    id: 1,
-    code: "TR-0001",
-    products: "CALAMINA, CEMENTO",
-    origin: "Almacén Central",
-    destination: "Sucursal Norte",
-    date: "2026-05-14T10:30:00",
-    status: "aprobado",
-    pdfUrl: "transferencia-0001.pdf",
-  },
-  {
-    id: 2,
-    code: "TR-0002",
-    products: "COMPRESORA",
-    origin: "Almacén Central",
-    destination: "Sucursal Sur",
-    date: "2026-05-14T12:10:00",
-    status: "pendiente",
-    pdfUrl: "transferencia-0002.pdf",
-  },
-  {
-    id: 3,
-    code: "TR-0003",
-    products: "TALADRO, LIJADORA",
-    origin: "Sucursal Norte",
-    destination: "Almacén Central",
-    date: "2026-05-13T16:45:00",
-    status: "rechazado",
-    pdfUrl: "transferencia-0003.pdf",
-  },
-];
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+};
+
+const EMPTY_TRANSFER_FORM = {
+  destinationId: null,
+  items: [],
+  glosa: "",
+};
 
 function Transfer() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedView, setSelectedView] = useState("all");
 
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const [form, setForm] = useState(EMPTY_TRANSFER_FORM);
+
+  const { location, token } = useLoginStore();
+
+  const { products } = useInventory();
+
+  const {
+    data: transfers,
+    createTransfer,
+    approveTransfer,
+    rejectTransfer,
+  } = useTransfers();
+  const { data: locations } = useSucursales();
+
+  const formattedTransfers = useMemo(() => {
+    return (transfers || []).map((transfer) => ({
+      id: transfer.id,
+
+      code: transfer.transferCode,
+
+      products:
+        transfer.items
+          ?.map((item) => `${item.product?.name} x${item.quantity}`)
+          .join(", ") || "-",
+
+      origin: transfer.fromLocation?.name || "-",
+
+      destination: transfer.toLocation?.name || "-",
+
+      requestedBy: transfer.requestedBy
+        ? `${transfer.requestedBy.name} ${transfer.requestedBy.lastName}`
+        : "-",
+
+      date: transfer.createdAt,
+
+      status: transfer.status,
+
+      raw: transfer,
+    }));
+  }, [transfers]);
+
   const filteredTransfers = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
-
-    let result = transferMock;
-
-    if (selectedView === "requests") {
-      // Por ahora queda preparado para filtrar "mis solicitudes"
-      // cuando el backend devuelva el usuario solicitante.
-      result = result;
+  
+    let result = [];
+  
+    if (selectedView === "all") {
+      result = formattedTransfers.filter(
+        (transfer) =>
+          transfer.raw?.toLocationId === location?.id,
+      );
     }
-
+  
+    if (selectedView === "requests") {
+      result = formattedTransfers.filter(
+        (transfer) =>
+          transfer.raw?.fromLocationId === location?.id,
+      );
+    }
+  
     if (!value) return result;
-
+  
     return result.filter((transfer) =>
       [
         transfer.code,
@@ -89,44 +119,61 @@ function Transfer() {
         transfer.origin,
         transfer.destination,
         transfer.status,
+        transfer.requestedBy,
       ]
         .join(" ")
         .toLowerCase()
-        .includes(value)
+        .includes(value),
     );
-  }, [searchTerm, selectedView]);
-
+  }, [
+    searchTerm,
+    selectedView,
+    formattedTransfers,
+    location,
+  ]);
   const transferColumns = useMemo(
     () => [
       {
         field: "code",
         headerName: "Código",
-        flex: 0.9,
-        minWidth: 130,
+        flex: 1,
+        minWidth: 150,
       },
+
       {
         field: "products",
         headerName: "Productos",
-        flex: 1.6,
-        minWidth: 220,
+        flex: 2,
+        minWidth: 250,
       },
+
       {
         field: "origin",
         headerName: "Origen",
         flex: 1.2,
         minWidth: 170,
       },
+
       {
         field: "destination",
         headerName: "Destino",
         flex: 1.2,
         minWidth: 170,
       },
+
+      {
+        field: "requestedBy",
+        headerName: "Solicitado por",
+        flex: 1.3,
+        minWidth: 200,
+      },
+
       {
         field: "date",
         headerName: "Fecha",
         flex: 1.2,
         minWidth: 180,
+
         valueFormatter: (value) => {
           if (!value) return "-";
 
@@ -139,19 +186,21 @@ function Transfer() {
           });
         },
       },
+
       {
         field: "status",
         headerName: "Estado",
-        flex: 0.9,
+        flex: 1,
         minWidth: 140,
+
         renderCell: (params) => (
-          <StatusBadge $status={params.row.status}>
+          <StatusBadge $status={params.row.status?.toLowerCase()}>
             {params.row.status}
           </StatusBadge>
         ),
       },
     ],
-    []
+    [],
   );
 
   const transferActions = useMemo(
@@ -160,50 +209,88 @@ function Transfer() {
         key: "details",
         title: "Ver detalles",
         icon: Eye,
+  
         onClick: (transfer) => {
-          console.log("Ver detalles de transferencia:", transfer);
+          handleViewDetail(transfer);
         },
       },
+  
       {
         key: "pdf",
         title: "Ver PDF",
         icon: FileText,
+  
         onClick: (transfer) => {
-          console.log("Ver PDF de transferencia:", transfer);
+          handleViewPDF(transfer.code);
         },
       },
     ],
-    []
+    [],
   );
 
   const handleCreateTransfer = () => {
-    console.log("Realizar transferencia");
+    setModalOpen(true);
   };
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+
+    setForm(EMPTY_TRANSFER_FORM);
+  };
+
+  const handleSubmitTransfer = async (values) => {
+    await createTransfer(values);
+
+    handleCloseModal();
+  };
+
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+
+  const [openDetail, setOpenDetail] = useState(false);
+
+  const handleViewDetail = (row) => {
+    setSelectedTransfer(row.raw);
+    setOpenDetail(true);
+  };
+
+  const handleApprove = async (id) => {
+    if (!canApproveActions) return;
+    await approveTransfer(id, location.id);
+  };
+
+  const handleReject = async (id) => {
+    if (!canApproveActions) return;
+    await rejectTransfer(id);
+  };
+  const { getFileUrl } = useAmazonS3();
+
+  const handleViewPDF = async (key) => {
+    const url = await getFileUrl("MEGADIS/TRANSFERENCIAS/" + key + ".pdf");
+    window.open(url, "_blank");
+  };
   return (
-    <AppLayout>
+    <>
       <PageSurface>
         <PageWrapper>
           <HeaderTitle>
             <Title>Transferencias</Title>
+
             <Subtitle>{fechaHoy()}</Subtitle>
           </HeaderTitle>
 
           <Toolbar>
             <SearchBox>
               <Search size={18} />
+
               <SearchInput
                 type="text"
-                placeholder="Buscar"
+                placeholder="Buscar transferencia"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </SearchBox>
 
-            <PrimaryActionButton
-              type="button"
-              onClick={handleCreateTransfer}
-            >
+            <PrimaryActionButton type="button" onClick={handleCreateTransfer}>
               <Send size={18} />
               Realizar transferencia
             </PrimaryActionButton>
@@ -237,7 +324,25 @@ function Transfer() {
           />
         </PageWrapper>
       </PageSurface>
-    </AppLayout>
+
+      <CreateTransferModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        form={form}
+        setForm={setForm}
+        onSubmit={handleSubmitTransfer}
+        inventory={products ?? []}
+        location={location}
+        locations={locations ?? []}
+      />
+      <TransferDetailModal
+        open={openDetail}
+        onClose={() => setOpenDetail(false)}
+        transfer={selectedTransfer}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
+    </>
   );
 }
 

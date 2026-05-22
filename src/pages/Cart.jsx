@@ -31,39 +31,35 @@ import {
   RadioOption,
 } from "../components/ui/Cart";
 
-import { useInventoryStore } from "../components/store/inventoryStore";
 import { useCart } from "../hooks/useCart";
 import { useLoginStore } from "../components/store/loginStore";
 import Swal from "sweetalert2";
 import { socket } from "../services/SocketIOConnection";
-import { getProducts } from "../services/inventoryService";
-import AppLayout from "../components/layout/AppLayout";
+import { getProducts } from "../services/InventoryService";
 import CheckoutModal from "../components/modals/CheckoutModal";
-
 /* ── utilidad: fecha legible ── */
-const fechaHoy = () =>
-  new Date().toLocaleDateString("es-BO", {
+const fechaHoy = () => {
+  const fecha = new Date().toLocaleDateString("es-BO", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+};
+
 const Cart = () => {
   /* ── productos del store global ── */
-  const { products, setProducts } = useInventoryStore();
-  const { token } = useLoginStore();
-
-  useEffect(() => {
-    if (products?.length) return;
-    getProducts(token).then((data) => setProducts(data));
-  }, []);
+  const { products } = useInventory();
+  const { location, token } = useLoginStore();
 
   /* ── estado de búsqueda ── */
   const [query, setQuery] = useState("");
   const [dropOpen, setDropOpen] = useState(false);
   const searchRef = useRef(null);
   const [paymentMethod, setPaymentMethod] = useState("Efectivo");
+
   const filtered =
     query.trim() === ""
       ? (products ?? []).slice(0, 50)
@@ -133,7 +129,9 @@ const Cart = () => {
 
           unitPrice: Number(defaultUnit.salePrice),
 
-          stock: product?.inventories?.[0]?.quantity || 0,
+          stock:
+            product?.inventories?.find((inv) => inv.locationId === location.id)
+              ?.quantity || 0,
         },
       ];
     });
@@ -245,7 +243,7 @@ const Cart = () => {
     codigoTransaccion,
     customerData,
     generateInvoice,
-    bankName
+    bankName,
   }) => {
     if (isProcessing) return;
 
@@ -285,7 +283,7 @@ const Cart = () => {
         totalDiscount,
         total,
         generateInvoice,
-        bankName
+        bankName,
       );
 
       socket.emit("newCartProduct", result);
@@ -323,7 +321,7 @@ const Cart = () => {
 
   /* ── render ── */
   return (
-    <AppLayout>
+    <>
       <Wrapper>
         {/* cabecera */}
         <Header>
@@ -382,7 +380,9 @@ const Cart = () => {
                     <DropName>{p?.name || "-"}</DropName>
 
                     <DropCantidad>
-                      {p?.inventories?.[0]?.quantity || 0}
+                      {p?.inventories?.find(
+                        (inv) => inv.locationId === location.id,
+                      )?.quantity || 0}
                     </DropCantidad>
 
                     <DropPrice>
@@ -582,7 +582,7 @@ const Cart = () => {
           paymentMethod={paymentMethod}
           loading={loading}
           onClose={() => setOpenCheckoutModal(false)}
-          onFinish={async (customerData, generateInvoice, bankName) => {
+          onFinish={async ({ generateInvoice, bankName, ...customerData }) => {
             await finalizarVenta({
               metodoPago: paymentMethod,
               codigoTransaccion: null,
@@ -593,12 +593,13 @@ const Cart = () => {
           }}
         />
       </Wrapper>
-    </AppLayout>
+    </>
   );
 };
 
 /* estilos inline del dropdown */
 import styled from "styled-components";
+import useInventory from "../hooks/useInventory";
 
 const ProductDropdown = styled.div`
   position: absolute;

@@ -209,3 +209,95 @@ export const StatusBadge = styled.span`
     return "rgba(245, 158, 11, 0.16)";
   }};
 `;
+
+/* =========================================================
+   BRANDS
+========================================================= */
+
+export const BrandLinesCell = styled.div`
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+`;
+
+export const BrandLineChip = styled.span`
+  max-width: 140px;
+  height: 26px;
+  padding: 0 10px;
+
+  border-radius: 5px;
+  background: ${({ $match }) => $match ? "rgba(242, 12, 31, 0.16)" : "rgba(242, 12, 31, 0.08)"};
+  color: ${theme.colors.primary};
+
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: ${({ $match }) => ($match ? 700 : 550)};
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  flex-shrink: 0;
+`;
+
+export const BrandMoreButton = styled.button`
+  min-height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 5px;
+
+  background: #f3f4f6;
+  color: ${theme.colors.textSecondary};
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  flex-shrink: 0;
+
+  &:hover {
+    background: #e9edf3;
+    color: ${theme.colors.primary};
+  }
+`;
+
+export const BrandPopoverContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const BrandPopoverTitle = styled.span`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${theme.colors.text};
+`;
+
+export const BrandPopoverList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const BrandPopoverItem = styled.span`
+  font-size: 13px;
+  font-weight: ${({ $match }) => ($match ? 700 : 500)};
+  color: ${({ $match }) => $match ? theme.colors.primary : theme.colors.textSecondary};
+
+  line-height: 1.4;
+  padding: ${({ $match }) => ($match ? "4px 8px" : "0")};
+  border-radius: 8px;
+  background: ${({ $match }) => $match ? "rgba(242, 12, 31, 0.08)" : "transparent"};
+`;

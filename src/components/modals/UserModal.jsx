@@ -23,16 +23,18 @@ const emptyForm = {
   name: "",
   lastName: "",
   email: "",
-  phone: "",
+  celular: "",
   numeral: "",
-  role: "",
-  branch: "",
+  roleId: "",
+  locationId: "",
 };
 
 function UserModal({
   open,
   mode = "create",
   initialData = null,
+  roles = [],
+  sucursales = [],
   onClose,
   onSubmit,
   loading = false,
@@ -49,10 +51,10 @@ function UserModal({
         name: initialData.name || "",
         lastName: initialData.lastName || "",
         email: initialData.email || "",
-        phone: initialData.phone || "",
-        numeral: initialData.numeral || "",
-        role: initialData.role || "",
-        branch: initialData.branch || "",
+        celular: initialData.celular || "",
+        numeral: initialData.numeral?.toString() || "",
+        roleId: initialData.roleId?.toString() || "",
+        locationId: initialData.locationId?.toString() || "",
       });
     } else {
       setFormData(emptyForm);
@@ -74,13 +76,16 @@ function UserModal({
     const payload = {
       name: formData.name.trim(),
       lastName: formData.lastName.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      numeral: formData.numeral.trim(),
-      role: formData.role,
-      branch: formData.branch,
+      email: formData.email.trim() || null,
+      celular: formData.celular.trim() || null,
+      numeral: formData.numeral.trim()
+        ? Number(formData.numeral)
+        : null,
+      roleId: Number(formData.roleId),
+      locationId: formData.locationId
+        ? Number(formData.locationId)
+        : null,
     };
-
     onSubmit?.(payload);
   };
 
@@ -138,8 +143,8 @@ function UserModal({
               <Input
                 type="text"
                 placeholder="591 00000000"
-                value={formData.phone}
-                onChange={(event) => handleChange("phone", event.target.value)}
+                value={formData.celular}
+                onChange={(event) => handleChange("celular", event.target.value)}
               />
             </Field>
 
@@ -163,16 +168,17 @@ function UserModal({
               <Label>Cargo</Label>
               <SelectWrapper>
                 <Select
-                  value={formData.role}
-                  onChange={(event) => handleChange("role", event.target.value)}
+                  value={formData.roleId}
+                  onChange={(event) => handleChange("roleId", event.target.value)}
                 >
                   <option value="" disabled>
-                    Cargo o puesto del empleado
+                    Cargo o puesto
                   </option>
-                  <option value="Administrador">Administrador</option>
-                  <option value="Encargado sistemas">Encargado sistemas</option>
-                  <option value="Técnico en Sistemas">Técnico en Sistemas</option>
-                  <option value="Vendedor">Vendedor</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
                 </Select>
 
                 <SelectIcon>
@@ -185,18 +191,19 @@ function UserModal({
               <Label>Sucursal</Label>
               <SelectWrapper>
                 <Select
-                  value={formData.branch}
+                  value={formData.locationId}
                   onChange={(event) =>
-                    handleChange("branch", event.target.value)
+                    handleChange("locationId", event.target.value)
                   }
                 >
                   <option value="" disabled>
                     Seleccione sucursal
                   </option>
-                  <option value="Central">Central</option>
-                  <option value="Barrientos">Barrientos</option>
-                  <option value="Sucursal Norte">Sucursal Norte</option>
-                  <option value="Sucursal Sur">Sucursal Sur</option>
+                  {sucursales.map((sucursal) => (
+                    <option key={sucursal.id} value={sucursal.id}>
+                      {sucursal.name}
+                    </option>
+                  ))}
                 </Select>
 
                 <SelectIcon>

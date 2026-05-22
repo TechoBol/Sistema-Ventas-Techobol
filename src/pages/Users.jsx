@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import AppLayout from "../components/layout/AppLayout";
 import DataTable from "../components/table/DataTable";
 import UserModal from "../components/modals/UserModal";
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
@@ -13,16 +12,21 @@ import {
   SearchInput,
   Toolbar,
   PrimaryActionButton,
-} from "../components/ui/Customer.styles";
+} from "../components/ui/Page.styles";
 import { useEmployees } from "../hooks/useEmployees";
+import { useRoles } from "../hooks/useRoles";
+import { useSucursales } from "../hooks/useSucursales";
 
-const fechaHoy = () =>
-  new Date().toLocaleDateString("es-BO", {
+const fechaHoy = () => {
+  const fecha = new Date().toLocaleDateString("es-BO", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+};
 
 function Users() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,16 +35,26 @@ function Users() {
     mode: "create",
     selectedUser: null,
   });
-  const { data, deleteEmployee, isLoading } = useEmployees();
+  const {
+    data,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+    isLoading,
+  } = useEmployees();
+  const { roles } = useRoles();
+  const { data: sucursales } = useSucursales();
 
   const users = useMemo(() => {
     return data.map((employee) => ({
       id: employee.id,
       name: employee.name,
       lastName: employee.lastName,
-      email: employee.email,
-      phone: employee.phone ?? "",
+      email: employee.email ?? "",
+      celular: employee.celular ?? "",
       numeral: employee.numeral ?? "",
+      roleId: employee.role?.id ?? "",
+      locationId: employee.location?.id ?? "",
       role: employee.role?.name ?? "Sin cargo",
       branch: employee.location?.name ?? "Sin sucursal",
     }));
@@ -54,9 +68,8 @@ function Users() {
         user.name,
         user.lastName,
         user.email,
-        user.phone,
-        user.numeral,
         user.role,
+        user.numeral,
         user.branch,
       ]
         .join(" ")
@@ -132,23 +145,18 @@ function Users() {
     });
   };
 
-  const handleSubmitUser = (formData) => {
+  const handleSubmitUser = async (formData) => {
     if (modalState.mode === "edit") {
-      console.log("Actualizar usuario:", {
-        id: modalState.selectedUser.id,
-        ...formData,
-      });
-
-      // Aquí luego conectas con tu función real:
-      // updateEmployee(modalState.selectedUser.id, formData);
-    } else {
-      console.log("Crear usuario:", formData);
-
-      // Aquí luego conectas con tu función real:
-      // createEmployee(formData);
+      const updated = await updateEmployee(modalState.selectedUser.id, formData);
+      if (updated) {
+        closeModal();
+      }
+      return;
     }
-
-    closeModal();
+    const created = await createEmployee(formData);
+    if (created) {
+      closeModal();
+    }
   };
 
   const userActions = useMemo(
@@ -157,7 +165,9 @@ function Users() {
         key: "edit",
         title: "Editar usuario",
         icon: Pencil,
-        onClick: openEditModal,
+        onClick: (user) => {
+          openEditModal(user);
+        },
       },
       {
         key: "delete",
@@ -172,7 +182,7 @@ function Users() {
   );
 
   return (
-    <AppLayout>
+    <>
       <PageSurface>
         <PageWrapper>
           <HeaderTitle>
@@ -204,6 +214,7 @@ function Users() {
             pageSize={7}
             pageSizeOptions={[7, 10, 20]}
             noRowsLabel="No hay usuarios registrados"
+            loading={isLoading}
           />
         </PageWrapper>
       </PageSurface>
@@ -212,11 +223,13 @@ function Users() {
         open={modalState.open}
         mode={modalState.mode}
         initialData={modalState.selectedUser}
+        roles={roles}
+        sucursales={sucursales}
         loading={isLoading}
         onClose={closeModal}
         onSubmit={handleSubmitUser}
       />
-    </AppLayout>
+    </>
   );
 }
 
