@@ -6,9 +6,12 @@ import { theme } from "./Theme";
 //////////////////////////////////////////
 
 export const Wrapper = styled.div`
-  min-height: 100dvh;
-  background: ${theme.colors.background};
-  padding: 20px;
+  width: 100%;
+  min-height: calc(100dvh - 90px);
+  padding: 28px 32px;
+  @media (max-width: 900px) {
+    padding: 28px 20px;
+  }
 `;
 
 //////////////////////////////////////////
@@ -16,28 +19,61 @@ export const Wrapper = styled.div`
 //////////////////////////////////////////
 
 export const Header = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  margin-bottom: 20px;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  @media (max-width: 700px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+export const HeaderTitle = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 `;
 
 export const Title = styled.h1`
-  text-align: center;
-  font-size: 24px;
+  margin: 0;
+  font-size: 26px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: ${theme.colors.text};
+`;
+
+export const Subtitle = styled.p`
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${theme.colors.textSecondary};
 `;
 
 //////////////////////////////////////////
 // CONTENT
 //////////////////////////////////////////
 
-export const Content = styled.div`
+/*export const Content = styled.div`
   background: white;
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+`;*/
+
+export const Content = styled.div`
+  width: 100%;
+  background: ${theme.colors.background};
+  border-radius: 26px;
+  padding: 28px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+  @media (max-width: 900px) {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
 `;
 
 //////////////////////////////////////////
@@ -101,6 +137,7 @@ export const GroupButton = styled.button`
 
 export const AddButton = styled.button`
   height: 44px;
+  min-width: 110px;
   padding: 0 18px;
   border: none;
   border-radius: 14px;
@@ -112,6 +149,7 @@ export const AddButton = styled.button`
 
   &:hover {
     opacity: 0.95;
+    transform: translateY(-1px);
   }
 
   &:active {
