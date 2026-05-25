@@ -29,19 +29,26 @@ export default function DetailCustomer() {
         ultimaCompra,
         ventasPorMes,
         crearNota,
+        actualizarNota,  // ← estaba faltando
+        eliminarNota,    // ← estaba faltando
         guardandoNota,
     } = useDetailCustomer(id);
 
-    const notaActual = customer?.notes?.[0]?.content ?? "";
-    const [nota, setNota] = useState(notaActual);
+    const [nota, setNota] = useState("");
+    const debounceRef = useRef(null);
+    const inicializado = useRef(false);  // ← evita sobreescribir mientras el user escribe
 
     useEffect(() => {
-        if (customer?.notes?.[0]?.content !== undefined) {
-            setNota(customer.notes[0].content);
+        if (!inicializado.current && customer) {
+            const contenido = customer?.notes?.[0]?.content ?? "";
+            setNota(contenido.trim());
+            inicializado.current = true;
         }
     }, [customer]);
 
-    const debounceRef = useRef(null);
+    useEffect(() => {
+        inicializado.current = false;
+    }, [id]);
 
     const handleNotaChange = (e) => {
         const value = e.target.value;
@@ -49,8 +56,13 @@ export default function DetailCustomer() {
 
         clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(async () => {
-            await crearNota(value);
-        }, 800); // guarda 800ms después de dejar de escribir
+            const notaExistente = customer?.notes?.[0];
+            if (notaExistente) {
+                await actualizarNota(notaExistente.id, value);
+            } else if (value.trim()) {
+                await crearNota(value);
+            }
+        }, 800);
     };
 
     if (error) {
@@ -79,7 +91,7 @@ export default function DetailCustomer() {
                             <>
                                 <ClientTop>
                                     <Avatar
-                                        src={`https://api.dicebear.com/9.x/fun-emoji//svg?seed=${customer.id}&backgroundColor=ffdfbf,ffd5dc,d1d4f9,c0aede,b6e3f4`}
+                                        src={`https://api.dicebear.com/9.x/fun-emoji/svg?seed=${customer.id}&backgroundColor=ffdfbf,ffd5dc,d1d4f9,c0aede,b6e3f4`}
                                         alt={customer.name}
                                     />
                                     <div>

@@ -38,11 +38,16 @@ export const detailCustomerService = {
       body: JSON.stringify({ content }),
     }),
 
-  actualizarNota: (id: string, noteId: number, content: string, token: string) =>
-    apiFetch(`/customer/${id}/notes/${noteId}`, token, {
-      method: "PATCH",
+  actualizarNota: async (id: string, noteId: number, content: string, token: string) => {
+    await apiFetch(`/customer/${id}/notes/${noteId}`, token, {
+      method: "DELETE",
+    });
+    if (!content.trim()) return; // si está vacío, solo borra y no crea
+    return apiFetch(`/customer/${id}/notes`, token, {
+      method: "POST",
       body: JSON.stringify({ content }),
-    }),
+    });
+  },
 
   eliminarNota: (id: string, noteId: number, token: string) =>
     apiFetch(`/customer/${id}/notes/${noteId}`, token, {

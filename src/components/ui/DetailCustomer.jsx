@@ -336,7 +336,7 @@ export const NotesInput = styled.textarea`
   width: 100%;
   min-height: 160px;
   border-radius: 16px;
-  border: 1px solid transparent;  /* sin borde visible por defecto */
+  border: 1px solid transparent;
   background: #fff5f5;
   padding: 16px;
   resize: vertical;
