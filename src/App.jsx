@@ -12,6 +12,7 @@ import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import Receipts from "./pages/Receipts";
 import Customer from "./pages/Customer";
+import DetailCustomer from "./pages/DetailCustomer";
 import Locations from "./pages/Locations";
 import Transfer from "./pages/Transfer";
 import Users from "./pages/Users";
@@ -26,7 +27,7 @@ function App() {
   const { isLoggedIn } = useLoginStore();
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <GlobalStyle />
 
       <Routes>
@@ -37,18 +38,12 @@ function App() {
 
         {isLoggedIn && (
           <Route element={<AppLayout />}>
-            <Route
-              path="/dashboard"
-              element={
-                <QueryClientProvider client={queryClient}>
-                  <Dashboard />
-                </QueryClientProvider>
-              }
-            />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/receipts" element={<Receipts />} />
             <Route path="/customer" element={<Customer />} />
+            <Route path="/customer/:id" element={<DetailCustomer />} />
             <Route path="/locations" element={<Locations />} />
             <Route path="/transfers" element={<Transfer />} />
             <Route path="/users" element={<Users />} />
@@ -60,12 +55,9 @@ function App() {
         )}
 
         {!isLoggedIn && <Route path="*" element={<Navigate to="/login" />} />}
-
-        {isLoggedIn && (
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-        )}
+        {isLoggedIn && <Route path="*" element={<Navigate to="/dashboard" />} />}
       </Routes>
-    </>
+    </QueryClientProvider>
   );
 }
 
