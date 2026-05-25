@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-
 import DataTable from "../components/table/DataTable";
-
+import useInventory from "../hooks/useInventory";
+import { useLines } from "../hooks/useLine";
+import { useProduct } from "../hooks/useProduct";
 import {
   PageSurface,
   PageWrapper,
@@ -27,124 +28,6 @@ const fechaHoy = () => {
   return fecha.charAt(0).toUpperCase() + fecha.slice(1);
 };
 
-const mockBrands = [
-  {
-    id: "all",
-    name: "Todos",
-  },
-  {
-    id: 1,
-    name: "Guantes",
-  },
-  {
-    id: 2,
-    name: "Plásticas",
-  },
-  {
-    id: 3,
-    name: "Autoperforantes",
-  },
-  {
-    id: 4,
-    name: "Clavos",
-  },
-  {
-    id: 5,
-    name: "Policarbonatos",
-  },
-  {
-    id: 6,
-    name: "Electrodos",
-  },
-  {
-    id: 7,
-    name: "Ganchos",
-  },
-];
-
-const mockRows = [
-  {
-    id: 1,
-    brandId: 1,
-    brand: "Guantes",
-    line: "Canguro",
-    product: "Guante naranja liso",
-    stock: 1020,
-    unitCost: 572.27,
-    costIva: 658,
-    executivePercent: 50,
-    executivePrice: 987,
-    quantityPercent: 48,
-    quantityPrice: 977,
-    bossPercent: 45,
-    bossPrice: 952,
-  },
-  {
-    id: 2,
-    brandId: 1,
-    brand: "Guantes",
-    line: "Canguro",
-    product: "Guante azul liso",
-    stock: 253,
-    unitCost: 546.7,
-    costIva: 628,
-    executivePercent: 60,
-    executivePrice: 1005,
-    quantityPercent: 58,
-    quantityPrice: 995,
-    bossPercent: 56,
-    bossPrice: 980,
-  },
-  {
-    id: 3,
-    brandId: 1,
-    brand: "Guantes",
-    line: "Canguro",
-    product: "Guante negro liso",
-    stock: 180,
-    unitCost: 546.79,
-    costIva: 628,
-    executivePercent: 60,
-    executivePrice: 1006,
-    quantityPercent: 58,
-    quantityPrice: 996,
-    bossPercent: 56,
-    bossPrice: 981,
-  },
-  {
-    id: 4,
-    brandId: 5,
-    brand: "Policarbonatos",
-    line: "Ecoceramica",
-    product: "Amarillo 3*0.9 ondulado",
-    stock: 1491,
-    unitCost: 84.33,
-    costIva: 97,
-    executivePercent: 65,
-    executivePrice: 160,
-    quantityPercent: 64,
-    quantityPrice: 159,
-    bossPercent: 63,
-    bossPrice: 158,
-  },
-  {
-    id: 5,
-    brandId: 5,
-    brand: "Policarbonatos",
-    line: "Ecocristal",
-    product: "Transparente 4*0.9 ondulado",
-    stock: 1010,
-    unitCost: 106.16,
-    costIva: 122,
-    executivePercent: 66,
-    executivePrice: 203,
-    quantityPercent: 65,
-    quantityPrice: 202,
-    bossPercent: 64,
-    bossPrice: 201,
-  },
-];
-
 const formatMoney = (value) =>
   `Bs ${Number(value || 0).toLocaleString("es-BO", {
     minimumFractionDigits: 2,
@@ -153,29 +36,86 @@ const formatMoney = (value) =>
 
 const formatPercent = (value) => `${Number(value || 0)}%`;
 
-function MarginProfit(
-
-) {
+function MarginProfit() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBrandId, setSelectedBrandId] = useState("all");
 
+  const { products, isLoading, refresh } = useInventory();
+  const { lines } = useLines();
+  const { updateProduct } = useProduct();
+  const calculateCostWithIva = (unitCost) => {
+    return Number(unitCost || 0) * 1.1494;
+  };
+  // filtros de marcas
+  const brandFilters = useMemo(() => {
+    return [
+      { id: "all", name: "Todos" },
+      ...lines.map((line) => ({
+        id: line.id,
+        name: line.name,
+      })),
+    ];
+  }, [lines]);
+  // mapeo de productos
+  const rows = useMemo(() => {
+    return products.map((product) => {
+      const unitCost = Number(product.purchasePrice || 0);
+      const costIva = calculateCostWithIva(unitCost);
+      const profitMargin = Number(product.porcentajeGanancia || 0);
+
+      return {
+        id: product.id,
+        brandId: product.lineId,
+        brand: product.line?.name ?? "Sin marca",
+        line: product.brandName ?? "Sin línea",
+        product: product.name,
+        stock: product.stockTotal ?? 0,
+
+        unitCost,
+        costIva,
+
+        profitMargin,
+        executivePrice: costIva * (1 + profitMargin / 100),
+
+        quantityPercent: "",
+        quantityPrice: "",
+        bossPercent: "",
+        bossPrice: "",
+      };
+    });
+  }, [products]);
+
   const filteredRows = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
-
-    return mockRows.filter((row) => {
-      const matchesBrand =
-        selectedBrandId === "all" || row.brandId === selectedBrandId;
-
+    return rows.filter((row) => {
+      const matchesBrand = selectedBrandId === "all" || row.brandId === selectedBrandId;
       const matchesSearch =
         !value ||
         [row.brand, row.line, row.product]
           .join(" ")
           .toLowerCase()
           .includes(value);
-
       return matchesBrand && matchesSearch;
     });
-  }, [searchTerm, selectedBrandId]);
+  }, [rows, searchTerm, selectedBrandId]);
+
+  // guardado de la columna "Porcentaje ganacia"
+  const handleProcessRowUpdate = async (newRow, oldRow) => {
+    const profitMargin = Number(newRow.profitMargin || 0);
+    if (Number.isNaN(profitMargin)) {
+      return oldRow;
+    }
+    const executivePrice = Number(newRow.costIva || 0) * (1 + profitMargin / 100);
+    await updateProduct(newRow.id, {
+      porcentajeGanancia: profitMargin,
+    });
+    await refresh();
+    return {
+      ...newRow,
+      profitMargin,
+      executivePrice,
+    };
+  };
 
   const columns = useMemo(
     () => [
@@ -219,11 +159,12 @@ function MarginProfit(
         valueFormatter: (value) => formatMoney(value),
       },
       {
-        field: "executivePercent",
-        headerName: "% Ejecutivo",
-        flex: 0.9,
-        minWidth: 130,
+        field: "profitMargin",
+        headerName: "Margen de ganancia",
+        flex: 1,
+        minWidth: 160,
         editable: true,
+        type: "number",
         valueFormatter: (value) => formatPercent(value),
       },
       {
@@ -287,7 +228,7 @@ function MarginProfit(
         </Toolbar>
 
         <FilterButtonGroup>
-          {mockBrands.map((brand) => (
+          {brandFilters.map((brand) => (
             <FilterButton
               key={brand.id}
               type="button"
@@ -302,9 +243,11 @@ function MarginProfit(
         <DataTable
           rows={filteredRows}
           columns={columns}
+          loading={isLoading}
           pageSize={7}
           pageSizeOptions={[7, 10, 20]}
-          noRowsLabel="No hay productos para mostrar"
+          noRowsLabel="No hay productos registrados"
+          processRowUpdate={handleProcessRowUpdate}
         />
       </PageWrapper>
     </PageSurface>
