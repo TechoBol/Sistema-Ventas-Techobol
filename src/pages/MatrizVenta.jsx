@@ -5,7 +5,9 @@ import KardexFiltersModal from "../components/modals/KardexFiltersModal";
 import {
   Wrapper,
   Header,
+  HeaderTitle,
   Title,
+  Subtitle,
   Content,
   AddButton,
   TableWrapper,
@@ -16,6 +18,16 @@ import {
 } from "../components/ui/Kardex";
 
 import { DataGrid } from "@mui/x-data-grid";
+
+const fechaHoy = () => {
+  const fecha = new Date().toLocaleDateString("es-BO", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+};
 
 export default function Kardex() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -233,8 +245,13 @@ export default function Kardex() {
   return (
     <Wrapper>
       <Header>
-        <Title>Matriz de Ventas</Title>
-        <AddButton onClick={() => setOpenFilters(true)}>Filtros</AddButton>
+        <HeaderTitle>
+          <Title>Matriz de Ventas</Title>
+          <Subtitle>{fechaHoy()}</Subtitle>
+        </HeaderTitle>
+        <AddButton type="button" onClick={() => setOpenFilters(true)}>
+          Filtros
+        </AddButton>
       </Header>
 
       <Content>
