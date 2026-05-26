@@ -9,9 +9,9 @@ export const Wrapper = styled.div`
   width: 100%;
   min-height: calc(100dvh - 90px);
 
-  padding: 28px;
+  padding: 0 0 28px 0;
 
-  background: ${theme.colors.backgroundSoft};
+  background: ${theme.colors.background};
 
   @media (max-width: 900px) {
     padding: 20px;
@@ -150,23 +150,13 @@ export const ClientTop = styled.div`
   margin-bottom: 24px;
 `;
 
-export const Avatar = styled.div`
+export const Avatar = styled.img`
   width: 68px;
   height: 68px;
-
   border-radius: 50%;
-
-  border: 3px solid ${theme.colors.primary};
-
-  overflow: hidden;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   background: #fafafa;
-
-  font-size: 28px;
+  object-fit: cover;
+  flex-shrink: 0;
 `;
 
 export const ClientName = styled.h2`
@@ -268,8 +258,8 @@ export const StatCard = styled.div`
     $accent
       ? theme.colors.primary
       : $dark
-      ? "#111"
-      : "#fff1f1"};
+        ? "#111"
+        : "#fff1f1"};
 
   color: ${({ $accent, $dark }) =>
     $accent || $dark
@@ -344,29 +334,25 @@ export const ActivityDate = styled.span`
 
 export const NotesInput = styled.textarea`
   width: 100%;
-
-  min-height: 120px;
-
+  min-height: 160px;
   border-radius: 16px;
-
-  border: 1px solid ${theme.colors.border};
-
+  border: 1px solid transparent;
   background: #fff5f5;
-
   padding: 16px;
-
   resize: vertical;
-
   outline: none;
-
   font-size: 14px;
-
   font-family: inherit;
-
   transition: 0.2s ease;
+  cursor: text;
+
+  &:hover {
+    border-color: ${theme.colors.border};
+  }
 
   &:focus {
     border-color: ${theme.colors.primary};
+    cursor: text;
   }
 `;
 

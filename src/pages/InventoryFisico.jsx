@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-
+import { ChevronDown } from "lucide-react";
 import {
   Container,
   Section,
@@ -13,17 +13,31 @@ import {
   Label,
   Input,
   Select,
+  SelectWrapper,
+  SelectIcon,
   DateRow,
+  ButtonWrapper,
   Button,
   Wrapper,
   Header,
   Title,
+  Subtitle,
 } from "../components/ui/InventoryFisico";
 
 import { useSucursales } from "../hooks/useSucursales";
 import { useLines } from "../hooks/useLine";
 import { useInventoryFisico } from "../hooks/useInventoryFisico";
 import useInventory from "../hooks/useInventory";
+
+const fechaHoy = () => {
+  const fecha = new Date().toLocaleDateString("es-BO", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+};
 
 export default function InventoryFisico() {
   const { data: sucursales } = useSucursales();
@@ -135,20 +149,26 @@ export default function InventoryFisico() {
     <Wrapper>
       <Header>
         <Title>Inventario Fisico Valorado</Title>
+        <Subtitle>{fechaHoy()}</Subtitle>
       </Header>
       <Container>
         <Section>
           {/* Sucursal */}
           <Row>
             <Label>Sucursal</Label>
-            <Select onChange={(e) => handleChange("sucursal", e.target.value)}>
-              <option value="">TODAS</option>
-              {sucursales.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </Select>
+            <SelectWrapper>
+              <Select onChange={(e) => handleChange("sucursal", e.target.value)}>
+                <option value="">TODAS</option>
+                {sucursales.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
+              <SelectIcon>
+                <ChevronDown size={17} strokeWidth={2.2} />
+              </SelectIcon>
+            </SelectWrapper>
           </Row>
 
           {/* 🔥 PRODUCTO BUSCADOR PRO */}
@@ -171,31 +191,41 @@ export default function InventoryFisico() {
           {/* Línea */}
           <Row>
             <Label>Línea</Label>
-            <Select onChange={(e) => handleLineaChange(e.target.value)}>
-              <option value="">TODAS</option>
-              {lines.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </Select>
+            <SelectWrapper>
+              <Select onChange={(e) => handleLineaChange(e.target.value)}>
+                <option value="">TODAS</option>
+                {lines.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </Select>
+              <SelectIcon>
+                <ChevronDown size={17} strokeWidth={2.2} />
+              </SelectIcon>
+            </SelectWrapper>
           </Row>
 
           {/* Marca */}
           <Row>
             <Label>Marca</Label>
-            <Select
-              value={filters.marca}
-              disabled={!filters.linea}
-              onChange={(e) => handleChange("marca", e.target.value)}
-            >
-              <option value="">TODAS</option>
-              {marcasFiltradas.map((m, i) => (
-                <option key={i} value={m}>
-                  {m}
-                </option>
-              ))}
-            </Select>
+            <SelectWrapper>
+              <Select
+                value={filters.marca}
+                disabled={!filters.linea}
+                onChange={(e) => handleChange("marca", e.target.value)}
+              >
+                <option value="">TODAS</option>
+                {marcasFiltradas.map((m, i) => (
+                  <option key={i} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </Select>
+              <SelectIcon $disabled={!filters.linea}>
+                <ChevronDown size={17} strokeWidth={2.2} />
+              </SelectIcon>
+            </SelectWrapper>
           </Row>
         </Section>
 
@@ -221,11 +251,11 @@ export default function InventoryFisico() {
           </LocalizationProvider>
         </Section>
 
-        <Section>
+        <ButtonWrapper>
           <Button onClick={handleBuscar} disabled={loading}>
             {loading ? "Generando PDF..." : "Generar Kardex"}
           </Button>
-        </Section>
+        </ButtonWrapper>
 
         {/* 🔥 DROPDOWN PRODUCTOS */}
         {showProducts &&

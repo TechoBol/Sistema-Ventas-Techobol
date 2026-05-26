@@ -4,8 +4,7 @@ import { theme } from "./Theme";
 /* WRAPPER GENERAL */
 export const Wrapper = styled.div`
   min-height: 100dvh;
-  background: ${theme.colors.background};
-  padding: 20px;
+  padding: 20px 15px;
 
   @media (max-width: 600px) {
     padding: 12px;
@@ -13,13 +12,11 @@ export const Wrapper = styled.div`
 `;
 
 /* HEADER */
-export const Header = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  padding: 0 10px;
-  margin-bottom: 20px;
-  gap: 10px;
+export const Header = styled.header`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 22px;
 
   @media (max-width: 600px) {
     grid-template-columns: auto 1fr;
@@ -28,13 +25,19 @@ export const Header = styled.div`
 
 /* TITLE */
 export const Title = styled.h1`
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
-  text-align: center;
+  color: ${theme.colors.text};
 
   @media (max-width: 600px) {
     font-size: 18px;
   }
+`;
+
+export const Subtitle = styled.p`
+  font-size: 13px;
+  color: ${theme.colors.textSecondary};
+  margin: 0;
 `;
 
 /* CONTAINER CENTRAL */
@@ -108,20 +111,51 @@ export const Input = styled.input`
   }
 `;
 
+/* SELECT WRAPPER */
+export const SelectWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
 /* SELECT */
 export const Select = styled.select`
   height: 40px;
   width: 100%;
   border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.2);
-  padding: 0 12px;
+  border: 1px solid rgba(0,0,0,0.18);
+  padding: 0 40px 0 12px;
   font-size: 13px;
   outline: none;
   background: #fff;
+  color: ${theme.colors.text};
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: all 0.2s ease;
 
   &:focus {
     border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.04);
   }
+
+  &:disabled {
+    background: #f7f7f7;
+    color: #999;
+    cursor: not-allowed;
+  }
+`;
+
+export const SelectIcon = styled.div`
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  color: ${({ $disabled }) => ($disabled ? "#aaa" : theme.colors.text)};
 `;
 
 /* DATE ROW */
@@ -158,14 +192,27 @@ export const Footer = styled.div`
 `;
 
 /* BUTTON */
+export const ButtonWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+
+  @media (max-width: 600px) {
+    margin-top: 16px;
+  }
+`;
+
 export const Button = styled.button`
   width: 100%;
-  height: 48px;
-  border-radius: 30px;
+  max-width: 320px;
+  height: 42px;
+  border-radius: 22px;
   background: ${theme.colors.primary};
   color: white;
   border: none;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
 
   transition: all 0.2s ease;

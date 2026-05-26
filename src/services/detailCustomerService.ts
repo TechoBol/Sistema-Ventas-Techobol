@@ -1,5 +1,3 @@
-// src/services/cliente.service.ts
-
 import { cerrarSesion } from "./CerrarSesion";
 import type { CustomerDetail } from "../components/models/Client";
 
@@ -31,18 +29,26 @@ async function apiFetch<T>(
 }
 
 export const detailCustomerService = {
-  // GET /customer/:id
   getDetalle: (id: string, token: string): Promise<CustomerDetail> =>
     apiFetch<CustomerDetail>(`/customer/${id}`, token),
 
-  // POST /customer/:id/notes
   crearNota: (id: string, content: string, token: string) =>
     apiFetch(`/customer/${id}/notes`, token, {
       method: "POST",
       body: JSON.stringify({ content }),
     }),
 
-  // DELETE /customer/:id/notes/:noteId
+  actualizarNota: async (id: string, noteId: number, content: string, token: string) => {
+    await apiFetch(`/customer/${id}/notes/${noteId}`, token, {
+      method: "DELETE",
+    });
+    if (!content.trim()) return; // si está vacío, solo borra y no crea
+    return apiFetch(`/customer/${id}/notes`, token, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
+  },
+
   eliminarNota: (id: string, noteId: number, token: string) =>
     apiFetch(`/customer/${id}/notes/${noteId}`, token, {
       method: "DELETE",

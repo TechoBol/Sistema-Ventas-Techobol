@@ -7,7 +7,7 @@ export const LayoutWrapper = styled.div`
   display: grid;
   grid-template-columns: ${({ $isCollapsed }) =>
     $isCollapsed ? "76px 1fr" : "260px 1fr"};
-  background: ${theme.colors.backgroundSoft};
+  background: ${theme.colors.background};
 
   transition: grid-template-columns 0.25s ease;
 
@@ -23,7 +23,7 @@ export const MainWrapper = styled.main`
 `;
 
 export const ContentWrapper = styled.div`
-  padding: 24px 28px;
+  padding: 12px 28px;
 
   @media (max-width: 768px) {
     padding: 18px 16px;
@@ -38,6 +38,6 @@ export const MobileOverlay = styled.div`
     position: fixed;
     inset: 0;
     z-index: 20;
-    background: rgba(17, 42, 15, 0.35);
+    background: #ffffff;
   }
 `;

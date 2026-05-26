@@ -1,6 +1,4 @@
-// src/hooks/useDetailCustomer.ts
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLoginStore } from "../components/store/loginStore";
 import { detailCustomerService } from "../services/detailCustomerService";
@@ -14,24 +12,20 @@ interface UseDetailCustomerReturn {
   customer: CustomerDetail | null;
   loading: boolean;
   error: string | null;
-  // datos derivados listos para usar en el page
   totalGastado: number;
   comprasRealizadas: number;
   ticketPromedio: number;
   ultimaCompra: string | null;
   ventasPorMes: { mes: string; total: number }[];
-  // notas
   crearNota: (content: string) => Promise<void>;
+  actualizarNota: (noteId: number, content: string) => Promise<void>;
   eliminarNota: (noteId: number) => Promise<void>;
   guardandoNota: boolean;
   errorNota: string | null;
 }
 
-// ── helpers ──────────────────────────────────────────────────
-
 function calcularVentasPorMes(sales: CustomerSale[]) {
   const meses: Record<string, number> = {};
-
   for (const sale of sales) {
     const fecha = new Date(sale.date);
     const key = fecha.toLocaleDateString("es-BO", {
@@ -40,11 +34,8 @@ function calcularVentasPorMes(sales: CustomerSale[]) {
     });
     meses[key] = (meses[key] ?? 0) + sale.total;
   }
-
   return Object.entries(meses).map(([mes, total]) => ({ mes, total }));
 }
-
-// ── hook ─────────────────────────────────────────────────────
 
 export function useDetailCustomer(id: string): UseDetailCustomerReturn {
   const { token } = useLoginStore();
@@ -62,8 +53,6 @@ export function useDetailCustomer(id: string): UseDetailCustomerReturn {
     refetchOnWindowFocus: false,
   });
 
-  // ── datos derivados ──────────────────────────────────────
-
   const sales = data?.sales ?? [];
   const totalGastado = sales.reduce((acc, s) => acc + s.total, 0);
   const comprasRealizadas = sales.length;
@@ -72,8 +61,6 @@ export function useDetailCustomer(id: string): UseDetailCustomerReturn {
     ? new Date(sales[sales.length - 1].date).toLocaleDateString("es-BO")
     : null;
   const ventasPorMes = calcularVentasPorMes(sales);
-
-  // ── acciones ─────────────────────────────────────────────
 
   const crearNota = useCallback(async (content: string) => {
     if (!id) return;
@@ -84,6 +71,20 @@ export function useDetailCustomer(id: string): UseDetailCustomerReturn {
       await queryClient.invalidateQueries({ queryKey: ["customer", id] });
     } catch (err) {
       setErrorNota(err instanceof Error ? err.message : "Error al guardar nota");
+    } finally {
+      setGuardandoNota(false);
+    }
+  }, [id, token, queryClient]);
+
+  const actualizarNota = useCallback(async (noteId: number, content: string) => {
+    if (!id) return;
+    setGuardandoNota(true);
+    setErrorNota(null);
+    try {
+      await detailCustomerService.actualizarNota(id, noteId, content, token);
+      await queryClient.invalidateQueries({ queryKey: ["customer", id] });
+    } catch (err) {
+      setErrorNota(err instanceof Error ? err.message : "Error al actualizar nota");
     } finally {
       setGuardandoNota(false);
     }
@@ -109,6 +110,7 @@ export function useDetailCustomer(id: string): UseDetailCustomerReturn {
     ultimaCompra,
     ventasPorMes,
     crearNota,
+    actualizarNota,
     eliminarNota,
     guardandoNota,
     errorNota,
