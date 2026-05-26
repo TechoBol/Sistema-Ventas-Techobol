@@ -4,11 +4,11 @@ import { theme } from "./Theme";
 export const PageSurface = styled.section`
   width: 100%;
   min-height: calc(100dvh - 90px);
-  padding: 28px 32px;
+  padding: 20px 15px;
   box-sizing: border-box;
 
   @media (max-width: 900px) {
-    padding: 28px 20px;
+    padding: 12px;
   }
 `;
 
@@ -47,6 +47,7 @@ export const SearchBox = styled.div`
   border-radius: 22px;
   background: ${theme.colors.background};
   color: ${theme.colors.textMuted};
+  border: 1px solid rgba(148, 163, 184, 0.28);
 
   display: flex;
   align-items: center;

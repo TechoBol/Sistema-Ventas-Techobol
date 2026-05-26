@@ -9,11 +9,11 @@ export const PageContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: 28px 32px;
+  padding: 20px 15px;
   gap: 28px;
 
   @media (max-width: 768px) {
-    padding: 20px;
+    padding: 12px;
   }
 `;
 
@@ -127,6 +127,7 @@ export const SearchWrapper = styled.div`
   border-radius: 22px;
   background: ${theme.colors.background};
   color: ${theme.colors.textMuted};
+  border: 1px solid rgba(148, 163, 184, 0.28);
 
   display: flex;
   align-items: center;

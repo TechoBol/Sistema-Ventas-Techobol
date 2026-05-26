@@ -8,9 +8,9 @@ import { theme } from "./Theme";
 export const Wrapper = styled.div`
   width: 100%;
   min-height: calc(100dvh - 90px);
-  padding: 28px 32px;
+  padding: 20px 15px;
   @media (max-width: 900px) {
-    padding: 28px 20px;
+    padding: 12px;
   }
 `;
 
@@ -41,7 +41,6 @@ export const Title = styled.h1`
   margin: 0;
   font-size: 26px;
   font-weight: 700;
-  letter-spacing: -0.02em;
   color: ${theme.colors.text};
 `;
 
