@@ -13,7 +13,7 @@ import {
   Settings,
   UserCog,
   X,
-  ChevronDown,
+  ChevronDown,DollarSign
 } from "lucide-react";
 
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
@@ -77,7 +77,7 @@ const sidebarSections = [
         path: "/cart",
       },
       {
-        label: "Recibos/Facturas",
+        label: "Recibos / Facturas",
         icon: ReceiptText,
         path: "/receipts",
       },
@@ -102,9 +102,9 @@ const sidebarSections = [
         path: "/customer",
       },
       {
-        label: "Reportes de Ventas",
-        icon: BarChart3,
-        path: "/sales-reports",
+        label: "Costos / Importaciones",
+        icon: DollarSign,
+        path: "/costs",
       },
       {
         label: "Sucursales",

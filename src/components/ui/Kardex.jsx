@@ -6,9 +6,12 @@ import { theme } from "./Theme";
 //////////////////////////////////////////
 
 export const Wrapper = styled.div`
-  min-height: 100dvh;
-  background: ${theme.colors.background};
-  padding: 20px;
+  width: 100%;
+  min-height: calc(100dvh - 90px);
+  padding: 20px 15px;
+  @media (max-width: 900px) {
+    padding: 12px;
+  }
 `;
 
 //////////////////////////////////////////
@@ -16,28 +19,60 @@ export const Wrapper = styled.div`
 //////////////////////////////////////////
 
 export const Header = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  margin-bottom: 20px;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  @media (max-width: 700px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+export const HeaderTitle = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 `;
 
 export const Title = styled.h1`
-  text-align: center;
-  font-size: 24px;
+  margin: 0;
+  font-size: 26px;
   font-weight: 700;
   color: ${theme.colors.text};
+`;
+
+export const Subtitle = styled.p`
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${theme.colors.textSecondary};
 `;
 
 //////////////////////////////////////////
 // CONTENT
 //////////////////////////////////////////
 
-export const Content = styled.div`
+/*export const Content = styled.div`
   background: white;
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+`;*/
+
+export const Content = styled.div`
+  width: 100%;
+  background: ${theme.colors.background};
+  border-radius: 26px;
+  padding: 28px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+  @media (max-width: 900px) {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
 `;
 
 //////////////////////////////////////////
@@ -101,6 +136,7 @@ export const GroupButton = styled.button`
 
 export const AddButton = styled.button`
   height: 44px;
+  min-width: 110px;
   padding: 0 18px;
   border: none;
   border-radius: 14px;
@@ -112,6 +148,7 @@ export const AddButton = styled.button`
 
   &:hover {
     opacity: 0.95;
+    transform: translateY(-1px);
   }
 
   &:active {
@@ -434,4 +471,110 @@ export const TotalText = styled.span`
     $bold ? 700 : 500};
 
   color: ${theme.colors.text};
+`;
+
+// estilo del popover, la parte de detalles
+export const DetailButton = styled.button`
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 10px;
+
+  background: #f3f4f6;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover {
+    background: #e5e7eb;
+    color: #0f172a;
+  }
+`;
+
+export const DetailPopoverCard = styled.div`
+  min-width: 450px;
+  max-width: 500px;
+    
+  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  box-shadow:
+    0 20px 45px rgba(15, 23, 42, 0.18),
+    0 8px 24px rgba(239, 68, 68, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 20px 20px 16px;
+`;
+
+export const DetailPopoverTitle = styled.h4`
+  margin: 0 0 16px;
+
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: "";
+    width: 10px;
+    height: 26px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  }
+`;
+
+export const DetailPopoverTable = styled.div`
+  width: 100%;
+`;
+
+export const DetailPopoverHead = styled.div`
+  display: grid;
+  grid-template-columns:
+    1.2fr
+    1fr
+    0.8fr
+    1fr;
+  gap: 12px;
+
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+
+  font-size: 13px;
+  font-weight: 800;
+  color: #334155;
+`;
+
+export const DetailPopoverRow = styled.div`
+  display: grid;
+  grid-template-columns:
+    1.2fr
+    1fr
+    0.8fr
+    1fr;
+  gap: 12px;
+
+  padding: 12px;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.7);
+  font-size: 14px;
+  color: #0f172a;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 10px;
+  }
 `;

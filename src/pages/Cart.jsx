@@ -36,7 +36,7 @@ import { useLoginStore } from "../components/store/loginStore";
 import Swal from "sweetalert2";
 import { socket } from "../services/SocketIOConnection";
 import { getProducts } from "../services/InventoryService";
-import CheckoutModal from "../components/modals/CheckoutModal";
+import SaleForm from "../components/forms/SaleForm";
 /* ── utilidad: fecha legible ── */
 const fechaHoy = () => {
   const fecha = new Date().toLocaleDateString("es-BO", {
@@ -65,11 +65,8 @@ const Cart = () => {
       ? (products ?? []).slice(0, 50)
       : (products ?? []).filter((p) => {
           const name = p?.name?.toLowerCase?.() || "";
-
           const code = p?.code?.toLowerCase?.() || "";
-
           const q = query.toLowerCase();
-
           return name.includes(q) || code.includes(q);
         });
 
@@ -110,25 +107,15 @@ const Cart = () => {
         ...prev,
         {
           productId: product.id,
-
           code: product.code,
-
           name: product.name,
-
           quantity: 1,
-
           itemDiscount: 0,
-
           productUnits: product.productUnits,
-
           selectedUnitId: defaultUnit.id,
-
           equivalence: Number(defaultUnit.equivalence),
-
           unitName: defaultUnit.unit.name,
-
           unitPrice: Number(defaultUnit.salePrice),
-
           stock:
             product?.inventories?.find((inv) => inv.locationId === location.id)
               ?.quantity || 0,
@@ -151,13 +138,9 @@ const Cart = () => {
 
         return {
           ...item,
-
           selectedUnitId: selectedUnit.id,
-
           equivalence: Number(selectedUnit.equivalence),
-
           unitName: selectedUnit.unit.name,
-
           unitPrice: Number(selectedUnit.salePrice),
         };
       }),
@@ -224,7 +207,7 @@ const Cart = () => {
 
   /* ── checkout ── */
   const { createSale, loading } = useCart();
-  const [openCheckoutModal, setOpenCheckoutModal] = useState(false);
+  const [showSaleForm, setShowSaleForm] = useState(false);
 
   const handleCheckout = async () => {
     if (!cartItems.length) {
@@ -235,7 +218,7 @@ const Cart = () => {
       });
       return;
     }
-    setOpenCheckoutModal(true);
+    setShowSaleForm(true);
   };
 
   const finalizarVenta = async ({
@@ -255,22 +238,15 @@ const Cart = () => {
 
         products: cartItems.map((item) => ({
           productId: item.productId,
-
           productUnitId: item.selectedUnitId,
-
           quantity: item.quantity,
-
           equivalence: item.equivalence,
-
           itemDiscount: Number(item.itemDiscount || 0),
         })),
 
         subtotal,
-
         total,
-
         metodoPago,
-
         codigoTransaccion,
       };
 
@@ -291,17 +267,14 @@ const Cart = () => {
       // 🔥 LIMPIAR
       setCartItems([]);
 
-      // 🔥 CERRAR MODAL
-      setOpenCheckoutModal(false);
+      // Volver a la vista de venta
+      setShowSaleForm(false);
 
       // 🔥 ALERTA
       await Swal.fire({
         title: "Venta realizada",
-
         text: "La venta fue registrada correctamente",
-
         icon: "success",
-
         confirmButtonColor: "#fb0404",
       });
     } catch (err) {
@@ -309,9 +282,7 @@ const Cart = () => {
 
       Swal.fire({
         title: "Error",
-
         text: "No se pudo procesar la venta.",
-
         icon: "error",
       });
     } finally {
@@ -323,6 +294,8 @@ const Cart = () => {
   return (
     <>
       <Wrapper>
+        {!showSaleForm ? (
+        <>
         {/* cabecera */}
         <Header>
           <Title>Venta</Title>
@@ -362,11 +335,8 @@ const Cart = () => {
             <ProductDropdown>
               <DropHeader>
                 <DropHeaderCode>Código</DropHeaderCode>
-
                 <DropHeaderName>Producto</DropHeaderName>
-
                 <DropHeaderQty>Cant.</DropHeaderQty>
-
                 <DropHeaderPrice>Precio</DropHeaderPrice>
               </DropHeader>
 
@@ -376,15 +346,12 @@ const Cart = () => {
                 filtered.map((p) => (
                   <DropItem key={p.id} onClick={() => addToCart(p)}>
                     <DropCode>{p?.code || "-"}</DropCode>
-
                     <DropName>{p?.name || "-"}</DropName>
-
                     <DropCantidad>
                       {p?.inventories?.find(
                         (inv) => inv.locationId === location.id,
                       )?.quantity || 0}
                     </DropCantidad>
-
                     <DropPrice>
                       {Number(p?.salePrice || 0).toFixed(2)} Bs
                     </DropPrice>
@@ -576,26 +543,24 @@ const Cart = () => {
             </SummaryPanel>
           </div>
         </Body>
-        <CheckoutModal
-          open={openCheckoutModal}
+        </>
+        ) : (
+        <SaleForm
           total={total}
           paymentMethod={paymentMethod}
           loading={loading}
-          onClose={() => setOpenCheckoutModal(false)}
+          onBack={() => setShowSaleForm(false)}
           onFinish={async ({ generateInvoice, bankName, ...customerData }) => {
             await finalizarVenta({
               metodoPago: paymentMethod,
-
               codigoTransaccion: null,
-
               generateInvoice,
-
               bankName,
-
               ...customerData,
             });
           }}
         />
+      )}
       </Wrapper>
     </>
   );
@@ -609,7 +574,7 @@ const ProductDropdown = styled.div`
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  width: 420px;
+  width: 450px;
   max-height: 320px;
   overflow-y: auto;
   background: #ffffff;

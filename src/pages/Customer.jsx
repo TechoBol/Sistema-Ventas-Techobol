@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
-import { Search, Pencil, ChevronDown, ShoppingBag } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import DataTable from "../components/table/DataTable";
 import { useCustomer } from "../hooks/useCustomer";
 
@@ -23,13 +24,25 @@ const fechaHoy = () => {
     month: "long",
     day: "numeric",
   });
-
   return fecha.charAt(0).toUpperCase() + fecha.slice(1);
 };
 
 function Customer() {
+  const navigate = useNavigate();
   const { customers, searchTerm, setSearchTerm, isLoading, error } =
     useCustomer();
+
+  const formatPhoneForWhatsApp = (phone) => {
+    const cleanPhone = String(phone || "").replace(/\D/g, "");
+    if (!cleanPhone) return "";
+    return cleanPhone.startsWith("591") ? cleanPhone : `591${cleanPhone}`;
+  };
+
+  const handleOpenWhatsApp = (customer) => {
+    const phone = formatPhoneForWhatsApp(customer.phone);
+    if (!phone) return;
+    window.open(`https://wa.me/${phone}`, "_blank", "noopener,noreferrer");
+  };
 
   const customerColumns = useMemo(
     () => [
@@ -44,14 +57,16 @@ function Customer() {
         flex: 0.8,
       },
       {
-        field: "phone",
-        headerName: "Teléfono",
-        flex: 0.9,
+        field: "profesion",
+        headerName: "Profesión",
+        flex: 1,
       },
       {
-        field: "address",
-        headerName: "Dirección",
-        flex: 1.3,
+        field: "createdAt",
+        headerName: "Fecha de registro",
+        flex: 1,
+        renderCell: (params) =>
+          new Date(params.row.createdAt).toLocaleDateString("es-BO"),
       },
     ],
     []
@@ -63,63 +78,27 @@ function Customer() {
         key: "whatsapp",
         title: "Contactarse",
         icon: FaWhatsapp,
-        onClick: (customer) => {
-          handleOpenWhatsApp(customer);
-        },
+        onClick: (customer) => handleOpenWhatsApp(customer),
       },
       {
-        key: "edit",
-        title: "Editar cliente",
-        icon: Pencil,
-        onClick: (customer) => {
-          console.log("Editar cliente:", customer);
-        },
-      },
-      {
-        key: "more",
-        title: "Ver compras",
-        icon: ShoppingBag,
-        onClick: (customer) => {
-          console.log("Más acciones:", customer);
-        },
+        key: "detail",
+        title: "Ver detalle",
+        icon: ChevronRight,
+        onClick: (customer) => navigate(`/customer/${customer.id}`),
       },
     ],
-    []
+    [navigate]
   );
-
-  const handleOpenLocation = (customer) => {
-    if (!customer.latitude || !customer.longitude) return;
-    const url = `https://www.google.com/maps?q=${customer.latitude},${customer.longitude}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  // ABRIR WAHTSAPP
-  const formatPhoneForWhatsApp = (phone) => {
-    const cleanPhone = String(phone || "").replace(/\D/g, "");
-    if (!cleanPhone) return "";
-    if (cleanPhone.startsWith("591")) {
-      return cleanPhone;
-    }
-    return `591${cleanPhone}`;
-  };
-
-  const handleOpenWhatsApp = (customer) => {
-    const phone = formatPhoneForWhatsApp(customer.phone);
-    if (!phone) return;
-    const url = `https://wa.me/${phone}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
 
   return (
     <>
       <PageSurface>
         <PageWrapper>
-          {/* titulo y fecha */}
           <HeaderTitle>
             <Title>Clientes</Title>
             <Subtitle>{fechaHoy()}</Subtitle>
           </HeaderTitle>
-          {/* buscador */}
+
           <Toolbar>
             <SearchBox>
               <Search size={18} />
@@ -127,7 +106,7 @@ function Customer() {
                 type="text"
                 placeholder="Buscar"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </SearchBox>
           </Toolbar>
@@ -139,11 +118,6 @@ function Customer() {
             columns={customerColumns}
             loading={isLoading}
             pageSize={7}
-            locationConfig={{
-              latitudeField: "latitude",
-              longitudeField: "longitude",
-              onOpen: handleOpenLocation,
-            }}
             actions={customerActions}
           />
         </PageWrapper>

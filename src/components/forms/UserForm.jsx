@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 
 import {
-  ModalOverlay,
-  ModalCard,
-  ModalTitle,
+  FormPageCard,
+  FormHeader,
+  BackButton,
+  FormTitle,
   Form,
-  FormSectionTitle,
+  FormSection,
+  SectionTitle,
   FieldsGrid,
   Field,
   Label,
@@ -16,8 +18,7 @@ import {
   SelectIcon,
   Actions,
   SaveButton,
-  CloseButton,
-} from "../ui/Modal.styles";
+} from "../ui/UserForm.styles";
 
 const emptyForm = {
   name: "",
@@ -29,23 +30,20 @@ const emptyForm = {
   locationId: "",
 };
 
-function UserModal({
-  open,
+function UserForm({
   mode = "create",
   initialData = null,
   roles = [],
   sucursales = [],
-  onClose,
-  onSubmit,
   loading = false,
+  onBack,
+  onSubmit,
 }) {
   const [formData, setFormData] = useState(emptyForm);
 
   const isEditMode = mode === "edit";
 
   useEffect(() => {
-    if (!open) return;
-
     if (initialData) {
       setFormData({
         name: initialData.name || "",
@@ -59,9 +57,7 @@ function UserModal({
     } else {
       setFormData(emptyForm);
     }
-  }, [open, initialData]);
-
-  if (!open) return null;
+  }, [initialData]);
 
   const handleChange = (field, value) => {
     setFormData((current) => ({
@@ -78,29 +74,28 @@ function UserModal({
       lastName: formData.lastName.trim(),
       email: formData.email.trim() || null,
       celular: formData.celular.trim() || null,
-      numeral: formData.numeral.trim()
-        ? Number(formData.numeral)
-        : null,
+      numeral: formData.numeral.trim() ? Number(formData.numeral) : null,
       roleId: Number(formData.roleId),
-      locationId: formData.locationId
-        ? Number(formData.locationId)
-        : null,
+      locationId: formData.locationId ? Number(formData.locationId) : null,
     };
+
     onSubmit?.(payload);
   };
 
   return (
-    <ModalOverlay onMouseDown={onClose}>
-      <ModalCard $size="large" onMouseDown={(event) => event.stopPropagation()}>
-        <CloseButton type="button" onClick={onClose}>
-          <X size={18} />
-        </CloseButton>
+    <FormPageCard>
+      <FormHeader>
+        <BackButton type="button" onClick={onBack} title="Volver">
+          <ArrowLeft size={20} />
+        </BackButton>
 
-        <ModalTitle>
-          {isEditMode ? "Editar Usuario" : "Nuevo Usuario"}
-        </ModalTitle>
+        <FormTitle>{isEditMode ? "Editar Usuario" : "Nuevo Usuario"}</FormTitle>
+      </FormHeader>
 
-        <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit}>
+        <FormSection>
+          <SectionTitle>Información General</SectionTitle>
+
           <FieldsGrid $columns={2}>
             <Field>
               <Label>Nombre</Label>
@@ -124,8 +119,10 @@ function UserModal({
               />
             </Field>
           </FieldsGrid>
+        </FormSection>
 
-          <FormSectionTitle>Contacto</FormSectionTitle>
+        <FormSection>
+          <SectionTitle>Contacto</SectionTitle>
 
           <FieldsGrid $columns={3}>
             <Field>
@@ -144,7 +141,9 @@ function UserModal({
                 type="text"
                 placeholder="591 00000000"
                 value={formData.celular}
-                onChange={(event) => handleChange("celular", event.target.value)}
+                onChange={(event) =>
+                  handleChange("celular", event.target.value)
+                }
               />
             </Field>
 
@@ -160,8 +159,10 @@ function UserModal({
               />
             </Field>
           </FieldsGrid>
+        </FormSection>
 
-          <FormSectionTitle>Empresa</FormSectionTitle>
+        <FormSection>
+          <SectionTitle>Empresa</SectionTitle>
 
           <FieldsGrid $columns={2}>
             <Field>
@@ -169,11 +170,14 @@ function UserModal({
               <SelectWrapper>
                 <Select
                   value={formData.roleId}
-                  onChange={(event) => handleChange("roleId", event.target.value)}
+                  onChange={(event) =>
+                    handleChange("roleId", event.target.value)
+                  }
                 >
                   <option value="" disabled>
                     Cargo o puesto
                   </option>
+
                   {roles.map((role) => (
                     <option key={role.id} value={role.id}>
                       {role.name}
@@ -199,6 +203,7 @@ function UserModal({
                   <option value="" disabled>
                     Seleccione sucursal
                   </option>
+
                   {sucursales.map((sucursal) => (
                     <option key={sucursal.id} value={sucursal.id}>
                       {sucursal.name}
@@ -212,16 +217,16 @@ function UserModal({
               </SelectWrapper>
             </Field>
           </FieldsGrid>
+        </FormSection>
 
-          <Actions>
-            <SaveButton type="submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar"}
-            </SaveButton>
-          </Actions>
-        </Form>
-      </ModalCard>
-    </ModalOverlay>
+        <Actions>
+          <SaveButton type="submit" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar"}
+          </SaveButton>
+        </Actions>
+      </Form>
+    </FormPageCard>
   );
 }
 
-export default UserModal;
+export default UserForm;

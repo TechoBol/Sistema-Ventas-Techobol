@@ -12,8 +12,7 @@ const useInventory = () => {
 
   const [products, setProducts] = useState<any[]>([]);
 
-  const [filteredProducts, setFilteredProducts] =
-    useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
 
   const [search, setSearch] = useState("");
 
@@ -25,13 +24,10 @@ const useInventory = () => {
     setIsLoading(true);
 
     try {
-      const data = await getProducts(token)
+      const data = await getProducts(token);
       setProducts(data);
     } catch (error) {
-      console.error(
-        "Error obteniendo productos:",
-        error
-      );
+      console.error("Error obteniendo productos:", error);
     } finally {
       setIsLoading(false);
     }
@@ -45,12 +41,8 @@ const useInventory = () => {
 
     const filtered = products.filter(
       (product: any) =>
-        (product.name || "")
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        (product.code || "")
-          .toLowerCase()
-          .includes(search.toLowerCase())
+        (product.name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (product.code || "").toLowerCase().includes(search.toLowerCase()),
     );
 
     setFilteredProducts(filtered);
@@ -60,17 +52,14 @@ const useInventory = () => {
     setSearch(e.target.value);
   };
 
-  const goToInventory = () =>
-    navigate("/inventory");
+  const goToInventory = () => navigate("/inventory");
 
   useEffect(() => {
     const handleRefresh = async () => {
       await fetchProducts();
     };
 
-    const handleTransfer = async (
-      mensaje: string
-    ) => {
+    const handleTransfer = async (mensaje: string) => {
       notificationToast(mensaje);
 
       await fetchProducts();
@@ -81,22 +70,36 @@ const useInventory = () => {
     socket.on("cartProduct", handleRefresh);
 
     socket.on("transfer", handleTransfer);
+    socket.on("updateProductMargin", ({ id, porcentajeGanancia }) => {
+      setProducts((prev) =>
+        prev.map((item) => {
+          if (item.id !== id) {
+            return item;
+          }
 
+          const costIva = Number(item.purchasePrice || 0) * 1.1494;
+
+          const salePrice = Math.round(
+            costIva * (1 + porcentajeGanancia / 100),
+          );
+
+          return {
+            ...item,
+
+            porcentajeGanancia,
+
+            salePrice,
+          };
+        }),
+      );
+    });
     return () => {
-      socket.off(
-        "newProduct",
-        handleRefresh
-      );
+      socket.off("newProduct", handleRefresh);
 
-      socket.off(
-        "cartProduct",
-        handleRefresh
-      );
+      socket.off("cartProduct", handleRefresh);
 
-      socket.off(
-        "transfer",
-        handleTransfer
-      );
+      socket.off("transfer", handleTransfer);
+      socket.off("updateProductMargin");
     };
   }, [token]);
 

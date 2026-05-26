@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import DataTable from "../components/table/DataTable";
-import UserModal from "../components/modals/UserModal";
+import UserForm from "../components/forms/UserForm";
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import {
   PageSurface,
@@ -24,15 +24,13 @@ const fechaHoy = () => {
     month: "long",
     day: "numeric",
   });
-
   return fecha.charAt(0).toUpperCase() + fecha.slice(1);
 };
 
 function Users() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalState, setModalState] = useState({
-    open: false,
-    mode: "create",
+  const [viewState, setViewState] = useState({
+    mode: "list",
     selectedUser: null,
   });
   const {
@@ -120,42 +118,39 @@ function Users() {
     []
   );
 
-  // Modal
-  const openCreateModal = () => {
-    setModalState({
-      open: true,
+  // UserForm
+  const openCreateForm = () => {
+    setViewState({
       mode: "create",
       selectedUser: null,
     });
   };
 
-  const openEditModal = (user) => {
-    setModalState({
-      open: true,
+  const openEditForm = (user) => {
+    setViewState({
       mode: "edit",
       selectedUser: user,
     });
   };
 
-  const closeModal = () => {
-    setModalState({
-      open: false,
-      mode: "create",
+  const backToList = () => {
+    setViewState({
+      mode: "list",
       selectedUser: null,
     });
   };
 
   const handleSubmitUser = async (formData) => {
-    if (modalState.mode === "edit") {
-      const updated = await updateEmployee(modalState.selectedUser.id, formData);
+    if (viewState.mode === "edit") {
+      const updated = await updateEmployee(viewState.selectedUser.id, formData);
       if (updated) {
-        closeModal();
+        backToList();
       }
       return;
     }
     const created = await createEmployee(formData);
     if (created) {
-      closeModal();
+      backToList();
     }
   };
 
@@ -165,9 +160,7 @@ function Users() {
         key: "edit",
         title: "Editar usuario",
         icon: Pencil,
-        onClick: (user) => {
-          openEditModal(user);
-        },
+        onClick: openEditForm,
       },
       {
         key: "delete",
@@ -181,55 +174,58 @@ function Users() {
     [deleteEmployee]
   );
 
+  const isFormView = viewState.mode === "create" || viewState.mode === "edit";
+
   return (
-    <>
-      <PageSurface>
-        <PageWrapper>
-          <HeaderTitle>
-            <Title>Usuarios</Title>
-            <Subtitle>{fechaHoy()}</Subtitle>
-          </HeaderTitle>
+    <PageSurface>
+      <PageWrapper>
+        {!isFormView ? (
+          <>
+            <HeaderTitle>
+              <Title>Usuarios</Title>
+              <Subtitle>{fechaHoy()}</Subtitle>
+            </HeaderTitle>
 
-          <Toolbar>
-            <SearchBox>
-              <Search size={18} />
-              <SearchInput
-                type="text"
-                placeholder="Buscar"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-            </SearchBox>
+            <Toolbar>
+              <SearchBox>
+                <Search size={18} />
+                <SearchInput
+                  type="text"
+                  placeholder="Buscar"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </SearchBox>
 
-            <PrimaryActionButton type="button" onClick={openCreateModal}>
-              <Plus size={17} />
-              Agregar usuario
-            </PrimaryActionButton>
-          </Toolbar>
+              <PrimaryActionButton type="button" onClick={openCreateForm}>
+                <Plus size={17} />
+                Agregar usuario
+              </PrimaryActionButton>
+            </Toolbar>
 
-          <DataTable
-            rows={filteredUsers}
-            columns={userColumns}
-            actions={userActions}
-            pageSize={7}
-            pageSizeOptions={[7, 10, 20]}
-            noRowsLabel="No hay usuarios registrados"
+            <DataTable
+              rows={filteredUsers}
+              columns={userColumns}
+              actions={userActions}
+              pageSize={7}
+              pageSizeOptions={[7, 10, 20]}
+              noRowsLabel="No hay usuarios registrados"
+              loading={isLoading}
+            />
+          </>
+        ) : (
+          <UserForm
+            mode={viewState.mode}
+            initialData={viewState.selectedUser}
+            roles={roles}
+            sucursales={sucursales}
             loading={isLoading}
+            onBack={backToList}
+            onSubmit={handleSubmitUser}
           />
-        </PageWrapper>
-      </PageSurface>
-      {/* Modal */}
-      <UserModal
-        open={modalState.open}
-        mode={modalState.mode}
-        initialData={modalState.selectedUser}
-        roles={roles}
-        sucursales={sucursales}
-        loading={isLoading}
-        onClose={closeModal}
-        onSubmit={handleSubmitUser}
-      />
-    </>
+        )}
+      </PageWrapper>
+    </PageSurface>
   );
 }
 
