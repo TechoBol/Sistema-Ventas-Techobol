@@ -61,12 +61,35 @@ export default function Kardex() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
+  ////////////////////////////////////////////////////////////
+  // 🔥 FORMATEAR FECHA
+  ////////////////////////////////////////////////////////////
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("es-BO", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  ////////////////////////////////////////////////////////////
+  // 🔥 FORMATEAR MES
+  ////////////////////////////////////////////////////////////
+
+  const formatMonth = (date) => {
+    return new Date(date).toLocaleDateString("es-BO", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   const getLastFinalPrice = (details = []) => {
     if (!details.length) return 0;
     return Number(details[details.length - 1]?.finalPrice || 0);
   };
 
-  const round = (value) => Number(value.toFixed(2));
+  const round = (value) => Number(Number(value || 0).toFixed(2));
 
   const rows = useMemo(() => {
     ////////////////////////////////////////////////////////////
@@ -85,6 +108,7 @@ export default function Kardex() {
         discount: Number(item.discount || 0),
         total: Number(item.total || 0),
         purchasePrice: Number(item.purchasePrice || 0),
+        date: item.date,
       }));
     }
 
@@ -145,7 +169,175 @@ export default function Kardex() {
 
       return Object.values(grouped);
     }
+    if (groupBy === "date") {
+      const grouped = {};
 
+      rawRows.forEach((item) => {
+        //////////////////////////////////////////////////////////
+        // 🔥 RECORRER FECHAS DEL PRODUCTO
+        //////////////////////////////////////////////////////////
+
+        (item.dates || []).forEach((dateItem) => {
+          ////////////////////////////////////////////////////////
+          // 🔥 VALIDAR FECHA
+          ////////////////////////////////////////////////////////
+
+          if (!dateItem.date) return;
+
+          const dateObj = new Date(dateItem.date);
+
+          if (isNaN(dateObj.getTime())) return;
+
+          ////////////////////////////////////////////////////////
+          // 🔥 KEY
+          ////////////////////////////////////////////////////////
+
+          const dateKey = dateObj.toISOString().split("T")[0];
+
+          ////////////////////////////////////////////////////////
+          // 🔥 LABEL
+          ////////////////////////////////////////////////////////
+
+          const dateLabel = formatDate(dateItem.date);
+
+          ////////////////////////////////////////////////////////
+          // 🔥 INIT
+          ////////////////////////////////////////////////////////
+
+          if (!grouped[dateKey]) {
+            grouped[dateKey] = {
+              id: `date-${dateKey}`,
+
+              name: dateLabel,
+
+              orderDate: dateKey,
+
+              quantity: 0,
+
+              subtotal: 0,
+
+              discount: 0,
+
+              total: 0,
+            };
+          }
+
+          ////////////////////////////////////////////////////////
+          // 🔥 ACUMULAR
+          ////////////////////////////////////////////////////////
+
+          grouped[dateKey].quantity += Number(dateItem.quantity || 0);
+
+          grouped[dateKey].subtotal = round(
+            grouped[dateKey].subtotal + Number(dateItem.subtotal || 0),
+          );
+
+          grouped[dateKey].discount = round(
+            grouped[dateKey].discount + Number(dateItem.discount || 0),
+          );
+
+          grouped[dateKey].total = round(
+            grouped[dateKey].total + Number(dateItem.total || 0),
+          );
+        });
+      });
+
+      ////////////////////////////////////////////////////////////
+      // 🔥 ORDENAR
+      ////////////////////////////////////////////////////////////
+
+      return Object.values(grouped).sort((a, b) =>
+        b.orderDate.localeCompare(a.orderDate),
+      );
+    }
+
+    ////////////////////////////////////////////////////////////
+    // 🔥 AGRUPAR POR MES
+    ////////////////////////////////////////////////////////////
+
+    if (groupBy === "month") {
+      const grouped = {};
+
+      rawRows.forEach((item) => {
+        //////////////////////////////////////////////////////////
+        // 🔥 RECORRER FECHAS DEL PRODUCTO
+        //////////////////////////////////////////////////////////
+
+        (item.dates || []).forEach((dateItem) => {
+          ////////////////////////////////////////////////////////
+          // 🔥 VALIDAR FECHA
+          ////////////////////////////////////////////////////////
+
+          if (!dateItem.date) return;
+
+          const date = new Date(dateItem.date);
+
+          if (isNaN(date.getTime())) return;
+
+          ////////////////////////////////////////////////////////
+          // 🔥 KEY
+          ////////////////////////////////////////////////////////
+
+          const monthKey = `${date.getFullYear()}-${String(
+            date.getMonth() + 1,
+          ).padStart(2, "0")}`;
+
+          ////////////////////////////////////////////////////////
+          // 🔥 LABEL
+          ////////////////////////////////////////////////////////
+
+          const monthLabel = formatMonth(dateItem.date);
+
+          ////////////////////////////////////////////////////////
+          // 🔥 INIT
+          ////////////////////////////////////////////////////////
+
+          if (!grouped[monthKey]) {
+            grouped[monthKey] = {
+              id: `month-${monthKey}`,
+
+              name: monthLabel,
+
+              orderDate: monthKey,
+
+              quantity: 0,
+
+              subtotal: 0,
+
+              discount: 0,
+
+              total: 0,
+            };
+          }
+
+          ////////////////////////////////////////////////////////
+          // 🔥 ACUMULAR
+          ////////////////////////////////////////////////////////
+
+          grouped[monthKey].quantity += Number(dateItem.quantity || 0);
+
+          grouped[monthKey].subtotal = round(
+            grouped[monthKey].subtotal + Number(dateItem.subtotal || 0),
+          );
+
+          grouped[monthKey].discount = round(
+            grouped[monthKey].discount + Number(dateItem.discount || 0),
+          );
+
+          grouped[monthKey].total = round(
+            grouped[monthKey].total + Number(dateItem.total || 0),
+          );
+        });
+      });
+
+      ////////////////////////////////////////////////////////////
+      // 🔥 ORDENAR
+      ////////////////////////////////////////////////////////////
+
+      return Object.values(grouped).sort((a, b) =>
+        b.orderDate.localeCompare(a.orderDate),
+      );
+    }
     ////////////////////////////////////////////////////////////
     // 🔥 AGRUPAR NORMAL
     ////////////////////////////////////////////////////////////
@@ -226,6 +418,10 @@ export default function Kardex() {
       ? "Marca"
       : groupBy === "branch"
       ? "Sucursal"
+      : groupBy === "date"
+      ? "Fecha"
+      : groupBy === "month"
+      ? "Mes"
       : "Producto";
 
   const columns = useMemo(() => {
@@ -419,6 +615,19 @@ export default function Kardex() {
             onClick={() => setGroupBy("branch")}
           >
             Sucursales
+          </GroupButton>
+          <GroupButton
+            $active={groupBy === "date"}
+            onClick={() => setGroupBy("date")}
+          >
+            Fechas
+          </GroupButton>
+
+          <GroupButton
+            $active={groupBy === "month"}
+            onClick={() => setGroupBy("month")}
+          >
+            Meses
           </GroupButton>
         </GroupBar>
 
