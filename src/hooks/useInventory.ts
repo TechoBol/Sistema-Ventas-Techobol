@@ -70,29 +70,48 @@ const useInventory = () => {
     socket.on("cartProduct", handleRefresh);
 
     socket.on("transfer", handleTransfer);
-    socket.on("updateProductMargin", ({ id, porcentajeGanancia }) => {
-      setProducts((prev) =>
-        prev.map((item) => {
-          if (item.id !== id) {
-            return item;
-          }
+    socket.on(
+      "updateProductMargin",
+      ({ id, porcentajeGanancia, quantityDiscount, bossDiscount }) => {
+        setProducts((prev) =>
+          prev.map((item) => {
+            if (item.id !== id) {
+              return item;
+            }
 
-          const costIva = Number(item.purchasePrice || 0) * 1.1494;
+            ////////////////////////////////////////////////////
+            // COSTO + IVA
+            ////////////////////////////////////////////////////
 
-          const salePrice = Math.round(
-            costIva * (1 + porcentajeGanancia / 100),
-          );
+            const costIva = Number(item.purchasePrice || 0) * 1.1494;
 
-          return {
-            ...item,
+            ////////////////////////////////////////////////////
+            // PRECIO EJECUTIVO
+            ////////////////////////////////////////////////////
 
-            porcentajeGanancia,
+            const salePrice = Math.round(
+              costIva * (1 + porcentajeGanancia / 100),
+            );
 
-            salePrice,
-          };
-        }),
-      );
-    });
+            return {
+              ...item,
+
+              ////////////////////////////////////////////////////
+              // ACTUALIZAR
+              ////////////////////////////////////////////////////
+
+              porcentajeGanancia,
+
+              quantityDiscount,
+
+              bossDiscount,
+
+              salePrice,
+            };
+          }),
+        );
+      },
+    );
     return () => {
       socket.off("newProduct", handleRefresh);
 
