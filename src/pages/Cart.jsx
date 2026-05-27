@@ -574,7 +574,7 @@ const ProductDropdown = styled.div`
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  width: 420px;
+  width: 450px;
   max-height: 320px;
   overflow-y: auto;
   background: #ffffff;

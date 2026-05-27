@@ -91,8 +91,13 @@ export const generarKardexPDF = ({
     // 🔥 TABLA
     // =====================================================
     const n = (value) => {
-      return Number(value || 0).toLocaleString("es-ES", {
-        minimumFractionDigits: 2,
+      const num = Number(value || 0);
+
+      // 🔥 cortar a 2 decimales SIN redondear
+      const truncated = Math.trunc(num * 100) / 100;
+
+      return truncated.toLocaleString("es-ES", {
+        minimumFractionDigits: 0,
         maximumFractionDigits: 2,
       });
     };
@@ -101,33 +106,107 @@ export const generarKardexPDF = ({
 
       theme: "grid",
 
+      tableWidth: "auto",
+
+      margin: {
+        left: 14,
+        right: 8,
+      },
+
       headStyles: {
-        fillColor: [52, 73, 94],
-        fontSize: 8,
+        fillColor: [0, 0, 0],
+        fontSize: 7,
         halign: "center",
         valign: "middle",
+        cellPadding: 1.5,
+        textColor: [255, 255, 255],
       },
 
       styles: {
-        fontSize: 7,
-        cellPadding: 2,
+        fontSize: 6.5,
+        cellPadding: 1.2,
         valign: "middle",
+        overflow: "linebreak",
+        lineWidth: 0.1,
+        textColor: 20,
+      },
+
+      bodyStyles: {
+        minCellHeight: 5,
+      },
+
+      footStyles: {
+        fillColor: [230, 230, 230],
+        textColor: 0,
+        fontStyle: "bold",
+        halign: "right",
+        fontSize: 6.5,
       },
 
       columnStyles: {
-        0: { cellWidth: 18 }, // codigo
-        1: { cellWidth: 20 }, // fecha
-        2: { cellWidth: 35 }, // cliente
-        3: { cellWidth: 55 }, // detalle
+        // Código
+        0: {
+          cellWidth: 16,
+          halign: "center",
+        },
 
-        4: { halign: "right" }, // entrada
-        5: { halign: "right" }, // salida
-        6: { halign: "right" }, // saldo
+        // Fecha
+        1: {
+          cellWidth: 18,
+          halign: "center",
+        },
 
-        7: { halign: "right" }, // c/u
-        8: { halign: "right" }, // entrada bs
-        9: { halign: "right" }, // salida bs
-        10: { halign: "right" }, // saldo bs
+        // Cliente
+        2: {
+          cellWidth: 32,
+        },
+
+        // Detalle
+        3: {
+          cellWidth: 62,
+        },
+
+        // Entrada
+        4: {
+          cellWidth: 16,
+          halign: "right",
+        },
+
+        // Salida
+        5: {
+          cellWidth: 16,
+          halign: "right",
+        },
+
+        // Saldo
+        6: {
+          cellWidth: 18,
+          halign: "right",
+        },
+
+        // C/U
+        7: {
+          cellWidth: 18,
+          halign: "right",
+        },
+
+        // Entrada Bs
+        8: {
+          cellWidth: 22,
+          halign: "right",
+        },
+
+        // Salida Bs
+        9: {
+          cellWidth: 22,
+          halign: "right",
+        },
+
+        // Saldo Bs
+        10: {
+          cellWidth: 24,
+          halign: "right",
+        },
       },
 
       head: [
@@ -199,22 +278,16 @@ export const generarKardexPDF = ({
 
           row.detalle.replace(/→/g, "A"),
 
-          // 🔥 INVENTARIO FISICO
           n(row.entrada),
           n(row.salida),
           n(row.saldoCantidad),
 
-          // 🔥 INVENTARIO VALORADO
           n(row.costoUnitario),
           n(row.entradaTotal),
           n(row.salidaTotal),
           n(row.saldoTotal),
         ];
       }),
-
-      // =====================================================
-      // 🔥 FOOTER TOTALES
-      // =====================================================
 
       foot: [
         [
@@ -223,7 +296,6 @@ export const generarKardexPDF = ({
           "",
           "",
 
-          // 🔥 INVENTARIO FISICO
           n(
             grupo.kardex.reduce(
               (acc, row) => acc + Number(row.entrada || 0),
@@ -239,12 +311,8 @@ export const generarKardexPDF = ({
             ? n(grupo.kardex[grupo.kardex.length - 1]?.saldoCantidad || 0)
             : n(0),
 
-          // 🔥 C/U FINAL
-          grupo.kardex.length > 0
-            ? n(grupo.kardex[grupo.kardex.length - 1]?.costoUnitario || 0)
-            : n(0),
+          "",
 
-          // 🔥 INVENTARIO VALORADO
           n(
             grupo.kardex.reduce(
               (acc, row) => acc + Number(row.entradaTotal || 0),
@@ -265,17 +333,10 @@ export const generarKardexPDF = ({
         ],
       ],
 
-      footStyles: {
-        fillColor: [230, 230, 230],
-        textColor: 0,
-        fontStyle: "bold",
-        halign: "right",
-      },
-
       didDrawPage: () => {
         doc.setFontSize(8);
 
-        doc.text(`Página ${doc.getNumberOfPages()}`, pageWidth - 20, 10);
+        doc.text(`Página ${doc.getNumberOfPages()}`, pageWidth - 25, 10);
       },
     });
 

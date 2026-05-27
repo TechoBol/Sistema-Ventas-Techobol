@@ -1,11 +1,9 @@
 import { useState } from "react";
 import {
   createProductService,
-  updateProductService,
+  updateProductService,updateMargenService
 } from "../services/productService";
 import { useLoginStore } from "../components/store/loginStore";
-import { useAmazonS3 } from "./useAmazonS3";
-import imageCompression from "browser-image-compression";
 
 export const useProduct = () => {
 
@@ -13,26 +11,7 @@ export const useProduct = () => {
   const [error, setError] = useState<string | null>(null);
   
   const { token, location } = useLoginStore();
-  const s3 = useAmazonS3();
-  const optimizeImage = async (file: File) => {
-    const options = {
-      maxSizeMB: 0.3,
-      maxWidthOrHeight: 800,
-      useWebWorker: true,
-    };
 
-    const compressedFile = await imageCompression(file, options);
-    return compressedFile;
-  };
-
-  const subirArchivo = async (file: File, barcode: string) => {
-    const fileName = `${barcode}`;
-
-    // OPTIMIZAR IMAGEN ANTES DE SUBIR
-    const optimizedFile = await optimizeImage(file);
-    const key = await s3.uploadProductImage(optimizedFile, fileName);
-    return key;
-  };
 
   const createProduct = async (data: any) => {
     try {
@@ -69,12 +48,31 @@ export const useProduct = () => {
       setLoading(false);
     }
   };
+
+  const updateMargen = async (id: number, data: any) => {
+    try {
+      setError(null);
+
+      const payload = {
+        ...data,
+      };
+
+      const result = await updateMargenService(id, payload, token);
+      return result;
+    } catch (err) {
+      setError("Error actualizando producto");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return {
     createProduct,
-    subirArchivo,
     loading,
     setLoading,
     error,
     updateProduct,
+    updateMargen
   };
 };

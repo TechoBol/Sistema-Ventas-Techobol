@@ -64,24 +64,9 @@ function Products() {
         headerName: "Nombre",
         flex: 1.5,
       },
-
-      {
-        field: "line",
-        headerName: "Marca",
-        flex: 1.2,
-        valueGetter: (_, row) => row?.line?.name || "-",
-      },
-
-      {
-        field: "brandName",
-        headerName: "Línea",
-        flex: 1.2,
-        valueGetter: (_, row) => row?.brandName || "-",
-      },
-
       {
         field: "purchasePrice",
-        headerName: "Costo",
+        headerName: "Precio Unitario",
         flex: 1,
         valueFormatter: (value) =>
           `${Number(value || 0).toFixed(2)}`,
@@ -89,7 +74,7 @@ function Products() {
 
       {
         field: "salePrice",
-        headerName: "Venta",
+        headerName: "Precio Venta",
         flex: 1,
         valueFormatter: (value) =>
           `${Number(value || 0).toFixed(2)}`,
@@ -100,20 +85,6 @@ function Products() {
         headerName: "Unidad Base",
         flex: 1,
         valueGetter: (_, row) => row?.baseUnit?.name || "-",
-      },
-
-      {
-        field: "units",
-        headerName: "Otras Unidades",
-        flex: 2,
-        valueGetter: (_, row) =>
-          row?.productUnits
-            ?.filter((u) => !u.isDefault)
-            ?.map(
-              (u) =>
-                `${u.unit.name} (${u.equivalence})`
-            )
-            .join(", ") || "-",
       },
 
       {

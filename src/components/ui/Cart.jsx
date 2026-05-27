@@ -12,15 +12,14 @@ const textMuted = "#94a3b8";
 /* ─── layout raíz ────────────────────────────────────────────────────── */
 export const Wrapper = styled.div`
   min-height: 100dvh;
-  background: ${bg};
-  padding: 28px 32px;
+  padding: 20px 15px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 16px;
+    padding: 12px;
   }
 `;
 
@@ -52,6 +51,7 @@ export const SearchBar = styled.div`
   border-radius: 22px;
   background: ${white};
   color: ${textMuted};
+  border: 1px solid rgba(148, 163, 184, 0.28);
   display: flex;
   align-items: center;
   gap: 10px;

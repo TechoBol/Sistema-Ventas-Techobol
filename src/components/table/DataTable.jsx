@@ -44,6 +44,7 @@ function DataTable({
   pageSizeOptions = [7, 10, 20],
   loading = false,
   locationConfig,
+  processRowUpdate,
 }) {
   const normalizedColumns = useMemo(() => {
     const baseColumns = columns.map((column) => {
@@ -200,6 +201,10 @@ function DataTable({
         columns={normalizedColumns}
         getRowId={getRowId}
         loading={loading}
+        processRowUpdate={processRowUpdate}
+        onProcessRowUpdateError={(error) => {
+          console.error("Error actualizando fila:", error);
+        }}
         disableRowSelectionOnClick
         pageSizeOptions={pageSizeOptions}
         slots={{

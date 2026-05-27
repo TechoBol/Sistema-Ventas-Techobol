@@ -44,6 +44,28 @@ export const updateProductService = async (id: any, data: any, token: any) => {
   return resData;
 };
 
+export const updateMargenService = async (id: any, data: any, token: any) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_API_DOMAIN}/product/update-margen/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "x-access-token": token,
+      },
+      body: JSON.stringify(data),
+    },
+  );
+
+  const resData = await res.json();
+
+  if (!res.ok) {
+    throw new Error(resData.message || "No se pudo actualizar el producto");
+  }
+
+  return resData;
+};
+
 export const getKardexService = async (data: any, token: string) => {
   const response = await fetch(
     `${import.meta.env.VITE_API_DOMAIN}/product/kardex`,
