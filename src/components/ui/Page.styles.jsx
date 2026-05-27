@@ -4,11 +4,11 @@ import { theme } from "./Theme";
 export const PageSurface = styled.section`
   width: 100%;
   min-height: calc(100dvh - 90px);
-  padding: 28px 32px;
+  padding: 20px 15px;
   box-sizing: border-box;
 
   @media (max-width: 900px) {
-    padding: 28px 20px;
+    padding: 12px;
   }
 `;
 
@@ -47,6 +47,7 @@ export const SearchBox = styled.div`
   border-radius: 22px;
   background: ${theme.colors.background};
   color: ${theme.colors.textMuted};
+  border: 1px solid rgba(148, 163, 184, 0.28);
 
   display: flex;
   align-items: center;
@@ -98,46 +99,57 @@ export const Toolbar = styled.div`
 `;
 
 export const FilterButtonGroup = styled.div`
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
 
-  @media (max-width: 700px) {
-    width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0 12px;
+  margin-bottom: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+
+  &::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.55);
   }
 `;
 
 export const FilterButton = styled.button`
   height: 40px;
   padding: 0 16px;
-
   border: none;
   border-radius: 20px;
 
-  background: ${({ $active }) =>
-    $active ? "rgba(242, 12, 31, 0.10)" : theme.colors.background};
-
-  color: ${({ $active }) =>
-    $active ? theme.colors.primary : theme.colors.textSecondary};
-
+  background: ${({ $active }) => $active ? "rgba(242, 12, 31, 0.10)" : theme.colors.background};
+  color: ${({ $active }) => $active ? theme.colors.primary : theme.colors.textSecondary};
   font-size: 13px;
   font-weight: 700;
 
+  white-space: nowrap;
+  flex: 0 0 auto;
   cursor: pointer;
   transition: all 0.18s ease;
-
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
 
   &:hover {
     color: ${theme.colors.primary};
     background: rgba(242, 12, 31, 0.08);
     transform: translateY(-1px);
-  }
-
-  @media (max-width: 700px) {
-    flex: 1;
   }
 `;
 

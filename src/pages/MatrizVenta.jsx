@@ -15,9 +15,17 @@ import {
   GroupButton,
   TotalBar,
   TotalText,
+  DetailButton,
+  DetailPopoverCard,
+  DetailPopoverTitle,
+  DetailPopoverTable,
+  DetailPopoverHead,
+  DetailPopoverRow,
 } from "../components/ui/Kardex";
 
 import { DataGrid } from "@mui/x-data-grid";
+import Popover from "@mui/material/Popover";
+import { ChevronDown } from "lucide-react";
 
 const fechaHoy = () => {
   const fecha = new Date().toLocaleDateString("es-BO", {
@@ -35,147 +43,351 @@ export default function Kardex() {
   const [rawRows, setRawRows] = useState([]);
   const [groupBy, setGroupBy] = useState("");
 
-  const round = (value) => Number(value.toFixed(2));
-
-const rows = useMemo(() => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedDetails, setSelectedDetails] = useState([]);
+  const openDetailPopover = (event, details = []) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+    setSelectedDetails(details);
+  };
+  const closeDetailPopover = () => {
+    setAnchorEl(null);
+    setSelectedDetails([]);
+  };
+  const detailPopoverOpen = Boolean(anchorEl);
+  // formato de moneda
+  const formatMoney = (value) =>
+    `Bs ${Number(value || 0).toLocaleString("es-BO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   ////////////////////////////////////////////////////////////
-  // 🔥 GENERAL
-  ////////////////////////////////////////////////////////////
-
-  if (!groupBy) {
-    return rawRows.map((item) => ({
-      ...item,
-
-      name: item.product,
-
-      quantity: Number(item.quantity || 0),
-
-      subtotal: Number(item.subtotal || 0),
-
-      discount: Number(item.discount || 0),
-
-      total: Number(item.total || 0),
-    }));
-  }
-
-  ////////////////////////////////////////////////////////////
-  // 🔥 AGRUPAR POR VENDEDORES
+  // 🔥 FORMATEAR FECHA
   ////////////////////////////////////////////////////////////
 
-  if (groupBy === "seller") {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("es-BO", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  ////////////////////////////////////////////////////////////
+  // 🔥 FORMATEAR MES
+  ////////////////////////////////////////////////////////////
+
+  const formatMonth = (date) => {
+    return new Date(date).toLocaleDateString("es-BO", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const getLastFinalPrice = (details = []) => {
+    if (!details.length) return 0;
+    return Number(details[details.length - 1]?.finalPrice || 0);
+  };
+
+  const round = (value) => Number(Number(value || 0).toFixed(2));
+
+  const rows = useMemo(() => {
+    ////////////////////////////////////////////////////////////
+    // 🔥 GENERAL
+    ////////////////////////////////////////////////////////////
+
+    if (!groupBy) {
+      return rawRows.map((item) => ({
+        id: item.id,
+        name: item.product,
+        quantity: Number(item.quantity || 0),
+        price: Number(item.price || 0),
+        finalPrice: getLastFinalPrice(item.details || []),
+        details: item.details || [],
+        subtotal: Number(item.subtotal || 0),
+        discount: Number(item.discount || 0),
+        total: Number(item.total || 0),
+        purchasePrice: Number(item.purchasePrice || 0),
+        date: item.date,
+      }));
+    }
+
+    ////////////////////////////////////////////////////////////
+    // 🔥 AGRUPAR POR VENDEDORES
+    ////////////////////////////////////////////////////////////
+
+    if (groupBy === "seller") {
+      const grouped = {};
+
+      rawRows.forEach((item) => {
+        ////////////////////////////////////////////////////////
+        // 🔥 RECORRER VENDEDORES DEL PRODUCTO
+        ////////////////////////////////////////////////////////
+
+        (item.sellers || []).forEach((seller) => {
+          const sellerName = seller.name || "Sin vendedor";
+
+          //////////////////////////////////////////////////////
+          // 🔥 INIT
+          //////////////////////////////////////////////////////
+
+          if (!grouped[sellerName]) {
+            grouped[sellerName] = {
+              id: `seller-${sellerName}`,
+
+              name: sellerName,
+
+              quantity: 0,
+
+              subtotal: 0,
+
+              discount: 0,
+
+              total: 0,
+            };
+          }
+
+          //////////////////////////////////////////////////////
+          // 🔥 ACUMULAR
+          //////////////////////////////////////////////////////
+
+          grouped[sellerName].quantity += Number(seller.quantity || 0);
+
+          grouped[sellerName].subtotal = round(
+            grouped[sellerName].subtotal + Number(seller.subtotal || 0),
+          );
+
+          grouped[sellerName].discount = round(
+            grouped[sellerName].discount + Number(seller.discount || 0),
+          );
+
+          grouped[sellerName].total = round(
+            grouped[sellerName].total + Number(seller.total || 0),
+          );
+        });
+      });
+
+      return Object.values(grouped);
+    }
+    if (groupBy === "date") {
+      const grouped = {};
+
+      rawRows.forEach((item) => {
+        //////////////////////////////////////////////////////////
+        // 🔥 RECORRER FECHAS DEL PRODUCTO
+        //////////////////////////////////////////////////////////
+
+        (item.dates || []).forEach((dateItem) => {
+          ////////////////////////////////////////////////////////
+          // 🔥 VALIDAR FECHA
+          ////////////////////////////////////////////////////////
+
+          if (!dateItem.date) return;
+
+          const dateObj = new Date(dateItem.date);
+
+          if (isNaN(dateObj.getTime())) return;
+
+          ////////////////////////////////////////////////////////
+          // 🔥 KEY
+          ////////////////////////////////////////////////////////
+
+          const dateKey = dateObj.toISOString().split("T")[0];
+
+          ////////////////////////////////////////////////////////
+          // 🔥 LABEL
+          ////////////////////////////////////////////////////////
+
+          const dateLabel = formatDate(dateItem.date);
+
+          ////////////////////////////////////////////////////////
+          // 🔥 INIT
+          ////////////////////////////////////////////////////////
+
+          if (!grouped[dateKey]) {
+            grouped[dateKey] = {
+              id: `date-${dateKey}`,
+
+              name: dateLabel,
+
+              orderDate: dateKey,
+
+              quantity: 0,
+
+              subtotal: 0,
+
+              discount: 0,
+
+              total: 0,
+            };
+          }
+
+          ////////////////////////////////////////////////////////
+          // 🔥 ACUMULAR
+          ////////////////////////////////////////////////////////
+
+          grouped[dateKey].quantity += Number(dateItem.quantity || 0);
+
+          grouped[dateKey].subtotal = round(
+            grouped[dateKey].subtotal + Number(dateItem.subtotal || 0),
+          );
+
+          grouped[dateKey].discount = round(
+            grouped[dateKey].discount + Number(dateItem.discount || 0),
+          );
+
+          grouped[dateKey].total = round(
+            grouped[dateKey].total + Number(dateItem.total || 0),
+          );
+        });
+      });
+
+      ////////////////////////////////////////////////////////////
+      // 🔥 ORDENAR
+      ////////////////////////////////////////////////////////////
+
+      return Object.values(grouped).sort((a, b) =>
+        b.orderDate.localeCompare(a.orderDate),
+      );
+    }
+
+    ////////////////////////////////////////////////////////////
+    // 🔥 AGRUPAR POR MES
+    ////////////////////////////////////////////////////////////
+
+    if (groupBy === "month") {
+      const grouped = {};
+
+      rawRows.forEach((item) => {
+        //////////////////////////////////////////////////////////
+        // 🔥 RECORRER FECHAS DEL PRODUCTO
+        //////////////////////////////////////////////////////////
+
+        (item.dates || []).forEach((dateItem) => {
+          ////////////////////////////////////////////////////////
+          // 🔥 VALIDAR FECHA
+          ////////////////////////////////////////////////////////
+
+          if (!dateItem.date) return;
+
+          const date = new Date(dateItem.date);
+
+          if (isNaN(date.getTime())) return;
+
+          ////////////////////////////////////////////////////////
+          // 🔥 KEY
+          ////////////////////////////////////////////////////////
+
+          const monthKey = `${date.getFullYear()}-${String(
+            date.getMonth() + 1,
+          ).padStart(2, "0")}`;
+
+          ////////////////////////////////////////////////////////
+          // 🔥 LABEL
+          ////////////////////////////////////////////////////////
+
+          const monthLabel = formatMonth(dateItem.date);
+
+          ////////////////////////////////////////////////////////
+          // 🔥 INIT
+          ////////////////////////////////////////////////////////
+
+          if (!grouped[monthKey]) {
+            grouped[monthKey] = {
+              id: `month-${monthKey}`,
+
+              name: monthLabel,
+
+              orderDate: monthKey,
+
+              quantity: 0,
+
+              subtotal: 0,
+
+              discount: 0,
+
+              total: 0,
+            };
+          }
+
+          ////////////////////////////////////////////////////////
+          // 🔥 ACUMULAR
+          ////////////////////////////////////////////////////////
+
+          grouped[monthKey].quantity += Number(dateItem.quantity || 0);
+
+          grouped[monthKey].subtotal = round(
+            grouped[monthKey].subtotal + Number(dateItem.subtotal || 0),
+          );
+
+          grouped[monthKey].discount = round(
+            grouped[monthKey].discount + Number(dateItem.discount || 0),
+          );
+
+          grouped[monthKey].total = round(
+            grouped[monthKey].total + Number(dateItem.total || 0),
+          );
+        });
+      });
+
+      ////////////////////////////////////////////////////////////
+      // 🔥 ORDENAR
+      ////////////////////////////////////////////////////////////
+
+      return Object.values(grouped).sort((a, b) =>
+        b.orderDate.localeCompare(a.orderDate),
+      );
+    }
+    ////////////////////////////////////////////////////////////
+    // 🔥 AGRUPAR NORMAL
+    ////////////////////////////////////////////////////////////
+
     const grouped = {};
 
     rawRows.forEach((item) => {
-      ////////////////////////////////////////////////////////
-      // 🔥 RECORRER VENDEDORES DEL PRODUCTO
-      ////////////////////////////////////////////////////////
+      const groupValue = item[groupBy] || "Sin grupo";
 
-      (item.sellers || []).forEach((seller) => {
-        const sellerName = seller.name || "Sin vendedor";
+      //////////////////////////////////////////////////////////
+      // 🔥 INIT
+      //////////////////////////////////////////////////////////
 
-        //////////////////////////////////////////////////////
-        // 🔥 INIT
-        //////////////////////////////////////////////////////
+      if (!grouped[groupValue]) {
+        grouped[groupValue] = {
+          id: `${groupBy}-${groupValue}`,
 
-        if (!grouped[sellerName]) {
-          grouped[sellerName] = {
-            id: `seller-${sellerName}`,
+          name: groupValue,
 
-            name: sellerName,
+          quantity: 0,
 
-            quantity: 0,
+          subtotal: 0,
 
-            subtotal: 0,
+          discount: 0,
 
-            discount: 0,
+          total: 0,
+        };
+      }
 
-            total: 0,
-          };
-        }
+      //////////////////////////////////////////////////////////
+      // 🔥 ACUMULAR
+      //////////////////////////////////////////////////////////
 
-        //////////////////////////////////////////////////////
-        // 🔥 ACUMULAR
-        //////////////////////////////////////////////////////
+      grouped[groupValue].quantity += Number(item.quantity || 0);
 
-        grouped[sellerName].quantity += Number(
-          seller.quantity || 0
-        );
+      grouped[groupValue].subtotal = round(
+        grouped[groupValue].subtotal + Number(item.subtotal || 0),
+      );
 
-        grouped[sellerName].subtotal = round(
-          grouped[sellerName].subtotal +
-            Number(seller.subtotal || 0)
-        );
+      grouped[groupValue].discount = round(
+        grouped[groupValue].discount + Number(item.discount || 0),
+      );
 
-        grouped[sellerName].discount = round(
-          grouped[sellerName].discount +
-            Number(seller.discount || 0)
-        );
-
-        grouped[sellerName].total = round(
-          grouped[sellerName].total +
-            Number(seller.total || 0)
-        );
-      });
+      grouped[groupValue].total = round(
+        grouped[groupValue].total + Number(item.total || 0),
+      );
     });
 
     return Object.values(grouped);
-  }
-
-  ////////////////////////////////////////////////////////////
-  // 🔥 AGRUPAR NORMAL
-  ////////////////////////////////////////////////////////////
-
-  const grouped = {};
-
-  rawRows.forEach((item) => {
-    const groupValue = item[groupBy] || "Sin grupo";
-
-    //////////////////////////////////////////////////////////
-    // 🔥 INIT
-    //////////////////////////////////////////////////////////
-
-    if (!grouped[groupValue]) {
-      grouped[groupValue] = {
-        id: `${groupBy}-${groupValue}`,
-
-        name: groupValue,
-
-        quantity: 0,
-
-        subtotal: 0,
-
-        discount: 0,
-
-        total: 0,
-      };
-    }
-
-    //////////////////////////////////////////////////////////
-    // 🔥 ACUMULAR
-    //////////////////////////////////////////////////////////
-
-    grouped[groupValue].quantity += Number(
-      item.quantity || 0
-    );
-
-    grouped[groupValue].subtotal = round(
-      grouped[groupValue].subtotal +
-        Number(item.subtotal || 0)
-    );
-
-    grouped[groupValue].discount = round(
-      grouped[groupValue].discount +
-        Number(item.discount || 0)
-    );
-
-    grouped[groupValue].total = round(
-      grouped[groupValue].total +
-        Number(item.total || 0)
-    );
-  });
-
-  return Object.values(grouped);
-}, [rawRows, groupBy]);
+  }, [rawRows, groupBy]);
 
   const totalGeneral = useMemo(() => {
     return Number(
@@ -206,10 +418,14 @@ const rows = useMemo(() => {
       ? "Marca"
       : groupBy === "branch"
       ? "Sucursal"
+      : groupBy === "date"
+      ? "Fecha"
+      : groupBy === "month"
+      ? "Mes"
       : "Producto";
 
   const columns = useMemo(() => {
-    return [
+    const baseColumns = [
       {
         field: "name",
         headerName: firstColumnTitle,
@@ -227,7 +443,7 @@ const rows = useMemo(() => {
             }}
           >
             <div style={{ fontSize: 14, color: "#111827", lineHeight: 1.4 }}>
-              {String(params.value).toUpperCase()}
+              {String(params.value || "").toUpperCase()}
             </div>
           </div>
         ),
@@ -235,8 +451,7 @@ const rows = useMemo(() => {
       {
         field: "quantity",
         headerName: "Cantidad",
-        width: 160,
-        type: "number",
+        width: 100,
         sortable: true,
         renderCell: (params) => (
           <div style={{ fontSize: 14, color: "#111827", width: "100%" }}>
@@ -244,26 +459,86 @@ const rows = useMemo(() => {
           </div>
         ),
       },
+    ];
+
+    const detailColumns = !groupBy
+      ? [
+          {
+            field: "purchasePrice",
+            headerName: "Costo Unitario",
+            width: 150,
+            sortable: true,
+            renderCell: (params) => (
+              <div style={{ fontSize: 14, color: "#64748b", width: "100%" }}>
+                {formatMoney(params.value)}
+              </div>
+            ),
+          },
+          {
+            field: "price",
+            headerName: "Precio Venta",
+            width: 150,
+            sortable: true,
+            renderCell: (params) => (
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#111827",
+                  width: "100%",
+                }}
+              >
+                {formatMoney(params.value)}
+              </div>
+            ),
+          },
+          {
+            field: "details",
+            headerName: "Detalle",
+            width: 170,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+              const details = params.row.details || [];
+
+              if (!details.length || details.length === 1) {
+                return (
+                  <span style={{ color: "#94a3b8", fontSize: 14 }}>
+                    Sin desglose
+                  </span>
+                );
+              }
+
+              return (
+                <DetailButton
+                  type="button"
+                  onClick={(event) => openDetailPopover(event, details)}
+                >
+                  {details.length} precios
+                  <ChevronDown size={16} />
+                </DetailButton>
+              );
+            },
+          },
+        ]
+      : [];
+
+    const amountColumns = [
       {
         field: "subtotal",
         headerName: "Subtotal",
-        width: 210,
-        type: "number",
+        width: 150,
         sortable: true,
         renderCell: (params) => (
           <div style={{ fontSize: 14, color: "#64748b", width: "100%" }}>
-            {`Bs ${Number(params.value || 0).toLocaleString("es-BO", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
+            {formatMoney(params.value)}
           </div>
         ),
       },
       {
         field: "discount",
         headerName: "Descuento",
-        width: 180,
-        type: "number",
+        width: 150,
         sortable: true,
         renderCell: (params) => (
           <div
@@ -273,20 +548,14 @@ const rows = useMemo(() => {
               width: "100%",
             }}
           >
-            {Number(params.value) > 0
-              ? `- Bs ${Number(params.value).toLocaleString("es-BO", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              : "—"}
+            {Number(params.value) > 0 ? `- ${formatMoney(params.value)}` : "—"}
           </div>
         ),
       },
       {
         field: "total",
         headerName: "Total Neto",
-        width: 210,
-        type: "number",
+        width: 150,
         sortable: true,
         renderCell: (params) => (
           <div
@@ -297,14 +566,13 @@ const rows = useMemo(() => {
               width: "100%",
             }}
           >
-            {`Bs ${Number(params.value || 0).toLocaleString("es-BO", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
+            {formatMoney(params.value)}
           </div>
         ),
       },
     ];
+
+    return [...baseColumns, ...detailColumns, ...amountColumns];
   }, [groupBy, firstColumnTitle]);
 
   return (
@@ -347,6 +615,19 @@ const rows = useMemo(() => {
             onClick={() => setGroupBy("branch")}
           >
             Sucursales
+          </GroupButton>
+          <GroupButton
+            $active={groupBy === "date"}
+            onClick={() => setGroupBy("date")}
+          >
+            Fechas
+          </GroupButton>
+
+          <GroupButton
+            $active={groupBy === "month"}
+            onClick={() => setGroupBy("month")}
+          >
+            Meses
           </GroupButton>
         </GroupBar>
 
@@ -399,6 +680,54 @@ const rows = useMemo(() => {
               "& .MuiTablePagination-root": { fontSize: 14 },
             }}
           />
+          <Popover
+            open={detailPopoverOpen}
+            anchorEl={anchorEl}
+            onClose={closeDetailPopover}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "left",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "left",
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1,
+                  borderRadius: "20px",
+                  boxShadow: "none",
+                  background: "transparent",
+                },
+              },
+            }}
+          >
+            <DetailPopoverCard>
+              <DetailPopoverTitle>Detalle de venta</DetailPopoverTitle>
+
+              <DetailPopoverTable>
+                <DetailPopoverHead>
+                  <span>Unidad base</span>
+                  <span>Precio venta</span>
+                  <span>Cantidad</span>
+                  <span>Subtotal</span>
+                </DetailPopoverHead>
+
+                {selectedDetails.map((detail, index) => (
+                  <DetailPopoverRow key={`${detail.finalPrice}-${index}`}>
+                    <span>{detail.unitName || "-"}</span>
+
+                    <span>{formatMoney(detail.finalPrice)}</span>
+
+                    <span>{detail.quantity}</span>
+
+                    <span>{formatMoney(detail.subtotal)}</span>
+                  </DetailPopoverRow>
+                ))}
+              </DetailPopoverTable>
+            </DetailPopoverCard>
+          </Popover>
         </TableWrapper>
 
         <TotalBar>

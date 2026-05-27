@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import Receipts from "./pages/Receipts";
+import MarginProfit from "./pages/MarginProfit";
 import Customer from "./pages/Customer";
 import DetailCustomer from "./pages/DetailCustomer";
 import Locations from "./pages/Locations";
@@ -42,6 +43,7 @@ function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/receipts" element={<Receipts />} />
+            <Route path="/profits" element={<MarginProfit />} />
             <Route path="/customer" element={<Customer />} />
             <Route path="/customer/:id" element={<DetailCustomer />} />
             <Route path="/locations" element={<Locations />} />
