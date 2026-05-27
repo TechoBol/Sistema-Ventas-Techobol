@@ -1,4 +1,3 @@
-// CartStyles.js
 import styled from "styled-components";
 
 /* ─── tokens que coinciden con Topbar/Sidebar ─────────────────────────── */
