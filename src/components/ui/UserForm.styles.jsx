@@ -7,7 +7,7 @@ export const FormPageCard = styled.section`
   border-radius: 18px;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 
-  padding: 42px 52px;
+  padding: 30px;
   box-sizing: border-box;
 
   @media (max-width: 900px) {
@@ -28,7 +28,7 @@ export const BackButton = styled.button`
   height: 38px;
 
   border: none;
-  border-radius: 50%;
+  border-radius: 12px;
 
   background: #f3f4f6;
   color: ${theme.colors.text};

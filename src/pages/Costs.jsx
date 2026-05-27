@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Search, Plus, Eye } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import DataTable from "../components/table/DataTable";
+import ImportationForm from "../components/forms/ImportationForm";
 
 import {
   PageSurface,
@@ -73,9 +73,11 @@ const formatDate = (value) => {
 };
 
 function Costs() {
-  const navigate = useNavigate();
-
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewState, setViewState] = useState({
+    mode: "list",
+    selectedImportation: null,
+  });
 
   const filteredImports = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
@@ -136,6 +138,30 @@ function Costs() {
     []
   );
 
+  const openCreateForm = () => {
+    setViewState({
+      mode: "create",
+      selectedImportation: null,
+    });
+  };
+
+  const backToList = () => {
+    setViewState({
+      mode: "list",
+      selectedImportation: null,
+    });
+  };
+
+  const handleSubmitImportation = async (formData) => {
+    console.log("Guardar importación:", formData);
+
+    // Después aquí llamas al servicio real:
+    // const created = await createImportation(formData);
+    // if (created) backToList();
+
+    backToList();
+  };
+
   const importActions = useMemo(
     () => [
       {
@@ -143,53 +169,60 @@ function Costs() {
         title: "Ver detalle",
         icon: Eye,
         onClick: (importation) => {
-          navigate(`/costs/${importation.id}`);
+          console.log("Ver detalle de importación:", importation);
         },
       },
     ],
-    [navigate]
+    []
   );
 
-  const handleAddImportation = () => {
-    console.log("Añadir importación");
-    // Después podemos cambiar esto por:
-    // navigate("/costs/new");
-  };
+  const isFormView = viewState.mode === "create";
 
   return (
     <PageSurface>
       <PageWrapper>
-        <HeaderTitle>
-          <Title>Importaciones</Title>
-          <Subtitle>{fechaHoy()}</Subtitle>
-        </HeaderTitle>
+        {!isFormView ? (
+          <>
+            <HeaderTitle>
+              <Title>Importaciones</Title>
+              <Subtitle>{fechaHoy()}</Subtitle>
+            </HeaderTitle>
 
-        <Toolbar>
-          <SearchBox>
-            <Search size={18} />
+            <Toolbar>
+              <SearchBox>
+                <Search size={18} />
+                <SearchInput
+                  type="text"
+                  placeholder="Buscar proveedor, referencia o fecha"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </SearchBox>
 
-            <SearchInput
-              type="text"
-              placeholder="Buscar proveedor, referencia o fecha"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              <PrimaryActionButton type="button" onClick={openCreateForm}>
+                <Plus size={17} />
+                Añadir importación
+              </PrimaryActionButton>
+            </Toolbar>
+
+            <DataTable
+              rows={filteredImports}
+              columns={importColumns}
+              actions={importActions}
+              pageSize={7}
+              pageSizeOptions={[7, 10, 20]}
+              noRowsLabel="No hay importaciones registradas"
             />
-          </SearchBox>
-
-          <PrimaryActionButton type="button" onClick={handleAddImportation}>
-            <Plus size={17} />
-            Añadir importación
-          </PrimaryActionButton>
-        </Toolbar>
-
-        <DataTable
-          rows={filteredImports}
-          columns={importColumns}
-          actions={importActions}
-          pageSize={7}
-          pageSizeOptions={[7, 10, 20]}
-          noRowsLabel="No hay importaciones registradas"
-        />
+          </>
+        ) : (
+          <ImportationForm
+            mode={viewState.mode}
+            initialData={viewState.selectedImportation}
+            loading={false}
+            onBack={backToList}
+            onSubmit={handleSubmitImportation}
+          />
+        )}
       </PageWrapper>
     </PageSurface>
   );
