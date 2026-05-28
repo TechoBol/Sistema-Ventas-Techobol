@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-
+import ImportationExpensesForm from "./ImportationExpensesForm";
 import {
   FormCard,
   FormHeader,
@@ -64,6 +64,9 @@ function ImportationForm({
   onBack,
   onSubmit,
 }) {
+  const [step, setStep] = useState("products");
+  const [importationData, setImportationData] = useState(null);
+
   const [formData, setFormData] = useState({
     supplier: "",
     reference: "",
@@ -162,8 +165,22 @@ function ImportationForm({
       })),
     };
 
-    onSubmit?.(payload);
+    setImportationData(payload);
+    setStep("expenses");
+    //onSubmit?.(payload);
   };
+
+  if (step === "expenses") {
+    return (
+      <ImportationExpensesForm
+        importationData={importationData}
+        loading={loading}
+        onBackStep={() => setStep("products")}
+        onCancel={onBack}
+        onSubmit={onSubmit}
+      />
+    );
+  }
 
   return (
     <FormCard>
@@ -307,7 +324,7 @@ function ImportationForm({
           </CancelButton>
 
           <SaveButton type="submit">
-            Guardar Importación
+            Siguiente
           </SaveButton>
         </Actions>
       </Form>
