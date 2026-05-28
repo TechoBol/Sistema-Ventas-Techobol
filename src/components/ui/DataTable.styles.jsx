@@ -41,6 +41,26 @@ export const TableContainer = styled.div`
     background: #fffafa;
   }
 
+  // color fila
+  .MuiDataGrid-row.margin-row-danger {
+    background: rgba(220, 38, 38, 0.24);
+  }
+  .MuiDataGrid-row.margin-row-danger:hover {
+    background: rgba(220, 38, 38, 0.34);
+  }
+  .MuiDataGrid-row.margin-row-warning {
+    background: rgba(245, 158, 11, 0.30);
+  }
+  .MuiDataGrid-row.margin-row-warning:hover {
+    background: rgba(245, 158, 11, 0.40);
+  }
+  .MuiDataGrid-row.margin-row-success {
+    background: rgba(34, 197, 94, 0.26);
+  }
+  .MuiDataGrid-row.margin-row-success:hover {
+    background: rgba(34, 197, 94, 0.36);
+  }
+
   .MuiDataGrid-footerContainer {
     border-top: 1px solid #eef0f3;
   }
