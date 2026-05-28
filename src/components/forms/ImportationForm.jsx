@@ -27,6 +27,7 @@ import {
 
 const emptyProduct = {
   code: "",
+  productName: "",
   quantity: "",
   priceUsd: "",
 };
@@ -153,6 +154,7 @@ function ImportationForm({
       totalUsd: estimatedSubtotal,
       products: formData.products.map((product) => ({
         code: product.code.trim(),
+        productName: product.productName.trim(),
         quantity: Number(product.quantity || 0),
         priceUsd: Number(product.priceUsd || 0),
         subtotal: getProductSubtotal(product),
@@ -218,6 +220,7 @@ function ImportationForm({
         <ProductsTable>
           <TableHeader>
             <span>Código</span>
+            <span>Producto</span>
             <span>Cantidad</span>
             <span>Precio USD</span>
             <span>Subtotal</span>
@@ -230,12 +233,22 @@ function ImportationForm({
 
             return (
               <ProductRow key={index}>
+                {/* codigo */}
                 <Input
                   type="text"
                   placeholder="Código..."
                   value={product.code}
                   onChange={(event) =>
                     handleProductChange(index, "code", event.target.value)
+                  }
+                />
+                {/* nombre del producto */}
+                <Input
+                  type="text"
+                  placeholder="Producto..."
+                  value={product.productName}
+                  onChange={(event) =>
+                    handleProductChange(index, "productName", event.target.value)
                   }
                 />
 
