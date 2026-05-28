@@ -14,6 +14,7 @@ import Receipts from "./pages/Receipts";
 import MarginProfit from "./pages/MarginProfit";
 import Customer from "./pages/Customer";
 import DetailCustomer from "./pages/DetailCustomer";
+import Costs from "./pages/Costs";
 import Locations from "./pages/Locations";
 import Transfer from "./pages/Transfer";
 import Users from "./pages/Users";
@@ -46,6 +47,7 @@ function App() {
             <Route path="/profits" element={<MarginProfit />} />
             <Route path="/customer" element={<Customer />} />
             <Route path="/customer/:id" element={<DetailCustomer />} />
+            <Route path="/costs" element={<Costs />} />
             <Route path="/locations" element={<Locations />} />
             <Route path="/transfers" element={<Transfer />} />
             <Route path="/users" element={<Users />} />

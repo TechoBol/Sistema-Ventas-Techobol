@@ -72,31 +72,26 @@ export const Subtitle = styled.p`
 `;
 
 export const BackButton = styled.button`
-  width: 52px;
-  height: 52px;
+  width: 38px;
+  height: 38px;
 
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
+  border: none;
+  border-radius: 12px;
 
-  background: rgba(255, 255, 255, 0.9);
+  background: #f3f4f6;
+  color: ${theme.colors.text};
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
-
-  svg {
-    color: #0f172a;
-  }
+  transition: all 0.18s ease;
 
   &:hover {
+    background: #fff3f4;
+    color: ${theme.colors.primary};
     transform: translateY(-1px);
-    background: white;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
   }
 `;
 
@@ -453,15 +448,19 @@ export const ButtonRow = styled.div`
 
 export const Button = styled.button`
   min-width: 220px;
-  height: 56px;
+  height: 42px;
 
   border: none;
   border-radius: 20px;
-
   padding: 0 28px;
 
   background: ${theme.colors.primary};
   color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
   font-size: 15px;
   font-weight: 700;

@@ -188,12 +188,12 @@ export default function InventoryFisico() {
             </div>
           </Row>
 
-          {/* Línea */}
+          {/* Marca */}
           <Row>
-            <Label>Línea</Label>
+            <Label>Marca</Label>
             <SelectWrapper>
               <Select onChange={(e) => handleLineaChange(e.target.value)}>
-                <option value="">TODAS</option>
+                <option value="">Seleccione una marca</option>
                 {lines.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.name}
@@ -206,9 +206,9 @@ export default function InventoryFisico() {
             </SelectWrapper>
           </Row>
 
-          {/* Marca */}
+          {/* Línea */}
           <Row>
-            <Label>Marca</Label>
+            <Label>Línea</Label>
             <SelectWrapper>
               <Select
                 value={filters.marca}
