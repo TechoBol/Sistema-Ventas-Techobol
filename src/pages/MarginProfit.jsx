@@ -382,6 +382,14 @@ function MarginProfit() {
     }
   };
 
+  // verificacion de porcentajes para el cambio de color por celdas
+  const getPercentCellClassName = (params) => {
+    const percent = Number(params.value || 0);
+    if (percent < 30) return "percent-cell-danger";
+    if (percent < 80) return "percent-cell-warning";
+    return "percent-cell-success";
+  };
+
   ////////////////////////////////////////////////////
   // COLUMNAS
   ////////////////////////////////////////////////////
@@ -441,9 +449,10 @@ function MarginProfit() {
         headerName: "%",
         editable: true,
         type: "number",
-
-        valueFormatter: (value) =>
-          `${Number(value || 0)}%`,
+        flex: 0.8,
+        minWidth: 100,
+        cellClassName: getPercentCellClassName,
+        valueFormatter: (value) => `${Number(value || 0)}%`,
       },
 
       {
@@ -463,9 +472,9 @@ function MarginProfit() {
         field: "quantityPercent",
         headerName: "%",
         flex: 0.9,
-        minWidth: 130,
-        valueFormatter: (value) =>
-          formatPercent(value),
+        minWidth: 100,
+        cellClassName: getPercentCellClassName,
+        valueFormatter: (value) => formatPercent(value),
       },
 
       {
@@ -529,9 +538,9 @@ function MarginProfit() {
         field: "bossPercent",
         headerName: "%",
         flex: 0.9,
-        minWidth: 120,
-        valueFormatter: (value) =>
-          formatPercent(value),
+        minWidth: 100,
+        cellClassName: getPercentCellClassName,
+        valueFormatter: (value) => formatPercent(value),
       },
 
       {
@@ -589,22 +598,6 @@ function MarginProfit() {
     [editingDiscounts, editingBossDiscounts],
   );
 
-  // verificacion de porcentajes para el cambio de color
-  const getMarginRowClassName = (params) => {
-    const values = [
-      Number(params.row.profitMargin || 0),
-      Number(params.row.quantityPercent || 0),
-      Number(params.row.bossPercent || 0),
-    ];
-    if (values.some((value) => value < 30)) {
-      return "margin-row-danger";
-    }
-    if (values.some((value) => value < 80)) {
-      return "margin-row-warning";
-    }
-    return "margin-row-success";
-  };
-
   return (
     <PageSurface>
       <PageWrapper>
@@ -660,7 +653,6 @@ function MarginProfit() {
           pageSizeOptions={[7, 10, 20]}
           noRowsLabel="No hay productos registrados"
           processRowUpdate={handleProcessRowUpdate}
-          getRowClassName={getMarginRowClassName}
           experimentalFeatures={{
             newEditingApi: true,
           }}

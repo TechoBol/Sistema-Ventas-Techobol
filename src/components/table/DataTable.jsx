@@ -205,7 +205,6 @@ function DataTable({
         loading={loading}
         processRowUpdate={processRowUpdate}
         getRowClassName={getRowClassName}
-        processRowUpdate={processRowUpdate}
         experimentalFeatures={experimentalFeatures}
         onProcessRowUpdateError={(error) => {
           console.error("Error actualizando fila:", error);
