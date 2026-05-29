@@ -50,7 +50,6 @@ export const HeaderContent = styled.div`
   gap: 5px;
 `;
 
-// titulo y fecha
 export const HeaderTitle = styled.header`
   display: flex;
   flex-direction: column;
@@ -122,7 +121,6 @@ export const SearchWrapper = styled.div`
   width: 320px;
   height: 42px;
   padding: 0 16px;
-  //margin-bottom: 24px;
 
   border-radius: 22px;
   background: ${theme.colors.background};
@@ -596,5 +594,50 @@ export const Switch = styled.input`
 
   &:checked:before {
     transform: translateX(20px);
+  }
+`;
+
+/* =========================================================
+   CONVERT MODAL (Quotations)
+========================================================= */
+
+export const ConvertModalInputStyle = {
+    width: "100%",
+    padding: "8px 12px",
+    border: "1px solid #e2e8f0",
+    borderRadius: 8,
+    fontSize: 14,
+    boxSizing: "border-box",
+};
+
+export const ConvertModalLabelStyle = {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#64748b",
+    textTransform: "uppercase",
+    marginBottom: 4,
+    display: "block",
+};
+
+export const ConvertModalButton = styled.button`
+  margin-top: 8px;
+  padding: 10px 0;
+  width: 100%;
+
+  background: #2563eb;
+  color: #fff;
+
+  border: none;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 `;

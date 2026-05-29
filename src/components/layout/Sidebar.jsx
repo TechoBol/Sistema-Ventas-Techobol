@@ -13,6 +13,7 @@ import {
   Settings,
   UserCog,
   X,
+  FileText,
   ChevronDown,DollarSign
 } from "lucide-react";
 
@@ -81,6 +82,11 @@ const sidebarSections = [
         icon: ReceiptText,
         path: "/receipts",
       },
+      {
+      label: "Cotizaciones",
+      icon: FileText,
+      path: "/quotations",
+    },
       {
         label: "Matriz de Ventas",
         icon: ClipboardMinus,

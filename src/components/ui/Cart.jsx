@@ -1,13 +1,35 @@
 import styled from "styled-components";
 
 /* ─── tokens que coinciden con Topbar/Sidebar ─────────────────────────── */
-const bg = "#f7f7f3"; // igual que TopbarWrapper background
+const bg = "#f7f7f3"; 
 const white = "#ffffff";
-const red = "#fb0404"; // igual que BrandText / NavItem $active
-const border = "#eeeeee"; // igual que SidebarWrapper border-right
+const red = "#c0392b";
+const border = "#eeeeee"; 
 const textPrimary = "#0f172a";
 const textSecondary = "#64748b";
 const textMuted = "#94a3b8";
+
+/* ─── Contenedor Shell Multi-modo ────────────────────────────────────── */
+// Este cascarón inyecta dinámicamente los colores de ambiente según el modo activo
+export const ModeShell = styled.div`
+  width: 100%;
+  
+  /* modo VENTA */
+  --mode-color: ${red};
+  --mode-bg-hover: #fff0f0;
+
+  /* modo COTIZACIÓN*/
+  &.mode-cotizacion {
+    --mode-color: #2563eb; 
+    --mode-bg-hover: #eff6ff;
+  }
+
+  /* modo RESERVA */
+  &.mode-reserva {
+    --mode-color: #d97706; 
+    --mode-bg-hover: #fffbeb;
+  }
+`;
 
 /* ─── layout raíz ────────────────────────────────────────────────────── */
 export const Wrapper = styled.div`
@@ -27,7 +49,48 @@ export const Wrapper = styled.div`
 export const Header = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  margin-bottom: 16px;
+`;
+
+export const ModeTitleGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+export const InteractiveTitle = styled.h1`
+  font-size: 26px;
+  font-weight: ${props => props.$isActive ? "700" : "500"};
+
+  color: ${props => {
+    if (!props.$isActive) return "#94a3b8";
+    if (props.$mode === "venta") return "#c0392b";
+    if (props.$mode === "cotizacion") return "#2563eb";
+    if (props.$mode === "reserva") return "#d97706";
+    return "#0f172a";
+  }};
+  
+  opacity: ${props => props.$isActive ? "1" : "0.5"};
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              font-weight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+export const TitleSeparator = styled.span`
+  font-size: 24px;
+  color: #cbd5e1;
+  font-weight: 300;
+  user-select: none;
 `;
 
 export const Title = styled.h1`
@@ -43,7 +106,7 @@ export const Subtitle = styled.p`
   margin: 0;
 `;
 
-/* ─── barra de búsqueda (igual estilo que SearchBox del Topbar) ────────── */
+/* ─── barra de búsqueda ───────────────────────────────────────────────── */
 export const SearchBar = styled.div`
   width: 320px;
   height: 42px;
@@ -93,8 +156,9 @@ export const TableCard = styled.div`
   background: ${white};
   border-radius: 16px;
   overflow-x: auto;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   min-height: 420px;
+  width: 100%;
 `;
 
 export const Table = styled.table`
@@ -138,8 +202,6 @@ export const TD = styled.td`
   font-size: 14px;
   color: ${textPrimary};
   vertical-align: middle;
-
-  width: 1%;
   white-space: nowrap;
 
   &:last-child {
@@ -168,9 +230,12 @@ export const QtyButton = styled.button`
   justify-content: center;
   cursor: pointer;
   line-height: 1;
+  transition: all 0.1s ease;
 
   &:hover {
     background: #f1f5f9;
+    border-color: var(--mode-color);
+    color: var(--mode-color);
   }
 
   &:active {
@@ -196,9 +261,10 @@ export const DiscountInput = styled.input`
   background: transparent;
   text-align: right;
   outline: none;
+  transition: all 0.15s ease;
 
   &:focus {
-    border-color: ${border};
+    border-color: var(--mode-color);
     background: ${white};
   }
 
@@ -221,6 +287,7 @@ export const DeleteButton = styled.button`
   justify-content: center;
   padding: 4px;
   border-radius: 6px;
+  transition: all 0.12s ease;
 
   &:hover {
     color: ${red};
@@ -243,6 +310,8 @@ export const EmptyState = styled.div`
   font-size: 14px;
   gap: 8px;
 `;
+
+/* ─── Nuevo selector táctil de pagos (Tarjetas UI) ───────────────────── */
 export const PaymentPanel = styled.div`
   width: 260px;
   background: ${white};
@@ -258,6 +327,56 @@ export const PaymentPanel = styled.div`
     width: 100%;
     box-sizing: border-box;
   }
+
+  .payment-grid-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .payment-tile-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid ${border};
+    border-radius: 10px;
+    cursor: pointer;
+    background: ${white};
+    transition: all 0.15s ease;
+    
+    span {
+      font-size: 13px;
+      font-weight: 500;
+      color: ${textSecondary};
+    }
+
+    .tile-icon {
+      color: ${textMuted};
+      display: flex;
+      align-items: center;
+      transition: color 0.15s ease;
+    }
+
+    &:hover {
+      background: #fafafa;
+      border-color: ${textMuted};
+    }
+
+    &.active {
+      background: var(--mode-bg-hover);
+      border-color: var(--mode-color);
+      
+      span {
+        color: var(--mode-color);
+        font-weight: 600;
+      }
+      
+      .tile-icon {
+        color: var(--mode-color);
+      }
+    }
+  }
 `;
 
 export const PaymentTitle = styled.h3`
@@ -267,27 +386,6 @@ export const PaymentTitle = styled.h3`
   color: ${textPrimary};
 `;
 
-export const RadioGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-export const RadioOption = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: ${textPrimary};
-  cursor: pointer;
-
-  input {
-    accent-color: ${red};
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
-`;
 /* ─── panel de resumen (derecha) ─────────────────────────────────────── */
 export const SummaryPanel = styled.div`
   width: 260px;
@@ -327,38 +425,159 @@ export const SummaryTotal = styled.div`
 export const CheckoutButton = styled.button`
   width: 100%;
   margin-top: 12px;
-  background: ${red};
+  background: var(--mode-color); /* Cambia de color dinámicamente según el modo */
   color: ${white};
   padding: 13px;
   border-radius: 30px;
   border: none;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   &:hover {
-    opacity: 0.88;
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
-/* ─── backward-compat aliases (por si algún componente aún los usa) ──── */
-export const BackButton = styled.button`
-  display: none;
+/* ─── Dropdown del search ──── */
+export const ProductDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 450px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  padding: 6px 0;
+
+  @media (max-width: 600px) {
+    width: 100vw;
+    left: -16px;
+  }
 `;
-export const ProductList = styled.div`
-  display: none;
+
+export const DropItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: var(--mode-bg-hover); /* Cambia sutilmente según el modo activo */
+  }
 `;
-export const ProductCard = styled.div`
-  display: none;
+
+export const DropCode = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
-export const ProductImage = styled.img`
-  display: none;
+
+export const DropName = styled.span`
+  width: 180px;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
+
+export const DropCantidad = styled.span`
+  width: 60px;
+  flex-shrink: 0;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+`;
+
+export const DropPrice = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mode-color); /* Muestra el color de acento del modo correspondiente */
+`;
+
+export const DropHeader = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+`;
+
+export const DropHeaderCode = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+`;
+
+export const DropHeaderName = styled.span`
+  width: 180px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+`;
+
+export const DropHeaderQty = styled.span`
+  width: 60px;
+  flex-shrink: 0;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+`;
+
+export const DropHeaderPrice = styled.span`
+  width: 80px;
+  flex-shrink: 0;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+`;
+
+export const CustomerEmpty = styled.div`
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+`;
+
+/* ─── backward-compat aliases ────────────────────────────────────────── */
+export const BackButton = styled.button` display: none; `;
+export const ProductList = styled.div` display: none; `;
+export const ProductCard = styled.div` display: none; `;
+export const ProductImage = styled.img` display: none; `;
 export const Footer = SummaryPanel;
 export const Total = SummaryTotal;

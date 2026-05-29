@@ -21,6 +21,7 @@ import Roles from "./pages/Roles";
 import InventoryFisico from "./pages/InventoryFisico";
 import MatrizVenta from "./pages/MatrizVenta";
 import Brands from "./pages/Brands";
+import Quotations from "./pages/Quotations"; 
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ function App() {
             <Route path="/kardex" element={<InventoryFisico />} />
             <Route path="/sales-matrix" element={<MatrizVenta />} />
             <Route path="/brands" element={<Brands />} />
+            <Route path="/quotations" element={<Quotations />} />
           </Route>
         )}
 

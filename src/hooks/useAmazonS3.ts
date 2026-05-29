@@ -19,7 +19,7 @@ export const useAmazonS3 = () => {
     }),
   );
 
-  const uploadPDF = async (file: File, code:string) => {
+  const uploadPDF = async (file: File, code: string) => {
     const key = `MEGADIS/SALES/${code}.pdf`;
 
     const signedUrl = await getSignedUrl(
@@ -45,7 +45,7 @@ export const useAmazonS3 = () => {
     return key;
   };
 
-  const uploadPDFFactura = async (file: File, code:string) => {
+  const uploadPDFFactura = async (file: File, code: string) => {
     const key = `MEGADIS/FACTURAS/${code}.pdf`;
 
     const signedUrl = await getSignedUrl(
@@ -72,7 +72,7 @@ export const useAmazonS3 = () => {
   };
 
 
-  const uploadPDFTranfer = async (file: File, code:string) => {
+  const uploadPDFTranfer = async (file: File, code: string) => {
     const key = `MEGADIS/TRANSFERENCIAS/${code}.pdf`;
 
     const signedUrl = await getSignedUrl(
@@ -111,5 +111,29 @@ export const useAmazonS3 = () => {
     return signedUrl;
   };
 
-  return { getFileUrl, uploadPDF,uploadPDFTranfer ,uploadPDFFactura};
+  const uploadPDFCotizacion = async (file: File, code: string) => {
+    const key = `MEGADIS/QUOTATIONS/${code}.pdf`;
+
+    const signedUrl = await getSignedUrl(
+      s3Ref.current,
+      new PutObjectCommand({
+        Bucket: import.meta.env.VITE_S3_BUCKET_NAME,
+        Key: key,
+        ContentType: "application/pdf",
+      }),
+      { expiresIn: 3600 }
+    );
+
+    const response = await fetch(signedUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": "application/pdf" },
+    });
+
+    if (!response.ok) throw new Error("Error al subir el PDF de cotización");
+
+    return key;
+  };
+
+  return { getFileUrl, uploadPDF, uploadPDFCotizacion, uploadPDFTranfer, uploadPDFFactura };
 };
