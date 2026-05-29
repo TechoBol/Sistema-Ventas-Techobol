@@ -175,7 +175,7 @@ export const ProductsTable = styled.div`
 export const TableHeader = styled.div`
   min-width: 900px;
   display: grid;
-  grid-template-columns: 2fr 0.9fr 1fr 1.2fr 1fr 44px;
+  grid-template-columns: 1.3fr 1.8fr 0.9fr 1fr 1.2fr 1fr 44px;
   gap: 14px;
   padding: 12px 14px;
   background: #f8fafc;
@@ -188,7 +188,7 @@ export const TableHeader = styled.div`
 export const ProductRow = styled.div`
   min-width: 900px;
   display: grid;
-  grid-template-columns: 2fr 0.9fr 1fr 1.2fr 1fr 44px;
+  grid-template-columns: 1.3fr 1.8fr 0.9fr 1fr 1.2fr 1fr 44px;
   align-items: center;
   gap: 14px;
   padding: 10px 14px;

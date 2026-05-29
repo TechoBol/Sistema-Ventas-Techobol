@@ -589,6 +589,22 @@ function MarginProfit() {
     [editingDiscounts, editingBossDiscounts],
   );
 
+  // verificacion de porcentajes para el cambio de color
+  const getMarginRowClassName = (params) => {
+    const values = [
+      Number(params.row.profitMargin || 0),
+      Number(params.row.quantityPercent || 0),
+      Number(params.row.bossPercent || 0),
+    ];
+    if (values.some((value) => value < 30)) {
+      return "margin-row-danger";
+    }
+    if (values.some((value) => value < 80)) {
+      return "margin-row-warning";
+    }
+    return "margin-row-success";
+  };
+
   return (
     <PageSurface>
       <PageWrapper>
@@ -643,9 +659,8 @@ function MarginProfit() {
           pageSize={7}
           pageSizeOptions={[7, 10, 20]}
           noRowsLabel="No hay productos registrados"
-          processRowUpdate={
-            handleProcessRowUpdate
-          }
+          processRowUpdate={handleProcessRowUpdate}
+          getRowClassName={getMarginRowClassName}
           experimentalFeatures={{
             newEditingApi: true,
           }}

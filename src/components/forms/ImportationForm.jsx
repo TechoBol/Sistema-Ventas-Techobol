@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-
+import ImportationExpensesForm from "./ImportationExpensesForm";
 import {
   FormCard,
   FormHeader,
@@ -27,6 +27,7 @@ import {
 
 const emptyProduct = {
   code: "",
+  productName: "",
   quantity: "",
   priceUsd: "",
 };
@@ -63,6 +64,9 @@ function ImportationForm({
   onBack,
   onSubmit,
 }) {
+  const [step, setStep] = useState("products");
+  const [importationData, setImportationData] = useState(null);
+
   const [formData, setFormData] = useState({
     supplier: "",
     reference: "",
@@ -153,6 +157,7 @@ function ImportationForm({
       totalUsd: estimatedSubtotal,
       products: formData.products.map((product) => ({
         code: product.code.trim(),
+        productName: product.productName.trim(),
         quantity: Number(product.quantity || 0),
         priceUsd: Number(product.priceUsd || 0),
         subtotal: getProductSubtotal(product),
@@ -160,8 +165,22 @@ function ImportationForm({
       })),
     };
 
-    onSubmit?.(payload);
+    setImportationData(payload);
+    setStep("expenses");
+    //onSubmit?.(payload);
   };
+
+  if (step === "expenses") {
+    return (
+      <ImportationExpensesForm
+        importationData={importationData}
+        loading={loading}
+        onBackStep={() => setStep("products")}
+        onCancel={onBack}
+        onSubmit={onSubmit}
+      />
+    );
+  }
 
   return (
     <FormCard>
@@ -218,6 +237,7 @@ function ImportationForm({
         <ProductsTable>
           <TableHeader>
             <span>Código</span>
+            <span>Producto</span>
             <span>Cantidad</span>
             <span>Precio USD</span>
             <span>Subtotal</span>
@@ -230,12 +250,22 @@ function ImportationForm({
 
             return (
               <ProductRow key={index}>
+                {/* codigo */}
                 <Input
                   type="text"
                   placeholder="Código..."
                   value={product.code}
                   onChange={(event) =>
                     handleProductChange(index, "code", event.target.value)
+                  }
+                />
+                {/* nombre del producto */}
+                <Input
+                  type="text"
+                  placeholder="Producto..."
+                  value={product.productName}
+                  onChange={(event) =>
+                    handleProductChange(index, "productName", event.target.value)
                   }
                 />
 
@@ -294,7 +324,7 @@ function ImportationForm({
           </CancelButton>
 
           <SaveButton type="submit">
-            Guardar Importación
+            Siguiente
           </SaveButton>
         </Actions>
       </Form>
