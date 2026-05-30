@@ -528,3 +528,141 @@ export const TotalsBar = styled.div`
     gap: 10px;
   }
 `;
+
+// paso gastos importacion
+export const ExpensesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+
+  @media (max-width: 1050px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const ExpenseCard = styled.section`
+  width: 100%;
+  background: ${theme.colors.background};
+  border: 1px solid #eef0f3;
+  border-radius: 18px;
+  padding: 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+`;
+
+export const ExpenseCardHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+
+  p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: ${theme.colors.textSecondary};
+  }
+
+  @media (max-width: 620px) {
+    flex-direction: column;
+  }
+`;
+
+export const ExpenseTitle = styled.h4`
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: ${theme.colors.text};
+`;
+
+export const ExpenseRows = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const ExpenseRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(120px, 0.8fr) 40px;
+  gap: 10px;
+  align-items: center;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const ExpenseTotal = styled.div`
+  padding-top: 12px;
+  border-top: 1px solid #eef0f3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  span {
+    font-size: 13px;
+    font-weight: 700;
+    color: ${theme.colors.textSecondary};
+  }
+
+  strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: ${theme.colors.text};
+  }
+`;
+
+export const ExpensesSummary = styled.div`
+  margin-top: 22px;
+  background: #f8fafc;
+  border: 1px solid #eef0f3;
+  border-radius: 18px;
+  padding: 18px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    padding: 14px;
+    border-radius: 14px;
+    background: ${theme.colors.background};
+  }
+
+  span {
+    font-size: 12px;
+    font-weight: 700;
+    color: ${theme.colors.textSecondary};
+  }
+
+  strong {
+    font-size: 15px;
+    font-weight: 900;
+    color: ${theme.colors.text};
+  }
+
+  .highlight {
+    background: rgba(242, 12, 31, 0.08);
+
+    span,
+    strong {
+      color: ${theme.colors.primary};
+    }
+  }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+  }
+`;

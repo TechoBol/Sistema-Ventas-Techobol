@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import GeneralDataStep from "./importationSteps/GeneralDataStep";
 import ProductsStep from "./importationSteps/ProductsStep";
+import ExpensesStep from "./importationSteps/ExpensesStep";
 import {
   ArrowLeft,
   Check,
@@ -56,6 +57,12 @@ function ImportationWizard({ onCancel, onSubmit }) {
       priceUsd: "",
     },
   ]);
+  const [expenses, setExpenses] = useState({
+    freights: [{ name: "", amount: "" }],
+    insurances: [{ name: "", amount: "" }],
+    portCosts: [{ name: "", amount: "" }],
+    otherCosts: [{ name: "", amount: "" }],
+  });
   // funciones del contenido los pasos
   const handleGeneralDataChange = (field, value) => {
     setGeneralData((current) => ({
@@ -80,7 +87,8 @@ function ImportationWizard({ onCancel, onSubmit }) {
     const payload = {
       generalData,
       products,
-      message: "Aquí luego irá toda la información de gastos y resumen",
+      expenses,
+      message: "Aquí luego irá el resumen y cálculo final",
     };
     onSubmit?.(payload);
   };
@@ -104,60 +112,19 @@ function ImportationWizard({ onCancel, onSubmit }) {
         />
       );
     }
-
+    // paso -> gastos importacion
     if (currentStep === 2) {
       return (
-        <StepPanel>
-          <StepPanelTitle>Gastos de importación</StepPanelTitle>
-          <StepPanelText>
-            Aquí se cargarán fletes, seguros, gastos portuarios y demás costos
-            necesarios para distribuirlos entre los productos.
-          </StepPanelText>
-
-          <StepPreviewGrid>
-            <StepPreviewCard>
-              <strong>Fletes</strong>
-              <span>Registro de fletes relacionados a la importación.</span>
-            </StepPreviewCard>
-
-            <StepPreviewCard>
-              <strong>Seguros</strong>
-              <span>Registro de seguros aplicados a la importación.</span>
-            </StepPreviewCard>
-
-            <StepPreviewCard>
-              <strong>Gastos portuarios</strong>
-              <span>Registro de gastos asociados al puerto o aduana.</span>
-            </StepPreviewCard>
-          </StepPreviewGrid>
-        </StepPanel>
+        <ExpensesStep
+          expenses={expenses}
+          onChangeExpenses={setExpenses}
+        />
       );
     }
 
     return (
       <StepPanel>
-        <StepPanelTitle>Resumen</StepPanelTitle>
-        <StepPanelText>
-          Aquí se mostrará el resumen antes de guardar: productos, cantidades,
-          subtotales, gastos, distribución y costo final estimado.
-        </StepPanelText>
-
-        <StepPreviewGrid>
-          <StepPreviewCard>
-            <strong>Validación final</strong>
-            <span>Revisión general de la importación antes de guardarla.</span>
-          </StepPreviewCard>
-
-          <StepPreviewCard>
-            <strong>Total importación</strong>
-            <span>Resumen de productos, gastos y cálculos principales.</span>
-          </StepPreviewCard>
-
-          <StepPreviewCard>
-            <strong>Guardar</strong>
-            <span>Confirmación final del registro de importación.</span>
-          </StepPreviewCard>
-        </StepPreviewGrid>
+        
       </StepPanel>
     );
   };
