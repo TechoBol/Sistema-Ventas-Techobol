@@ -41,6 +41,17 @@ export const TableContainer = styled.div`
     background: #fffafa;
   }
 
+  /* color CELDAS */
+  .MuiDataGrid-cell.percent-cell-danger {
+    background: rgba(220, 38, 38, 0.26);
+  }
+  .MuiDataGrid-cell.percent-cell-warning {
+    background: rgba(245, 158, 11, 0.32);
+  }
+  .MuiDataGrid-cell.percent-cell-success {
+    background: rgba(34, 197, 94, 0.28);
+  }
+
   .MuiDataGrid-footerContainer {
     border-top: 1px solid #eef0f3;
   }
