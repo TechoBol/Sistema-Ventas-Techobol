@@ -564,17 +564,17 @@ export const PhoneInput = styled(Input)`
 `;
 
 export const ChannelGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 8px;
 `;
 
 export const ChannelButton = styled.button`
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  width: 46px;
   height: 46px;
-  padding: 0 12px;
   border-radius: 12px;
   border: ${({ $active }) => ($active ? "2px solid transparent" : "1px solid #e2e8f0")};
   background: ${({ $active, $activeBg }) => ($active ? $activeBg : "#f8fafc")};
@@ -610,4 +610,25 @@ export const ChannelCheck = styled.span`
   margin-left: auto;
   color: #fff;
   font-size: 12px;
+`;
+
+export const ChannelTooltip = styled.span`
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  ${ChannelButton}:hover & {
+    opacity: 1;
+  }
 `;

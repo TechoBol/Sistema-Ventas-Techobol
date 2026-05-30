@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAmazonS3 } from "../hooks/useAmazonS3";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 import {
   LineChart,
   Line,
@@ -74,6 +79,11 @@ export default function DetailCustomer() {
   const debounceRef = useRef(null);
   const inicializado = useRef(false);
   const [tabActiva, setTabActiva] = useState("compras");
+  const { getFileUrl } = useAmazonS3();
+  const [pdfModal, setPdfModal] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState("");
+  const [numPages, setNumPages] = useState(null);
+  const [modalActividades, setModalActividades] = useState(false);
 
   useEffect(() => {
     if (!inicializado.current && customer) {
@@ -135,24 +145,68 @@ export default function DetailCustomer() {
   };
 
   const EstadoBadge = ({ estado }) => {
-    const style = estadoColor[estado] ?? {
-      background: "#f3f4f6",
-      color: "#6b7280",
-    };
+    const style = estadoColor[estado] ?? { background: "#f3f4f6", color: "#6b7280" };
     return (
-      <span
-        style={{
-          ...style,
-          padding: "2px 10px",
-          borderRadius: "999px",
-          fontSize: "12px",
-          fontWeight: "600",
-        }}
-      >
+      <span style={{
+        ...style,
+        padding: "2px 10px",
+        borderRadius: "999px",
+        fontSize: "12px",
+        fontWeight: "600",
+      }}>
         {estadoLabel[estado] ?? estado}
       </span>
     );
   };
+
+  const handleViewPDF = async (pdfUrl) => {
+    try {
+      if (!pdfUrl) return;
+      const signedUrl = await getFileUrl(pdfUrl);
+      const response = await fetch(signedUrl);
+      if (!response.ok) throw new Error("No se pudo descargar el PDF");
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfBlobUrl(blobUrl);
+      setPdfModal(true);
+    } catch (err) {
+      console.error("Error al abrir PDF:", err);
+    }
+  };
+
+  const handleClosePdf = () => {
+    setPdfModal(false);
+    if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    setPdfBlobUrl("");
+    setNumPages(null);
+  };
+
+  const actividades = [
+    ...(customer?.sales ?? []).map((s) => ({
+      id: s.id,
+      code: s.code,
+      pdfUrl: s.pdfUrl,
+      tipo: "Compra",
+      nitCi: s.customer?.nitCi,
+      empleado: s.employee,
+      sucursal: s.location?.name,
+      total: s.total,
+      estado: "Realizado",
+      fecha: s.date,
+    })),
+    ...(cotizaciones ?? []).map((q) => ({
+      id: q.id,
+      code: q.code,
+      pdfUrl: q.pdfUrl,
+      tipo: "Cotización",
+      nitCi: q.customer?.nitCi,
+      empleado: q.employee,
+      sucursal: q.location?.name,
+      total: q.total,
+      estado: q.status,
+      fecha: q.createdAt,
+    })),
+  ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
     <Wrapper>
@@ -330,6 +384,19 @@ export default function DetailCustomer() {
                 <RedDot />
                 Actividades del cliente
               </CardTitle>
+              <button
+                onClick={() => setModalActividades(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "22px",
+                  color: "#6b7280",
+                  lineHeight: 1,
+                }}
+              >
+                ›
+              </button>
             </CardHeader>
 
             <TableWrapper>
@@ -346,50 +413,20 @@ export default function DetailCustomer() {
                 </thead>
 
                 <tbody>
-                  {[
-                    ...(customer?.sales ?? []).map((s) => ({
-                      id: s.id,
-                      code: s.code,
-                      tipo: "Compra",
-                      nitCi: s.customer?.nitCi,
-                      empleado: s.employee,
-                      sucursal: s.location?.name,
-                      total: s.total,
-                      estado: "Realizado",
-                      fecha: s.date,
-                    })),
-                    ...(cotizaciones ?? []).map((q) => ({
-                      id: q.id,
-                      code: q.code,
-                      tipo: "Cotización",
-                      nitCi: q.customer?.nitCi,
-                      empleado: q.employee,
-                      sucursal: q.location?.name,
-                      total: q.total,
-                      estado: q.status,
-                      fecha: q.createdAt,
-                    })),
-                  ]
-                    .sort(
-                      (a, b) =>
-                        new Date(b.fecha).getTime() -
-                        new Date(a.fecha).getTime(),
-                    )
-                    .slice(0, 7)
-                    .map((item) => (
-                      <tr key={`${item.tipo}-${item.id}`}>
-                        <Td>{item.code}</Td>
-                        <Td>{item.nitCi ?? "—"}</Td>
-                        <Td>
-                          {new Date(item.fecha).toLocaleDateString("es-BO")}
-                        </Td>
-                        <Td>{item.tipo}</Td>
-                        <Td>{formatBs(item.total)}</Td>
-                        <Td>
-                          <EstadoBadge estado={item.estado} />
-                        </Td>
-                      </tr>
-                    ))}
+                  {actividades.slice(0, 7).map((item) => (
+                    <tr
+                      key={`${item.tipo}-${item.id}`}
+                      onClick={() => item.pdfUrl && handleViewPDF(item.pdfUrl)}
+                      style={{ cursor: item.pdfUrl ? "pointer" : "default" }}
+                    >
+                      <Td>{item.code}</Td>
+                      <Td>{item.nitCi ?? "—"}</Td>
+                      <Td>{new Date(item.fecha).toLocaleDateString("es-BO")}</Td>
+                      <Td>{item.tipo}</Td>
+                      <Td>{formatBs(item.total)}</Td>
+                      <Td><EstadoBadge estado={item.estado} /></Td>
+                    </tr>
+                  ))}
                 </tbody>
               </Table>
             </TableWrapper>
@@ -438,6 +475,176 @@ export default function DetailCustomer() {
           </Card>
         </Column>
       </Layout>
+
+      {modalActividades && (
+        <div
+          onClick={() => setModalActividades(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              width: "90%",
+              maxWidth: "900px",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px 20px",
+              borderBottom: "1px solid #e5e7eb",
+            }}>
+              <span style={{ fontWeight: "600", fontSize: "15px" }}>
+                Todas las actividades — {customer?.name}
+              </span>
+              <button
+                onClick={() => setModalActividades(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  color: "#6b7280",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ overflowY: "auto", padding: "16px" }}>
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>Código</Th>
+                    <Th>Fecha</Th>
+                    <Th>Tipo</Th>
+                    <Th>Vendedor</Th>
+                    <Th>Sucursal</Th>
+                    <Th>Monto</Th>
+                    <Th>Estado</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {actividades.map((item) => (
+                    <tr
+                      key={`modal-${item.tipo}-${item.id}`}
+                      onClick={() => item.pdfUrl && handleViewPDF(item.pdfUrl)}
+                      style={{ cursor: item.pdfUrl ? "pointer" : "default" }}
+                    >
+                      <Td>{item.code}</Td>
+                      <Td>{new Date(item.fecha).toLocaleDateString("es-BO")}</Td>
+                      <Td>{item.tipo}</Td>
+                      <Td>{item.empleado ? `${item.empleado.name} ${item.empleado.lastName}` : "—"}</Td>
+                      <Td>{item.sucursal ?? "—"}</Td>
+                      <Td>{formatBs(item.total)}</Td>
+                      <Td><EstadoBadge estado={item.estado} /></Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pdfModal && (
+        <div
+          onClick={handleClosePdf}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#f5f5f5",
+              borderRadius: "12px",
+              width: "90%",
+              maxWidth: "700px",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px 20px",
+              borderBottom: "1px solid #e5e7eb",
+              background: "#fff",
+            }}>
+              <span style={{ fontWeight: "600", fontSize: "15px" }}>
+                Detalle del documento
+              </span>
+              <button
+                onClick={handleClosePdf}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  color: "#6b7280",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* PDF */}
+            <div style={{
+              overflowY: "auto",
+              padding: "20px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}>
+              {pdfBlobUrl && (
+                <Document
+                  file={pdfBlobUrl}
+                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  loading={<div>Cargando PDF...</div>}
+                  error={<div>Error cargando PDF</div>}
+                >
+                  {Array.from(new Array(numPages), (_, i) => (
+                    <Page
+                      key={`page_${i + 1}`}
+                      pageNumber={i + 1}
+                      width={600}
+                      renderTextLayer
+                      renderAnnotationLayer
+                    />
+                  ))}
+                </Document>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Wrapper>
   );
 }

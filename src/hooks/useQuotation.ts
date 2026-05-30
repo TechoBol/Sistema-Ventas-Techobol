@@ -37,7 +37,7 @@ export interface ConvertPaymentData {
 
 export const useQuotations = () => {
     const { token } = useLoginStore();
-    const [data, setData]       = useState<Quotation[]>([]);
+    const [data, setData] = useState<Quotation[]>([]);
     const [loading, setLoading] = useState(false);
 
     const getQuotations = async (): Promise<void> => {
@@ -58,7 +58,7 @@ export const useQuotations = () => {
         return updated;
     };
 
-    const convertToSale = async (id: number, paymentData: ConvertPaymentData): Promise<unknown> => {
+    const convertToSale = async (id: number, paymentData: ConvertPaymentData): Promise<{ message: string; sale: any }> => {
         const result = await convertQuotationService(id, paymentData, token);
         setData((prev) =>
             prev.map((q) => (q.id === id ? { ...q, status: "APPROVED" as QuotationStatus } : q))

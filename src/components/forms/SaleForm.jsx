@@ -57,6 +57,7 @@ import {
   ChannelIconBox,
   ChannelLabel,
   ChannelCheck,
+  ChannelTooltip,
 } from "../ui/SaleForm.styles";
 
 function SaleForm({
@@ -330,8 +331,7 @@ function SaleForm({
                       <ChannelIconBox $bg={isActive ? "rgba(255,255,255,0.15)" : iconBg}>
                         {icon}
                       </ChannelIconBox>
-                      <ChannelLabel $active={isActive}>{value}</ChannelLabel>
-                      {isActive && <ChannelCheck>✓</ChannelCheck>}
+                      <ChannelTooltip>{value}</ChannelTooltip>
                     </ChannelButton>
                   );
                 })}

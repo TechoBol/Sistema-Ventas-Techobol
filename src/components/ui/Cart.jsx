@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
 /* ─── tokens que coinciden con Topbar/Sidebar ─────────────────────────── */
-const bg = "#f7f7f3"; 
+const bg = "#f7f7f3";
 const white = "#ffffff";
 const red = "#c0392b";
-const border = "#eeeeee"; 
+const border = "#eeeeee";
 const textPrimary = "#0f172a";
 const textSecondary = "#64748b";
 const textMuted = "#94a3b8";
@@ -56,41 +56,40 @@ export const Header = styled.div`
 export const ModeTitleGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 4px;
 `;
 
-export const InteractiveTitle = styled.h1`
-  font-size: 26px;
-  font-weight: ${props => props.$isActive ? "700" : "500"};
+export const SegmentedControl = styled.div`
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+`;
 
-  color: ${props => {
-    if (!props.$isActive) return "#94a3b8";
-    if (props.$mode === "venta") return "#c0392b";
-    if (props.$mode === "cotizacion") return "#2563eb";
-    if (props.$mode === "reserva") return "#d97706";
-    return "#0f172a";
-  }};
-  
-  opacity: ${props => props.$isActive ? "1" : "0.5"};
-  margin: 0;
+export const SegBtn = styled.button`
+  padding: 7px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 7px;
   cursor: pointer;
+  background: transparent;
+  color: ${textSecondary};
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 
-  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              font-weight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover {
-    opacity: 0.8;
+  &.active {
+    background: ${white};
+    color: var(--mode-color);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
-`;
 
-export const TitleSeparator = styled.span`
-  font-size: 24px;
-  color: #cbd5e1;
-  font-weight: 300;
-  user-select: none;
+  &:not(.active):hover {
+    color: ${textPrimary};
+    background: rgba(255,255,255,0.5);
+  }
 `;
 
 export const Title = styled.h1`

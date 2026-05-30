@@ -48,8 +48,19 @@ export const useCart = () => {
       // 🔥 COTIZACIÓN — flujo separado
       // =====================================================
       if (data.mode === "cotizacion") {
+        const addBusinessDays = (startDate: Date, days: number): Date => {
+          const result = new Date(startDate);
+          let added = 0;
+          while (added < days) {
+            result.setDate(result.getDate() + 1);
+            const dow = result.getDay(); // 0 = domingo, 6 = sábado
+            if (dow !== 0) added++; // saltamos solo domingo
+          }
+          return result;
+        };
+
         const expiresAt = data.validityDays
-          ? new Date(Date.now() + data.validityDays * 24 * 60 * 60 * 1000).toISOString()
+          ? addBusinessDays(new Date(), data.validityDays).toISOString()
           : null;
 
         const payload = {

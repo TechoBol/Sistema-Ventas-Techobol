@@ -45,11 +45,12 @@ function App() {
         {/* APP PROTECTED */}
         {isLoggedIn && (
           <Route element={<AppLayout />}>
-            {/* 👨‍💼 ADMIN ONLY */}
+            {/* ADMIN + MANAGER */}
+
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedLevels={[1]}>
+                <ProtectedRoute allowedLevels={[1, 2]}>
                   <Dashboard />
                 </ProtectedRoute>
               }
@@ -58,7 +59,7 @@ function App() {
             <Route
               path="/users"
               element={
-                <ProtectedRoute allowedLevels={[1]}>
+                <ProtectedRoute allowedLevels={[1, 2]}>
                   <Users />
                 </ProtectedRoute>
               }
@@ -67,11 +68,67 @@ function App() {
             <Route
               path="/roles"
               element={
-                <ProtectedRoute allowedLevels={[1]}>
+                <ProtectedRoute allowedLevels={[1, 2]}>
                   <Roles />
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/locations"
+              element={
+                <ProtectedRoute allowedLevels={[1, 2]}>
+                  <Locations />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/transfers"
+              element={
+                <ProtectedRoute allowedLevels={[1, 2]}>
+                  <Transfer />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/costs"
+              element={
+                <ProtectedRoute allowedLevels={[1, 2]}>
+                  <Costs />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/kardex"
+              element={
+                <ProtectedRoute allowedLevels={[1, 2]}>
+                  <InventoryFisico />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/sales-matrix"
+              element={
+                <ProtectedRoute allowedLevels={[1, 2]}>
+                  <MatrizVenta />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/brands"
+              element={
+                <ProtectedRoute allowedLevels={[1, 2]}>
+                  <Brands />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* SOLO ADMIN */}
 
             <Route
               path="/profits"
@@ -82,65 +139,12 @@ function App() {
               }
             />
 
-            <Route
-              path="/locations"
-              element={
-                <ProtectedRoute allowedLevels={[1]}>
-                  <Locations />
-                </ProtectedRoute>
-              }
-            />
+            {/* ADMIN + MANAGER + VENDEDOR */}
 
-            <Route
-              path="/transfers"
-              element={
-                <ProtectedRoute allowedLevels={[1]}>
-                  <Transfer />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/costs"
-              element={
-                <ProtectedRoute allowedLevels={[1]}>
-                  <Costs />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/kardex"
-              element={
-                <ProtectedRoute allowedLevels={[1]}>
-                  <InventoryFisico />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/sales-matrix"
-              element={
-                <ProtectedRoute allowedLevels={[1]}>
-                  <MatrizVenta />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/brands"
-              element={
-                <ProtectedRoute allowedLevels={[1]}>
-                  <Brands />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* 👨‍💼👨‍🔧 ADMIN + VENDEDOR */}
             <Route
               path="/products"
               element={
-                <ProtectedRoute allowedLevels={[1, 4]}>
+                <ProtectedRoute allowedLevels={[1, 2, 4]}>
                   <Products />
                 </ProtectedRoute>
               }
@@ -149,7 +153,7 @@ function App() {
             <Route
               path="/cart"
               element={
-                <ProtectedRoute allowedLevels={[1, 4]}>
+                <ProtectedRoute allowedLevels={[1, 2, 4]}>
                   <Cart />
                 </ProtectedRoute>
               }
@@ -158,7 +162,7 @@ function App() {
             <Route
               path="/receipts"
               element={
-                <ProtectedRoute allowedLevels={[1, 4]}>
+                <ProtectedRoute allowedLevels={[1, 2, 4]}>
                   <Receipts />
                 </ProtectedRoute>
               }
@@ -167,7 +171,7 @@ function App() {
             <Route
               path="/quotations"
               element={
-                <ProtectedRoute allowedLevels={[1, 4]}>
+                <ProtectedRoute allowedLevels={[1, 2, 4]}>
                   <Quotations />
                 </ProtectedRoute>
               }
@@ -176,7 +180,7 @@ function App() {
             <Route
               path="/customer"
               element={
-                <ProtectedRoute allowedLevels={[1, 4]}>
+                <ProtectedRoute allowedLevels={[1, 2, 4]}>
                   <Customer />
                 </ProtectedRoute>
               }
@@ -185,7 +189,7 @@ function App() {
             <Route
               path="/customer/:id"
               element={
-                <ProtectedRoute allowedLevels={[1, 4]}>
+                <ProtectedRoute allowedLevels={[1, 2, 4]}>
                   <DetailCustomer />
                 </ProtectedRoute>
               }

@@ -57,7 +57,7 @@ function Customer() {
         flex: 0.8,
       },
       {
-        field: "profesion",
+        field: "occupation",
         headerName: "Profesión",
         flex: 1,
       },

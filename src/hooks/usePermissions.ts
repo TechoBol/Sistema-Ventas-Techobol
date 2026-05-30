@@ -1,48 +1,49 @@
 import { useLoginStore } from "../components/store/loginStore";
 
+export const LEVELS = {
+  ADMIN: 1,
+  MANAGER: 2,
+  SELLER: 4,
+  VIEWER: 5,
+};
+
 export const usePermissions = () => {
   const { level } = useLoginStore();
 
   const lvl = Number(level);
 
   const isAdmin = lvl === 1;
+  const isManager = lvl === 2;
   const isSeller = lvl === 4;
 
   return {
     level: lvl,
 
     isAdmin,
+    isManager,
     isSeller,
-    canViewDashboard: isAdmin,
-    // 📊 VISIBILIDAD
-    canView: true,
 
-    // 🛒 VENTAS / NEGOCIO (lo importante para tu sistema)
-    canManageSales: isAdmin || isSeller,
-    canSell: isAdmin || isSeller,
+    canViewDashboard: isAdmin || isManager,
 
-    // 📦 PRODUCTOS
     canViewProducts: true,
-    canCreateProduct: isAdmin,
-    canEditProduct: isAdmin,
+    canSell: isAdmin || isManager || isSeller,
 
-    // 👥 CLIENTES
-    canViewCustomers: true,
-    canManageCustomers: isAdmin,
-
-    // 🧾 DOCUMENTOS
     canViewReceipts: true,
     canViewQuotations: true,
 
-    // 🛠 ADMINISTRACIÓN
-    canManageUsers: isAdmin,
-    canManageRoles: isAdmin,
-    canManageBranches: isAdmin,
-    canManageInventory: isAdmin,
-    canManageTransfers: isAdmin,
-    canManageCosts: isAdmin,
+    canViewCustomers: true,
 
-    // 👀 SOLO LECTURA PARA VENDEDOR
-    isReadOnly: isSeller,
+    canManageSales: isAdmin || isManager,
+    canManageInventory: isAdmin || isManager,
+
+    canManageUsers: isAdmin || isManager,
+    canManageRoles: isAdmin || isManager,
+    canManageBranches: isAdmin || isManager,
+    canManageTransfers: isAdmin || isManager,
+    canManageCosts: isAdmin || isManager,
+    canCreateProduct: isAdmin || isManager,
+    canEditProduct: isAdmin || isManager,
+    // SOLO ADMIN
+    canViewProfits: isAdmin,
   };
 };

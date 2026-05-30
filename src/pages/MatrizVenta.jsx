@@ -22,7 +22,7 @@ import {
   DetailPopoverHead,
   DetailPopoverRow,
 } from "../components/ui/Kardex";
-
+import { usePermissions } from "../hooks/usePermissions";
 import { DataGrid } from "@mui/x-data-grid";
 import Popover from "@mui/material/Popover";
 import { ChevronDown } from "lucide-react";
@@ -50,6 +50,7 @@ export default function Kardex() {
     setAnchorEl(event.currentTarget);
     setSelectedDetails(details);
   };
+  const { canViewProfits } = usePermissions();
   const closeDetailPopover = () => {
     setAnchorEl(null);
     setSelectedDetails([]);
@@ -97,19 +98,41 @@ export default function Kardex() {
     ////////////////////////////////////////////////////////////
 
     if (!groupBy) {
-      return rawRows.map((item) => ({
-        id: item.id,
-        name: item.product,
-        quantity: Number(item.quantity || 0),
-        price: Number(item.price || 0),
-        finalPrice: getLastFinalPrice(item.details || []),
-        details: item.details || [],
-        subtotal: Number(item.subtotal || 0),
-        discount: Number(item.discount || 0),
-        total: Number(item.total || 0),
-        purchasePrice: Number(item.purchasePrice || 0),
-        date: item.date,
-      }));
+      return rawRows.map((item) => {
+        const purchasePrice = Number(item.purchasePrice || 0);
+
+        const finalPrice = getLastFinalPrice(item.details || []);
+
+        const utility = finalPrice - purchasePrice;
+
+        const utilityTotal = utility * Number(item.quantity || 0);
+
+        return {
+          id: item.id,
+
+          name: item.product,
+
+          quantity: Number(item.quantity || 0),
+
+          purchasePrice,
+
+          finalPrice,
+
+          utility,
+
+          utilityTotal,
+
+          details: item.details || [],
+
+          subtotal: Number(item.subtotal || 0),
+
+          discount: Number(item.discount || 0),
+
+          total: Number(item.total || 0),
+
+          date: item.date,
+        };
+      });
     }
 
     ////////////////////////////////////////////////////////////
@@ -408,7 +431,13 @@ export default function Kardex() {
   const totalNeto = useMemo(() => {
     return Number((totalGeneral - totalDiscount).toFixed(2));
   }, [totalGeneral, totalDiscount]);
-
+  const totalUtility = useMemo(() => {
+    return Number(
+      rows
+        .reduce((acc, item) => acc + Number(item.utilityTotal || 0), 0)
+        .toFixed(2),
+    );
+  }, [rows]);
   const firstColumnTitle =
     groupBy === "seller"
       ? "Vendedor"
@@ -463,17 +492,98 @@ export default function Kardex() {
 
     const detailColumns = !groupBy
       ? [
-          {
-            field: "purchasePrice",
-            headerName: "Costo Unitario",
-            width: 150,
-            sortable: true,
-            renderCell: (params) => (
-              <div style={{ fontSize: 14, color: "#64748b", width: "100%" }}>
-                {formatMoney(params.value)}
-              </div>
-            ),
-          },
+          ...(canViewProfits
+            ? [
+                {
+                  field: "purchasePrice",
+                  headerName: "Costo Unitario",
+                  width: 150,
+                  sortable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{
+                        fontSize: 14,
+                        color: "#64748b",
+                        width: "100%",
+                      }}
+                    >
+                      {formatMoney(params.value)}
+                    </div>
+                  ),
+                },
+
+                {
+                  field: "utility",
+                  headerName: "Utilidad",
+                  width: 150,
+                  sortable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        width: "100%",
+                      }}
+                    >
+                      {formatMoney(params.value)}
+                    </div>
+                  ),
+                },
+
+                {
+                  field: "utilityPercent",
+                  headerName: "% Utilidad",
+                  width: 150,
+                  valueGetter: (_, row) => {
+                    const cost = Number(row.purchasePrice || 0);
+
+                    const sale = Number(row.finalPrice || 0);
+
+                    if (!cost) return 0;
+
+                    return ((sale - cost) / cost) * 100;
+                  },
+                  renderCell: (params) => {
+                    const value = Number(params.value || 0);
+
+                    let color = "#dc2626";
+
+                    if (value >= 80) color = "#16a34a";
+                    else if (value >= 30) color = "#ca8a04";
+
+                    return (
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          color,
+                          width: "100%",
+                        }}
+                      >
+                        {value.toFixed(2)}%
+                      </div>
+                    );
+                  },
+                },
+
+                {
+                  field: "utilityTotal",
+                  headerName: "Utilidad Total",
+                  width: 180,
+                  sortable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        width: "100%",
+                      }}
+                    >
+                      {formatMoney(params.value)}
+                    </div>
+                  ),
+                },
+              ]
+            : []),
+
           {
             field: "price",
             headerName: "Precio Venta",
@@ -492,6 +602,7 @@ export default function Kardex() {
               </div>
             ),
           },
+
           {
             field: "details",
             headerName: "Detalle",
@@ -503,7 +614,12 @@ export default function Kardex() {
 
               if (!details.length || details.length === 1) {
                 return (
-                  <span style={{ color: "#94a3b8", fontSize: 14 }}>
+                  <span
+                    style={{
+                      color: "#94a3b8",
+                      fontSize: 14,
+                    }}
+                  >
                     Sin desglose
                   </span>
                 );
@@ -731,6 +847,22 @@ export default function Kardex() {
         </TableWrapper>
 
         <TotalBar>
+          {!groupBy && canViewProfits && (
+            <>
+              <TotalText $bold style={{ color: "#16a34a" }}>
+                Total Utilidad
+              </TotalText>
+
+              <TotalText
+                style={{
+                  color: "#16a34a",
+                  fontWeight: 700,
+                }}
+              >
+                {formatMoney(totalUtility)}
+              </TotalText>
+            </>
+          )}
           <TotalText $bold>Subtotal</TotalText>
           <TotalText>
             {`Bs ${totalGeneral.toLocaleString("es-BO", {

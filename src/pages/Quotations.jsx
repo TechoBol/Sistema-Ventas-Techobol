@@ -15,6 +15,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import Swal from "sweetalert2";
+import { generarDocumentoVenta } from "../components/pdf/generarPDF.jsx";
 import {
     PageContainer,
     PageHeader,
@@ -55,10 +56,10 @@ const fechaHoy = () => {
 // =====================================================
 
 const statusConfig = {
-    PENDING:  { label: "Pendiente", color: "warning" },
-    APPROVED: { label: "Aprobada",  color: "success" },
-    REJECTED: { label: "Rechazada", color: "error"   },
-    EXPIRED:  { label: "Vencida",   color: "default" },
+    PENDING: { label: "Pendiente", color: "warning" },
+    APPROVED: { label: "Aprobada", color: "success" },
+    REJECTED: { label: "Rechazada", color: "error" },
+    EXPIRED: { label: "Vencida", color: "default" },
 };
 
 const StatusChip = ({ status }) => {
@@ -71,10 +72,10 @@ const StatusChip = ({ status }) => {
 // =====================================================
 
 const ConvertModal = ({ open, onClose, onConfirm, loading }) => {
-    const [metodoPago, setMetodoPago]             = useState("Efectivo");
-    const [bankName, setBankName]                 = useState("");
+    const [metodoPago, setMetodoPago] = useState("Efectivo");
+    const [bankName, setBankName] = useState("");
     const [codigoTransaccion, setCodigoTransaccion] = useState("");
-    const [generateInvoice, setGenerateInvoice]   = useState(false);
+    const [generateInvoice, setGenerateInvoice] = useState(false);
 
     const handleConfirm = () =>
         onConfirm({ metodoPago, bankName, codigoTransaccion, generateInvoice });
@@ -155,22 +156,22 @@ const ConvertModal = ({ open, onClose, onConfirm, loading }) => {
 
 function Quotations() {
     const { data, loading, updateStatus, convertToSale } = useQuotations();
-    const { getFileUrl } = useAmazonS3();
+    const { getFileUrl, uploadPDF } = useAmazonS3();
 
-    const [search, setSearch]       = useState("");
+    const [search, setSearch] = useState("");
     const [startDate, setStartDate] = useState(null);
-    const [endDate, setEndDate]     = useState(null);
+    const [endDate, setEndDate] = useState(null);
 
     // PDF
-    const [openPdf, setOpenPdf]       = useState(false);
+    const [openPdf, setOpenPdf] = useState(false);
     const [pdfBlobUrl, setPdfBlobUrl] = useState("");
-    const [numPages, setNumPages]     = useState(null);
-    const [pageWidth]                 = useState(600);
-    const containerRef                = React.useRef(null);
+    const [numPages, setNumPages] = useState(null);
+    const [pageWidth] = useState(600);
+    const containerRef = React.useRef(null);
 
     // Convertir
-    const [convertOpen, setConvertOpen]           = useState(false);
-    const [convertLoading, setConvertLoading]     = useState(false);
+    const [convertOpen, setConvertOpen] = useState(false);
+    const [convertLoading, setConvertLoading] = useState(false);
     const [selectedQuotation, setSelectedQuotation] = useState(null);
 
     // =====================================================
@@ -181,16 +182,16 @@ function Quotations() {
         return (data || []).filter((q) => {
             if (search) {
                 const s = search.trim().toLowerCase();
-                const matchCode     = q?.code?.toLowerCase()?.includes(s);
-                const matchCliente  = q?.customer?.name?.toLowerCase()?.includes(s);
+                const matchCode = q?.code?.toLowerCase()?.includes(s);
+                const matchCliente = q?.customer?.name?.toLowerCase()?.includes(s);
                 const matchEmpleado = q?.employee?.name?.toLowerCase()?.includes(s);
-                const matchStatus   = statusConfig[q?.status]?.label?.toLowerCase()?.includes(s);
+                const matchStatus = statusConfig[q?.status]?.label?.toLowerCase()?.includes(s);
                 if (!matchCode && !matchCliente && !matchEmpleado && !matchStatus) return false;
             }
             if (q?.createdAt) {
                 const d = dayjs(q.createdAt);
                 if (startDate && d.isBefore(startDate, "day")) return false;
-                if (endDate   && d.isAfter(endDate,   "day")) return false;
+                if (endDate && d.isAfter(endDate, "day")) return false;
             }
             return true;
         });
@@ -209,9 +210,9 @@ function Quotations() {
         try {
             if (!key) return;
             const signedUrl = await getFileUrl(key);
-            const response  = await fetch(signedUrl);
+            const response = await fetch(signedUrl);
             if (!response.ok) throw new Error("No se pudo descargar el PDF");
-            const blob    = await response.blob();
+            const blob = await response.blob();
             const blobUrl = URL.createObjectURL(blob);
             setPdfBlobUrl(blobUrl);
             setOpenPdf(true);
@@ -248,7 +249,17 @@ function Quotations() {
         if (!selectedQuotation) return;
         try {
             setConvertLoading(true);
-            await convertToSale(selectedQuotation.id, paymentData);
+            const result = await convertToSale(selectedQuotation.id, paymentData);
+            const sale = result?.sale;
+
+            if (sale) {
+                const pdfBlob = generarDocumentoVenta(sale);
+                const file = new File([pdfBlob], `venta_${sale.code}.pdf`, {
+                    type: "application/pdf",
+                });
+                await uploadPDF(file, sale.code);
+            }
+
             setConvertOpen(false);
             setSelectedQuotation(null);
             await Swal.fire({
@@ -372,7 +383,7 @@ function Quotations() {
         },
         {
             key: "cancel",
-            title: "Cancelar",
+            title: "Rechazar",
             icon: ({ size }) => <FaTrash size={size} />,
             onClick: handleCancel,
         },

@@ -4,7 +4,7 @@ import ProductForm from "../components/forms/ProductForm";
 import DataTable from "../components/table/DataTable";
 
 import useInventory from "../hooks/useInventory";
-
+import { usePermissions } from "../hooks/usePermissions";
 import {
   PageContainer,
   PageHeader,
@@ -37,12 +37,14 @@ function Products() {
   const { location } = useLoginStore();
   const { products, search, onFilterTextBoxChanged, isLoading } =
     useInventory();
-
+  const permissions = usePermissions();
   ////////////////////////////////////////////////////////////
   // EDITAR PRODUCTO
   ////////////////////////////////////////////////////////////
 
   const handleEditProduct = (product) => {
+    if (!permissions.canEditProduct) return;
+
     setSelectedProduct(product);
     setShowForm(true);
   };
@@ -68,16 +70,14 @@ function Products() {
         field: "purchasePrice",
         headerName: "Precio Unitario",
         flex: 1,
-        valueFormatter: (value) =>
-          `${Number(value || 0).toFixed(2)}`,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
       },
 
       {
         field: "salePrice",
         headerName: "Precio Venta",
         flex: 1,
-        valueFormatter: (value) =>
-          `${Number(value || 0).toFixed(2)}`,
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
       },
 
       {
@@ -91,36 +91,37 @@ function Products() {
         field: "stock",
         headerName: "Stock",
         flex: 0.8,
-      
+
         valueGetter: (_, row) => {
           const inventory = row?.inventories?.find(
-            (inv) => inv.locationId === location?.id
+            (inv) => inv.locationId === location?.id,
           );
-      
+
           return inventory?.quantity || 0;
         },
-      
-        valueFormatter: (value) =>
-          `${Number(value || 0).toFixed(2)}`,
+
+        valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
       },
     ],
-    []
+    [],
   );
 
   ////////////////////////////////////////////////////////////
   // ACCIONES
   ////////////////////////////////////////////////////////////
-
   const actions = useMemo(
-    () => [
-      {
-        key: "edit",
-        title: "Editar producto",
-        icon: Pencil,
-        onClick: handleEditProduct,
-      },
-    ],
-    []
+    () =>
+      permissions.canEditProduct
+        ? [
+            {
+              key: "edit",
+              title: "Editar producto",
+              icon: Pencil,
+              onClick: handleEditProduct,
+            },
+          ]
+        : [],
+    [permissions],
   );
 
   ////////////////////////////////////////////////////////////
@@ -149,16 +150,18 @@ function Products() {
                   />
                 </SearchWrapper>
 
-                <AddButton
-                  type="button"
-                  onClick={() => {
-                    setSelectedProduct(null);
-                    setShowForm(true);
-                  }}
-                >
-                  <Plus size={18} strokeWidth={3} />
-                  Añadir Producto
-                </AddButton>
+                {permissions.canCreateProduct && (
+                  <AddButton
+                    type="button"
+                    onClick={() => {
+                      setSelectedProduct(null);
+                      setShowForm(true);
+                    }}
+                  >
+                    <Plus size={18} strokeWidth={3} />
+                    Añadir Producto
+                  </AddButton>
+                )}
               </TopActions>
             </PageHeader>
 

@@ -7,6 +7,8 @@ import { useDashboard } from "../hooks/useDashboard";
 import { styles, PAGO_COLORS } from "../components/ui/Dashboard";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+const mesActual = new Date().toLocaleDateString("es-BO", { month: "long" });
+const mesCap = mesActual.charAt(0).toUpperCase() + mesActual.slice(1);
 
 const bs = (n) =>
   "Bs " +
@@ -90,10 +92,10 @@ function Dashboard() {
 
       {/* KPIs */}
       <div style={styles.kpiRow}>
-        <KpiCard variant="red"   label="Venta del día"      value={bs(kpis.venta_dia)}                                    sub={`Hoy, ${formatFecha(kpis.fecha_hoy)}`} />
-        <KpiCard variant="dark"  label="Ventas hoy"         value={String(kpis.transacciones_hoy)}                        sub="Transacciones del día" />
-        <KpiCard variant="pink"  label="Monto histórico"    value={bs(kpis.monto_historico)}                              sub="Desde el inicio" />
-        <KpiCard variant="dark2" label="Ventas históricas"  value={kpis.transacciones_historicas.toLocaleString("es-BO")} sub="Total de transacciones" />
+        <KpiCard variant="red" label="Venta del día" value={bs(kpis.venta_dia)} sub={`Hoy, ${formatFecha(kpis.fecha_hoy)}`} />
+        <KpiCard variant="dark" label="Ventas hoy" value={String(kpis.transacciones_hoy)} sub="Transacciones del día" />
+        <KpiCard variant="pink" label={`Monto histórico de ${mesCap}`} value={bs(kpis.monto_historico)} sub="Desde el inicio de mes" />
+        <KpiCard variant="dark2" label={`Ventas ${mesCap}`} value={kpis.transacciones_historicas.toLocaleString("es-BO")} sub="Total de transacciones del mes" />
       </div>
 
       {/* Gráficos */}
@@ -116,8 +118,8 @@ function Dashboard() {
 
         <Card title="Tipo de pago">
           <div style={styles.pagoLegend.container}>
-            <PieChart width={110} height={110}>
-              <Pie data={tipo_pago} dataKey="total" cx={50} cy={50} innerRadius={32} outerRadius={50} paddingAngle={2} stroke="none">
+            <PieChart width={130} height={130}>
+              <Pie data={tipo_pago} dataKey="total" cx={60} cy={60} innerRadius={38} outerRadius={58} paddingAngle={2} stroke="none">
                 {tipo_pago.map((_, i) => <Cell key={i} fill={PAGO_COLORS[i]} />)}
               </Pie>
             </PieChart>
