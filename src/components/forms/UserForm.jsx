@@ -2,22 +2,12 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 
 import {
-  FormPageCard,
-  FormHeader,
-  BackButton,
-  FormTitle,
-  Form,
-  FormSection,
-  SectionTitle,
-  FieldsGrid,
-  Field,
-  Label,
-  Input,
-  SelectWrapper,
-  Select,
-  SelectIcon,
-  Actions,
-  SaveButton,
+  FormPageCard, FormHeader, BackButton, FormTitle,
+  Form, FormSection, SectionTitle, FieldsGrid,
+  Field, Label, FieldHint, Input,
+  SelectWrapper, Select, SelectIcon,
+  PhoneWrapper, PhoneFlagPrefix, PhoneInput,
+  Actions, SaveButton,
 } from "../ui/UserForm.styles";
 
 const emptyForm = {
@@ -137,27 +127,29 @@ function UserForm({
 
             <Field>
               <Label>Número de Celular</Label>
-              <Input
-                type="text"
-                placeholder="591 00000000"
-                value={formData.celular}
-                onChange={(event) =>
-                  handleChange("celular", event.target.value)
-                }
-              />
+              <PhoneWrapper>
+                <PhoneFlagPrefix>🇧🇴</PhoneFlagPrefix>
+                <PhoneInput
+                  type="tel"
+                  placeholder="7000 0000"
+                  maxLength={8}
+                  value={formData.celular}
+                  onChange={(e) => handleChange("celular", e.target.value.replace(/\D/g, ""))}
+                />
+              </PhoneWrapper>
             </Field>
 
             <Field>
               <Label>Numeral</Label>
               <Input
                 type="text"
-                placeholder="##000"
+                placeholder="Ej: 001"
                 value={formData.numeral}
-                onChange={(event) =>
-                  handleChange("numeral", event.target.value)
-                }
+                onChange={(e) => handleChange("numeral", e.target.value)}
               />
+              <FieldHint>Código corto de identificación interna</FieldHint>
             </Field>
+
           </FieldsGrid>
         </FormSection>
 

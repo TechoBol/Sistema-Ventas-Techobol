@@ -48,9 +48,9 @@ export const styles = {
       flex: 1,
     },
     variants: {
-      red:   { background: "#c0392b" },
-      dark:  { background: "#232323" },
-      pink:  { background: "#fde8e8", border: "1px solid #f5c6c6" },
+      red: { background: "#c0392b" },
+      dark: { background: "#232323" },
+      pink: { background: "#fde8e8", border: "1px solid #f5c6c6" },
       dark2: { background: "#2a2a2a" },
     },
     label: (isPink) => ({
@@ -160,21 +160,25 @@ export const styles = {
     },
   },
 
-  // Tipo de pago
   pagoLegend: {
     container: {
       display: "flex",
-      gap: 12,
+      gap: 16,
       alignItems: "center",
+      justifyContent: "center", 
+      paddingInline: 16,
+      width: "100%",
     },
     list: {
       display: "flex",
       flexDirection: "column",
       gap: 10,
+      flex: 1,
     },
     row: {
       display: "flex",
       alignItems: "center",
+      justifyContent: "space-between",
       gap: 16,
     },
     label: {
@@ -190,10 +194,12 @@ export const styles = {
       borderRadius: 2,
       background: color,
       display: "inline-block",
+      flexShrink: 0,     
     }),
     amount: {
       fontSize: 12,
       color: "rgba(255,255,255,0.5)",
+      whiteSpace: "nowrap",
     },
   },
 

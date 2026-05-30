@@ -6,7 +6,6 @@ import {
   Wrapper,
   Header,
   Title,
-  TitleSeparator,
   Subtitle,
   SearchBar,
   SearchInput,
@@ -40,7 +39,8 @@ import {
   DropHeaderPrice,
   CustomerEmpty,
   ModeTitleGroup,
-  InteractiveTitle
+  SegmentedControl,
+  SegBtn,
 } from "../components/ui/Cart";
 
 import { useCart } from "../hooks/useCart";
@@ -236,6 +236,7 @@ const Cart = () => {
       setAdvanceAmount(0);
       setNotes("");
       setShowSaleForm(false);
+      setCustomerData(initialCustomerData);
 
       const alertTitles = {
         venta: "Venta registrada",
@@ -275,33 +276,21 @@ const Cart = () => {
           <>
             <Header>
               <ModeTitleGroup>
-                <InteractiveTitle
-                  $isActive={mode === "venta"}
-                  $mode="venta"
-                  onClick={() => setMode("venta")}
-                >
-                  Venta
-                </InteractiveTitle>
-
-                <TitleSeparator>/</TitleSeparator>
-
-                <InteractiveTitle
-                  $isActive={mode === "cotizacion"}
-                  $mode="cotizacion"
-                  onClick={() => setMode("cotizacion")}
-                >
-                  Cotización
-                </InteractiveTitle>
-
-                <TitleSeparator>/</TitleSeparator>
-
-                <InteractiveTitle
-                  $isActive={mode === "reserva"}
-                  $mode="reserva"
-                  onClick={() => setMode("reserva")}
-                >
-                  Reserva
-                </InteractiveTitle>
+                <SegmentedControl>
+                  {[
+                    { id: "venta", label: "Venta" },
+                    { id: "cotizacion", label: "Cotización" },
+                    { id: "reserva", label: "Reserva" },
+                  ].map(({ id, label }) => (
+                    <SegBtn
+                      key={id}
+                      className={mode === id ? "active" : ""}
+                      onClick={() => setMode(id)}
+                    >
+                      {label}
+                    </SegBtn>
+                  ))}
+                </SegmentedControl>
               </ModeTitleGroup>
               <Subtitle style={{ marginLeft: "2px" }}>{fechaHoy()}</Subtitle>
             </Header>
@@ -380,7 +369,7 @@ const Cart = () => {
                         <td colSpan={8}>
                           <EmptyState>
                             <span style={{ fontSize: 40 }}>🛒</span>
-                            <span>Busca un producto para comenzar en modo {mode}</span>
+                            <span>Busca un producto para comenzar la {mode}</span>
                           </EmptyState>
                         </td>
                       </tr>
