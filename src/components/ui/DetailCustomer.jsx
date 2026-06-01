@@ -462,3 +462,8 @@ export const EstadoBadgeWrapper = styled.span`
   background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};
 `;
+
+export const CardNoPadding = styled(Card)`
+  padding: 0;
+  overflow: hidden;
+`;

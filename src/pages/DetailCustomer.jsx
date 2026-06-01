@@ -15,6 +15,7 @@ import {
 } from "recharts";
 
 import { useDetailCustomer } from "../hooks/useDetailCustomer";
+import CustomerLocations from "../pages/CustomerLocations";
 
 import {
   Wrapper,
@@ -59,6 +60,7 @@ import {
   ExpandButton,
   estadoColor,
   EstadoBadgeWrapper,
+  CardNoPadding,
 } from "../components/ui/DetailCustomer";
 
 const formatBs = (n) =>
@@ -415,7 +417,7 @@ export default function DetailCustomer() {
               </CardTitle>
             </CardHeader>
 
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={270}>
               <LineChart data={ventasPorMes}>
                 <XAxis dataKey="mes" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
@@ -431,18 +433,15 @@ export default function DetailCustomer() {
           </Card>
 
           {/* MAPS */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <RedDot />
-                Maps
-              </CardTitle>
-            </CardHeader>
-            <Map />
-          </Card>
+          <CardNoPadding>
+            {!loading && customer && (
+              <CustomerLocations customer={customer} />
+            )}
+          </CardNoPadding>
+
         </Column>
       </Layout>
-      
+
       {/* MODAL ACTIVIDADES */}
       {modalActividades && (
         <ModalOverlay onClick={() => setModalActividades(false)}>
@@ -498,7 +497,7 @@ export default function DetailCustomer() {
               <ModalTitle>Detalle del documento</ModalTitle>
               <ModalCloseButton onClick={handleClosePdf}>✕</ModalCloseButton>
             </ModalHeader>
- 
+
             <PdfModalBody>
               {pdfBlobUrl && (
                 <Document
