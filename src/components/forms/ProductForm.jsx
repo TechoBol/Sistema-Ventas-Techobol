@@ -352,7 +352,7 @@ function ProductForm({ onBack, product = null }) {
                 </ContainerInput>
 
                 <ContainerInput>
-                  <FieldLabel>Costo</FieldLabel>
+                  <FieldLabel>Costo Unitario</FieldLabel>
 
                   <Input
                     type="number"
