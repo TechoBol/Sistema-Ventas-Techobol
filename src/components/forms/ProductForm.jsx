@@ -197,9 +197,12 @@ function ProductForm({ onBack, product = null }) {
 
       const salePrice = Number(defaultUnit?.salePrice || 0);
 
+      const IVA = 0.1494;
+
+      const costWithIVA = cost * (1 + IVA);
+
       const porcentajeGanancia =
-        cost > 0 ? ((salePrice - cost) / cost) * 100 : 0;
-        
+        costWithIVA > 0 ? ((salePrice - costWithIVA) / costWithIVA) * 100 : 0;
       const payload = {
         name: values.name,
 
