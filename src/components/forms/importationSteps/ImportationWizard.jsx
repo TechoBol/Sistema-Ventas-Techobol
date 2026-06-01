@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import GeneralDataStep from "./importationSteps/GeneralDataStep";
-import ProductsStep from "./importationSteps/ProductsStep";
-import ExpensesStep from "./importationSteps/ExpensesStep";
+import GeneralDataStep from "./GeneralDataStep";
+import ProductsStep from "./ProductsStep";
+import ExpensesStep from "./ExpensesStep";
+import SummaryStep from "./SummaryStep";
 import {
   ArrowLeft,
   Check,
@@ -23,14 +24,13 @@ import {
   StepContent,
   StepPanel,
   StepPanelTitle,
-  StepPanelText,
   StepPreviewGrid,
   StepPreviewCard,
   StepActions,
   StepActionsRight,
   StepSecondaryButton,
   StepPrimaryButton,
-} from "../ui/ImportationWizard.styles";
+} from "../../ui/ImportationWizard.styles";
 
 const STEPS = [
   "Datos generales",
@@ -88,7 +88,6 @@ function ImportationWizard({ onCancel, onSubmit }) {
       generalData,
       products,
       expenses,
-      message: "Aquí luego irá el resumen y cálculo final",
     };
     onSubmit?.(payload);
   };
@@ -121,11 +120,13 @@ function ImportationWizard({ onCancel, onSubmit }) {
         />
       );
     }
-
+    // paso -> resumen
     return (
-      <StepPanel>
-        
-      </StepPanel>
+      <SummaryStep
+        generalData={generalData}
+        products={products}
+        expenses={expenses}
+      />
     );
   };
 

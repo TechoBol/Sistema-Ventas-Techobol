@@ -200,14 +200,6 @@ export const StepPanelTitle = styled.h3`
   color: ${theme.colors.textPrimary};
 `;
 
-/* *************************************** */
-export const StepPanelText = styled.p`
-  margin: 0 0 24px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: ${theme.colors.textSecondary};
-`;
-
 export const AddButton = styled.button`
   height: 38px;
   padding: 0 14px;
@@ -664,5 +656,169 @@ export const ExpensesSummary = styled.div`
 
   @media (max-width: 760px) {
     grid-template-columns: 1fr;
+  }
+`;
+
+// paso resumen
+export const SummaryCardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 850px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const SummaryCard = styled.div`
+  background: ${({ $highlight }) =>
+    $highlight ? "rgba(242, 12, 31, 0.08)" : theme.colors.background};
+  border: 1px solid
+    ${({ $highlight }) =>
+      $highlight ? "rgba(242, 12, 31, 0.16)" : "#eef0f3"};
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  span {
+    font-size: 12px;
+    font-weight: 700;
+    color: ${({ $highlight }) =>
+      $highlight ? theme.colors.primary : theme.colors.textSecondary};
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  strong {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${({ $highlight }) =>
+      $highlight ? theme.colors.primary : theme.colors.text};
+  }
+`;
+
+export const SummaryTableWrapper = styled.div`
+  width: 100%;
+  border: 1px solid #eef0f3;
+  border-radius: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: ${theme.colors.background};
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.38);
+    border-radius: 999px;
+  }
+`;
+
+export const SummaryTable = styled.div`
+  min-width: 1450px;
+`;
+
+export const SummaryTableHead = styled.div`
+  display: grid;
+  grid-template-columns:
+    0.8fr
+    1.5fr
+    0.9fr
+    1fr
+    0.9fr
+    1.1fr
+    1.1fr
+    1.1fr
+    1.1fr
+    1.1fr;
+
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef0f3;
+  font-size: 13px;
+  font-weight: 900;
+  color: ${theme.colors.textSecondary};
+`;
+
+export const SummaryTableRow = styled.div`
+  display: grid;
+  grid-template-columns:
+    0.8fr
+    1.5fr
+    0.9fr
+    1fr
+    0.9fr
+    1.1fr
+    1.1fr
+    1.1fr
+    1.1fr
+    1.1fr;
+
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:hover {
+    background: #fffafa;
+  }
+`;
+
+export const SummaryTableCell = styled.div`
+  font-size: 14px;
+  color: ${theme.colors.text};
+  display: flex;
+  align-items: center;
+
+  strong {
+    font-weight: 900;
+    color: ${theme.colors.text};
+  }
+`;
+
+export const SummaryTableFooter = styled.div`
+  display: grid;
+  grid-template-columns:
+    0.8fr
+    1.5fr
+    0.9fr
+    1fr
+    0.9fr
+    1.1fr
+    1.1fr
+    1.1fr
+    1.1fr
+    1.1fr;
+
+  gap: 12px;
+  padding: 15px 16px;
+  background: rgba(242, 12, 31, 0.06);
+  border-top: 1px solid rgba(242, 12, 31, 0.14);
+
+  span {
+    font-size: 14px;
+    font-weight: 900;
+    color: ${theme.colors.primary};
+    display: flex;
+    align-items: center;
   }
 `;

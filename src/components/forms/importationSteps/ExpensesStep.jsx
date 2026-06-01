@@ -5,7 +5,6 @@ import {
   StepPanel,
   SectionHeader,
   StepPanelTitle,
-  StepPanelText,
   ExpensesGrid,
   ExpenseCard,
   ExpenseCardHeader,
