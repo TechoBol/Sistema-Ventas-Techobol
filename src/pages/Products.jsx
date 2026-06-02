@@ -18,6 +18,7 @@ import {
 } from "../components/ui/Products";
 import { Pencil, Plus, Search } from "lucide-react";
 import { useLoginStore } from "../components/store/loginStore";
+import { useLocationStore } from "../components/store/locationStore";
 
 const fechaHoy = () => {
   const fecha = new Date().toLocaleDateString("es-BO", {
@@ -35,9 +36,16 @@ function Products() {
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const { location } = useLoginStore();
+  const { selectedLocation } = useLocationStore();
+  const permissions = usePermissions();
+
+  const activeLocationId =
+    permissions.isAdmin || permissions.isManager
+      ? selectedLocation?.id
+      : location?.id;
+      
   const { products, search, onFilterTextBoxChanged, isLoading } =
     useInventory();
-  const permissions = usePermissions();
   ////////////////////////////////////////////////////////////
   // EDITAR PRODUCTO
   ////////////////////////////////////////////////////////////
@@ -94,16 +102,16 @@ function Products() {
 
         valueGetter: (_, row) => {
           const inventory = row?.inventories?.find(
-            (inv) => inv.locationId === location?.id,
+            (inv) => inv.locationId === activeLocationId,
           );
 
           return inventory?.quantity || 0;
         },
 
-        valueFormatter: (value) => `${Number(value || 0).toFixed(2)}`,
+        valueFormatter: (value) => Number(value || 0).toFixed(2),
       },
     ],
-    [],
+    [activeLocationId],
   );
 
   ////////////////////////////////////////////////////////////
@@ -124,6 +132,11 @@ function Products() {
     [permissions],
   );
 
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) =>
+      product.inventories?.some((inv) => inv.locationId === activeLocationId),
+    );
+  }, [products, activeLocationId]);
   ////////////////////////////////////////////////////////////
   // RENDER
   ////////////////////////////////////////////////////////////
@@ -135,7 +148,7 @@ function Products() {
           <>
             <PageHeader>
               <HeaderTitle>
-                <Title>Productos</Title>
+                <Title>Inventario</Title>
 
                 <Subtitle>{fechaHoy()}</Subtitle>
               </HeaderTitle>
@@ -166,7 +179,7 @@ function Products() {
             </PageHeader>
 
             <DataTable
-              rows={products || []}
+              rows={filteredProducts || []}
               columns={columns}
               actions={actions}
               loading={isLoading}

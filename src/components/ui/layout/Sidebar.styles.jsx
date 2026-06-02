@@ -71,7 +71,7 @@ export const CollapseButton = styled.button`
   align-items: center;
   justify-content: center;
 
-  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "-6px" : "0")};
+  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "0px" : "0")};
 
   cursor: pointer;
 
@@ -201,8 +201,7 @@ export const ToggleIcon = styled.span`
   justify-content: center;
 
   transition: transform 0.2s ease;
-  transform: ${({ $isOpen }) =>
-    $isOpen ? "rotate(180deg)" : "rotate(0deg)"};
+  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
 `;
 
 export const SubNavList = styled.div`
@@ -228,8 +227,7 @@ export const SubNavItem = styled.div`
   font-size: 13px;
   font-weight: 600;
 
-  color: ${({ $active }) =>
-    $active ? theme.colors.primary : "#425065"};
+  color: ${({ $active }) => ($active ? theme.colors.primary : "#425065")};
 
   background: ${({ $active }) =>
     $active ? "rgba(242, 12, 31, 0.08)" : "transparent"};
@@ -245,4 +243,128 @@ export const SubNavItem = styled.div`
 
 export const SubNavItemText = styled.span`
   white-space: nowrap;
+`;
+
+export const BranchSelectorWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+export const BranchSelectorButton = styled.button`
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  text-align: left;
+`;
+
+export const ActiveBranchRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: ${theme.colors.primary};
+  margin-top: 2px;
+`;
+
+export const ActiveBranchText = styled.span`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${theme.colors.primary};
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const BranchDropdownIcon = styled.div`
+  display: flex;
+  align-items: center;
+  color: ${theme.colors.textSecondary};
+`;
+
+export const BranchDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+
+  width: 260px;
+
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12),
+    0 2px 8px rgba(15, 23, 42, 0.08);
+
+  z-index: 999;
+`;
+
+export const BranchDropdownHeader = styled.div`
+  padding: 12px 16px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  color: ${theme.colors.textSecondary};
+
+  background: #fafafa;
+  border-bottom: 1px solid #eeeeee;
+`;
+
+export const BranchOption = styled.div`
+  padding: 12px 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  background: ${({ $active }) => ($active ? "#fff3eb" : "transparent")};
+
+  &:hover {
+    background: #fff7f0;
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f5f5f5;
+  }
+`;
+
+export const BranchOptionTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const BranchName = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+`;
+
+export const BranchCode = styled.span`
+  font-size: 12px;
+  color: #64748b;
+`;
+
+export const BranchBadge = styled.span`
+  font-size: 10px;
+  font-weight: 700;
+
+  color: ${theme.colors.primary};
+
+  text-transform: uppercase;
 `;

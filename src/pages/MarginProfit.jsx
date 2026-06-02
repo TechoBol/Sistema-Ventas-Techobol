@@ -40,7 +40,7 @@ const formatMoney = (value) =>
   })}`;
 
 const formatPercent = (value) =>
-  `${Math.floor(Number(value || 0))}%`;
+  `${Math.round(Number(value || 0))}%`;
 
 function MarginProfit() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -109,11 +109,11 @@ function MarginProfit() {
       ////////////////////////////////////////////////////
 
       const quantityDiscount = Number(
-        product.quantityDiscount || 10,
+        product.quantityDiscount || 0,
       );
 
       const bossDiscount = Number(
-        product.bossDiscount || 25,
+        product.bossDiscount || 0,
       );
 
       ////////////////////////////////////////////////////

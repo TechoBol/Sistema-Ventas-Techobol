@@ -203,7 +203,8 @@ function ProductForm({ onBack, product = null }) {
 
       const porcentajeGanancia =
         costWithIVA > 0 ? ((salePrice - costWithIVA) / costWithIVA) * 100 : 0;
-      const payload = {
+      
+        const payload = {
         name: values.name,
 
         description: values.description,
@@ -220,7 +221,7 @@ function ProductForm({ onBack, product = null }) {
 
         salePrice,
 
-        porcentajeGanancia: Number(porcentajeGanancia.toFixed(2)),
+        porcentajeGanancia: Math.round(porcentajeGanancia),
 
         productUnits: productUnits.map((item) => ({
           unitCode: item.unitCode,

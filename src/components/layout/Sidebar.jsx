@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -42,7 +42,22 @@ import {
   SubNavList,
   SubNavItem,
   SubNavItemText,
+  BranchSelectorWrapper,
+  BranchSelectorButton,
+  ActiveBranchRow,
+  ActiveBranchText,
+  BranchDropdownIcon,
+  BranchDropdown,
+  BranchDropdownHeader,
+  BranchOption,
+  BranchOptionTop,
+  BranchName,
+  BranchCode,
+  BranchBadge,
 } from "../ui/layout/Sidebar.styles";
+import { useSucursales } from "../../hooks/useSucursales";
+import { useLocationStore } from "../store/locationStore";
+import { useLoginStore } from "../store/loginStore";
 
 const sidebarSections = [
   {
@@ -61,7 +76,7 @@ const sidebarSections = [
     title: "Inventario",
     items: [
       {
-        label: "Productos",
+        label: "Inventario",
         icon: Package,
         path: "/products",
         permission: "canViewProducts",
@@ -172,6 +187,43 @@ const sidebarSections = [
 function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }) {
   const location = useLocation();
   const permissions = usePermissions();
+  const { data: locations } = useSucursales();
+  const { location: userLocation } = useLoginStore();
+
+  const { selectedLocation, setSelectedLocation } = useLocationStore();
+  const canChangeLocation = permissions.isAdmin || permissions.isManager;
+  
+  const displayLocation =
+    permissions.isAdmin || permissions.isManager
+      ? selectedLocation
+      : userLocation;
+
+  useEffect(() => {
+    if (!selectedLocation && locations.length) {
+      const defaultLocation = locations.find((l) => l.id === 1) || locations[0];
+
+      setSelectedLocation(defaultLocation);
+    }
+  }, [locations, selectedLocation]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        branchDropdownRef.current &&
+        !branchDropdownRef.current.contains(event.target)
+      ) {
+        setShowLocations(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const [showLocations, setShowLocations] = useState(false);
+  const branchDropdownRef = useRef(null);
 
   const defaultOpenMenus = useMemo(() => {
     const openMenus = {};
@@ -208,7 +260,6 @@ function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }) {
     }));
   };
 
-  // 🔥 FILTRO DE PERMISOS
   const filteredSections = useMemo(() => {
     return sidebarSections
       .map((section) => ({
@@ -224,7 +275,75 @@ function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }) {
   return (
     <SidebarWrapper $isOpen={isOpen} $isCollapsed={isCollapsed}>
       <SidebarHeader $isCollapsed={isCollapsed}>
-        <Brand>{!isCollapsed && <BrandText>Megadis</BrandText>}</Brand>
+        <Brand>
+          {!isCollapsed && (
+            <BranchSelectorWrapper ref={branchDropdownRef}>
+              {" "}
+              <BranchSelectorButton
+                onClick={() => {
+                  if (canChangeLocation) {
+                    setShowLocations((prev) => !prev);
+                  }
+                }}
+                style={{
+                  cursor: canChangeLocation ? "pointer" : "default",
+                }}
+              >
+                <BrandText>Megadis</BrandText>
+
+                {displayLocation && (
+                  <ActiveBranchRow>
+                    <Building2 size={13} />
+
+                    <ActiveBranchText>{displayLocation.name}</ActiveBranchText>
+
+                    {(permissions.isAdmin || permissions.isManager) && (
+                      <BranchDropdownIcon>
+                        <ChevronDown
+                          size={13}
+                          style={{
+                            transform: showLocations
+                              ? "rotate(180deg)"
+                              : "rotate(0deg)",
+                            transition: "0.2s",
+                          }}
+                        />
+                      </BranchDropdownIcon>
+                    )}
+                  </ActiveBranchRow>
+                )}
+              </BranchSelectorButton>
+              {canChangeLocation && showLocations && (
+                <BranchDropdown>
+                  <BranchDropdownHeader>
+                    Seleccionar sucursal
+                  </BranchDropdownHeader>
+
+                  {locations.map((location) => (
+                    <BranchOption
+                      key={location.id}
+                      $active={selectedLocation?.id === location.id}
+                      onClick={() => {
+                        setSelectedLocation(location);
+                        setShowLocations(false);
+                      }}
+                    >
+                      <BranchOptionTop>
+                        <BranchName>{location.name}</BranchName>
+
+                        {selectedLocation?.id === location.id && (
+                          <BranchBadge>Actual</BranchBadge>
+                        )}
+                      </BranchOptionTop>
+
+                      <BranchCode>{location.abbreviation}</BranchCode>
+                    </BranchOption>
+                  ))}
+                </BranchDropdown>
+              )}
+            </BranchSelectorWrapper>
+          )}
+        </Brand>
 
         <CollapseButton
           type="button"
