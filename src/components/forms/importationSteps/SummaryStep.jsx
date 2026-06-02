@@ -107,13 +107,16 @@ function SummaryStep({ generalData, products, expenses }) {
       const factor =
         totals.totalProductsUsd > 0 ? subtotalUsd / totals.totalProductsUsd : 0;
 
+      const gaPercent = Number(product.gaPercent || 0);
+      const gaRate = gaPercent / 100;
+
       const assignedExpenseUsd = roundToTwoDecimals(
         totals.totalExpensesUsd * factor
       );
 
-      const estimatedTotalUsd = roundToTwoDecimals(
-        subtotalUsd + assignedExpenseUsd
-      );
+      const cifUsd = roundToTwoDecimals(subtotalUsd + assignedExpenseUsd);
+      const gaUsd = roundToTwoDecimals(cifUsd * gaRate);
+      const estimatedTotalUsd = roundToTwoDecimals(cifUsd + gaUsd);
 
       const estimatedUnitUsd =
         quantity > 0 ? roundToTwoDecimals(estimatedTotalUsd / quantity) : 0;
@@ -132,7 +135,10 @@ function SummaryStep({ generalData, products, expenses }) {
         quantity,
         subtotalUsd,
         factor,
+        gaPercent,
         assignedExpenseUsd,
+        cifUsd,
+        gaUsd,
         estimatedTotalUsd,
         estimatedUnitUsd,
         estimatedTotalBs,
@@ -202,6 +208,9 @@ function SummaryStep({ generalData, products, expenses }) {
             <span>Subtotal USD</span>
             <span>Factor</span>
             <span>Gasto asignado</span>
+            <span>CIF estimado</span>
+            <span>GA %</span>
+            <span>GA USD</span>
             <span>Costo total USD</span>
             <span>Costo unit. USD</span>
             <span>Costo total Bs</span>
@@ -217,6 +226,15 @@ function SummaryStep({ generalData, products, expenses }) {
               <SummaryTableCell>{formatFactor(item.factor)}</SummaryTableCell>
               <SummaryTableCell>
                 {formatUsd(item.assignedExpenseUsd)}
+              </SummaryTableCell>
+              <SummaryTableCell>
+                {formatUsd(item.cifUsd)}
+              </SummaryTableCell>
+              <SummaryTableCell>
+                {Number(item.gaPercent || 0).toFixed(2)}%
+              </SummaryTableCell>
+              <SummaryTableCell>
+                {formatUsd(item.gaUsd)}
               </SummaryTableCell>
               <SummaryTableCell>
                 <strong>{formatUsd(item.estimatedTotalUsd)}</strong>

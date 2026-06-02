@@ -401,7 +401,7 @@ export const WizardHelperText = styled.span`
   color: ${theme.colors.textSecondary};
 `;
 
-/* tabla */
+/* tabla de Producto */
 export const TableWrapper = styled.div`
   width: 100%;
   border: 1px solid #eef0f3;
@@ -427,9 +427,9 @@ export const TableWrapper = styled.div`
 `;
 
 export const TableHeader = styled.div`
-  min-width: 1180px;
+  min-width: 1320px;
   display: grid;
-  grid-template-columns: 1.1fr 1.5fr 0.9fr 1fr 1fr 0.9fr 44px;
+  grid-template-columns: 1.1fr 1.5fr 0.9fr 1fr 0.9fr 1fr 0.7fr 44px;
   gap: 14px;
   padding: 14px 16px;
   background: #f8fafc;
@@ -440,9 +440,9 @@ export const TableHeader = styled.div`
 `;
 
 export const TableRow = styled.div`
-  min-width: 1180px;
+  min-width: 1320px;
   display: grid;
-  grid-template-columns: 1.1fr 1.5fr 0.9fr 1fr 1fr 0.9fr 44px;
+  grid-template-columns: 1.1fr 1.5fr 0.9fr 1fr 0.9fr 1fr 0.7fr 44px;
   align-items: center;
   gap: 14px;
   padding: 12px 16px;

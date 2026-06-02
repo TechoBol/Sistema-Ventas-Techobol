@@ -55,6 +55,7 @@ function ImportationWizard({ onCancel, onSubmit }) {
       productName: "",
       quantity: "",
       priceUsd: "",
+      gaPercent: "",
     },
   ]);
   const [expenses, setExpenses] = useState({

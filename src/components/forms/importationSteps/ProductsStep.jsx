@@ -18,6 +18,7 @@ const emptyProduct = {
   productName: "",
   quantity: "",
   priceUsd: "",
+  gaPercent: "",
 };
 
 const roundToTwoDecimals = (value) => {
@@ -115,6 +116,7 @@ function ProductsStep({ products, onChangeProducts }) {
           <span>Precio USD</span>
           <span>Subtotal</span>
           <span>Factor</span>
+          <span>GA %</span>
           <span></span>
         </TableHeader>
 
@@ -167,6 +169,18 @@ function ProductsStep({ products, onChangeProducts }) {
               <strong>{subtotal > 0 ? formatUsd(subtotal) : "-"}</strong>
 
               <strong>{factor > 0 ? formatFactor(factor) : "-"}</strong>
+              
+              {/* GA */}
+              <WizardInput
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Ej: 10"
+                value={product.gaPercent}
+                onChange={(event) =>
+                  handleProductChange(index, "gaPercent", event.target.value)
+                }
+              />
 
               <IconButton
                 type="button"
