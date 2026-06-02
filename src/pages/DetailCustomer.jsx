@@ -15,6 +15,7 @@ import {
 } from "recharts";
 
 import { useDetailCustomer } from "../hooks/useDetailCustomer";
+import CustomerLocations from "../pages/CustomerLocations";
 
 import {
   Wrapper,
@@ -23,7 +24,6 @@ import {
   Title,
   Layout,
   Column,
-  MainGrid,
   Card,
   CardHeader,
   CardTitle,
@@ -48,12 +48,45 @@ import {
   Th,
   Td,
   Map,
+  ModalOverlay,
+  ModalContainer,
+  ModalHeader,
+  ModalTitle,
+  ModalCloseButton,
+  ModalBody,
+  PdfModalOverlay,
+  PdfModalContainer,
+  PdfModalBody,
+  ExpandButton,
+  estadoColor,
+  EstadoBadgeWrapper,
+  CardNoPadding,
 } from "../components/ui/DetailCustomer";
 
 const formatBs = (n) =>
   `Bs. ${Number(n).toLocaleString("es-BO", {
     minimumFractionDigits: 2,
   })}`;
+
+const estadoLabel = {
+  PENDING: "Pendiente",
+  APPROVED: "Aprobado",
+  REJECTED: "Rechazado",
+  EXPIRED: "Expirado",
+  Realizado: "Realizado",
+};
+
+const EstadoBadge = ({ estado }) => {
+  const { background, color } = estadoColor[estado] ?? {
+    background: "#f3f4f6",
+    color: "#6b7280",
+  };
+  return (
+    <EstadoBadgeWrapper $bg={background} $color={color}>
+      {estadoLabel[estado] ?? estado}
+    </EstadoBadgeWrapper>
+  );
+};
 
 export default function DetailCustomer() {
   const { id = "" } = useParams();
@@ -75,7 +108,6 @@ export default function DetailCustomer() {
   } = useDetailCustomer(id);
 
   const [nota, setNota] = useState("");
-
   const debounceRef = useRef(null);
   const inicializado = useRef(false);
   const [tabActiva, setTabActiva] = useState("compras");
@@ -126,38 +158,6 @@ export default function DetailCustomer() {
   const direccionPrincipal =
     customer?.addresses?.find((a) => a.isPrimary) ?? customer?.addresses?.[0];
 
-  const estadoLabel = {
-    // Cotizaciones
-    PENDING: "Pendiente",
-    APPROVED: "Aprobado",
-    REJECTED: "Rechazado",
-    EXPIRED: "Expirado",
-    // Ventas
-    Realizado: "Realizado",
-  };
-
-  const estadoColor = {
-    APPROVED: { background: "#dcfce7", color: "#16a34a" },
-    Realizado: { background: "#dcfce7", color: "#16a34a" },
-    PENDING: { background: "#fef9c3", color: "#ca8a04" },
-    REJECTED: { background: "#fee2e2", color: "#dc2626" },
-    EXPIRED: { background: "#fee2e2", color: "#dc2626" },
-  };
-
-  const EstadoBadge = ({ estado }) => {
-    const style = estadoColor[estado] ?? { background: "#f3f4f6", color: "#6b7280" };
-    return (
-      <span style={{
-        ...style,
-        padding: "2px 10px",
-        borderRadius: "999px",
-        fontSize: "12px",
-        fontWeight: "600",
-      }}>
-        {estadoLabel[estado] ?? estado}
-      </span>
-    );
-  };
 
   const handleViewPDF = async (pdfUrl) => {
     try {
@@ -212,7 +212,6 @@ export default function DetailCustomer() {
     <Wrapper>
       <Header>
         <BackButton onClick={() => navigate(-1)}>‹</BackButton>
-
         <Title>Cliente</Title>
       </Header>
 
@@ -238,7 +237,6 @@ export default function DetailCustomer() {
 
                   <div>
                     <ClientName>{customer.name}</ClientName>
-
                     <ClientSubtext>
                       {customer.occupation ?? "—"} •{" "}
                       {new Date(customer.createdAt).toLocaleDateString("es-BO")}
@@ -248,23 +246,19 @@ export default function DetailCustomer() {
 
                 <Section>
                   <SectionTitle>Contacto</SectionTitle>
-
                   <InfoList>
                     <InfoRow>
                       <InfoLabel>Teléfono</InfoLabel>
-
                       <InfoValue>{customer.phone ?? "—"}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>WhatsApp</InfoLabel>
-
                       <InfoValue>{customer.whatsapp ?? "—"}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>Dirección</InfoLabel>
-
                       <InfoValue>
                         {direccionPrincipal?.address ?? "—"}
                       </InfoValue>
@@ -278,19 +272,16 @@ export default function DetailCustomer() {
                   <InfoList>
                     <InfoRow>
                       <InfoLabel>Canal de origen</InfoLabel>
-
                       <InfoValue>{customer.originChannel ?? "—"}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>Última compra</InfoLabel>
-
                       <InfoValue>{ultimaCompra ?? "—"}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>Método de pago</InfoLabel>
-
                       <InfoValue>
                         {customer.favoritePaymentMethod ?? "—"}
                       </InfoValue>
@@ -304,13 +295,11 @@ export default function DetailCustomer() {
                   <InfoList>
                     <InfoRow>
                       <InfoLabel>Total gastado</InfoLabel>
-
                       <InfoValue>{formatBs(totalGastado)}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>Ticket promedio</InfoLabel>
-
                       <InfoValue>{formatBs(ticketPromedio)}</InfoValue>
                     </InfoRow>
                   </InfoList>
@@ -327,7 +316,6 @@ export default function DetailCustomer() {
                 Notas
               </CardTitle>
             </CardHeader>
-
             <NotesInput
               value={nota}
               onChange={handleNotaChange}
@@ -336,7 +324,6 @@ export default function DetailCustomer() {
           </Card>
         </Column>
 
-        {/* CENTER + RIGHT */}
         {/* CENTER */}
         <Column>
           {/* DASHBOARD */}
@@ -352,25 +339,21 @@ export default function DetailCustomer() {
               <StatsGrid>
                 <StatCard $accent>
                   <StatValue>{formatBs(totalGastado)}</StatValue>
-
                   <StatLabel>Total Gastado</StatLabel>
                 </StatCard>
 
                 <StatCard $dark>
                   <StatValue>{comprasRealizadas}</StatValue>
-
                   <StatLabel>Compras realizadas</StatLabel>
                 </StatCard>
 
                 <StatCard>
                   <StatValue>{formatBs(ticketPromedio)}</StatValue>
-
                   <StatLabel>Ticket promedio</StatLabel>
                 </StatCard>
 
                 <StatCard $dark>
                   <StatValue>{ultimaCompra ?? "—"}</StatValue>
-
                   <StatLabel>Última compra</StatLabel>
                 </StatCard>
               </StatsGrid>
@@ -384,19 +367,9 @@ export default function DetailCustomer() {
                 <RedDot />
                 Actividades del cliente
               </CardTitle>
-              <button
-                onClick={() => setModalActividades(true)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "22px",
-                  color: "#6b7280",
-                  lineHeight: 1,
-                }}
-              >
+              <ExpandButton onClick={() => setModalActividades(true)}>
                 ›
-              </button>
+              </ExpandButton>
             </CardHeader>
 
             <TableWrapper>
@@ -444,14 +417,11 @@ export default function DetailCustomer() {
               </CardTitle>
             </CardHeader>
 
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={270}>
               <LineChart data={ventasPorMes}>
                 <XAxis dataKey="mes" axisLine={false} tickLine={false} />
-
                 <YAxis axisLine={false} tickLine={false} />
-
                 <Tooltip />
-
                 <Line
                   type="monotone"
                   dataKey="total"
@@ -463,70 +433,27 @@ export default function DetailCustomer() {
           </Card>
 
           {/* MAPS */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <RedDot />
-                Maps
-              </CardTitle>
-            </CardHeader>
+          <CardNoPadding>
+            {!loading && customer && (
+              <CustomerLocations customer={customer} />
+            )}
+          </CardNoPadding>
 
-            <Map />
-          </Card>
         </Column>
       </Layout>
 
+      {/* MODAL ACTIVIDADES */}
       {modalActividades && (
-        <div
-          onClick={() => setModalActividades(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            zIndex: 999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#fff",
-              borderRadius: "12px",
-              width: "90%",
-              maxWidth: "900px",
-              maxHeight: "90vh",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "16px 20px",
-              borderBottom: "1px solid #e5e7eb",
-            }}>
-              <span style={{ fontWeight: "600", fontSize: "15px" }}>
-                Todas las actividades — {customer?.name}
-              </span>
-              <button
-                onClick={() => setModalActividades(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                  color: "#6b7280",
-                }}
-              >
+        <ModalOverlay onClick={() => setModalActividades(false)}>
+          <ModalContainer onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <ModalTitle>Todas las actividades — {customer?.name}</ModalTitle>
+              <ModalCloseButton onClick={() => setModalActividades(false)}>
                 ✕
-              </button>
-            </div>
+              </ModalCloseButton>
+            </ModalHeader>
 
-            <div style={{ overflowY: "auto", padding: "16px" }}>
+            <ModalBody>
               <Table>
                 <thead>
                   <tr>
@@ -557,72 +484,21 @@ export default function DetailCustomer() {
                   ))}
                 </tbody>
               </Table>
-            </div>
-          </div>
-        </div>
+            </ModalBody>
+          </ModalContainer>
+        </ModalOverlay>
       )}
 
+      {/* MODAL PDF */}
       {pdfModal && (
-        <div
-          onClick={handleClosePdf}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#f5f5f5",
-              borderRadius: "12px",
-              width: "90%",
-              maxWidth: "700px",
-              maxHeight: "90vh",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "16px 20px",
-              borderBottom: "1px solid #e5e7eb",
-              background: "#fff",
-            }}>
-              <span style={{ fontWeight: "600", fontSize: "15px" }}>
-                Detalle del documento
-              </span>
-              <button
-                onClick={handleClosePdf}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                  color: "#6b7280",
-                }}
-              >
-                ✕
-              </button>
-            </div>
+        <PdfModalOverlay onClick={handleClosePdf}>
+          <PdfModalContainer onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <ModalTitle>Detalle del documento</ModalTitle>
+              <ModalCloseButton onClick={handleClosePdf}>✕</ModalCloseButton>
+            </ModalHeader>
 
-            {/* PDF */}
-            <div style={{
-              overflowY: "auto",
-              padding: "20px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}>
+            <PdfModalBody>
               {pdfBlobUrl && (
                 <Document
                   file={pdfBlobUrl}
@@ -641,9 +517,9 @@ export default function DetailCustomer() {
                   ))}
                 </Document>
               )}
-            </div>
-          </div>
-        </div>
+            </PdfModalBody>
+          </PdfModalContainer>
+        </PdfModalOverlay>
       )}
     </Wrapper>
   );

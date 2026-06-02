@@ -74,16 +74,6 @@ export const Column = styled.div`
   gap: 18px;
 `;
 
-export const MainGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  align-items: start;
-  @media (max-width: 1300px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
 //////////////////////////////////////////
 // BASE CARD
 //////////////////////////////////////////
@@ -337,49 +327,6 @@ export const Td = styled.td`
   color: ${theme.colors.text};
 `;
 
-//////////////////////////////////////////
-// CHAT
-//////////////////////////////////////////
-
-export const ChatBody = styled.div`
-  height: 320px;
-  border-radius: 16px;
-  background: #fafafa;
-  border: 1px solid ${theme.colors.border};
-`;
-
-export const ChatInputRow = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-`;
-
-export const ChatInput = styled.input`
-  flex: 1;
-  height: 46px;
-  border-radius: 999px;
-  border: 1px solid ${theme.colors.border};
-  padding: 0 18px;
-  outline: none;
-  font-size: 14px;
-  &:focus {
-    border-color: ${theme.colors.primary};
-  }
-`;
-
-export const MicButton = styled.button`
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: none;
-  background: ${theme.colors.primary};
-  color: white;
-  cursor: pointer;
-  transition: 0.2s ease;
-  &:hover {
-    transform: scale(1.05);
-  }
-`;
 
 //////////////////////////////////////////
 // MAP
@@ -400,4 +347,123 @@ export const Map = styled.div`
       #e5e5e5 75%
     );
   background-size: 40px 40px;
+`;
+
+//////////////////////////////////////////
+// MODALS
+//////////////////////////////////////////
+ 
+export const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+ 
+export const ModalContainer = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+`;
+ 
+export const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+`;
+ 
+export const ModalTitle = styled.span`
+  font-weight: 600;
+  font-size: 15px;
+`;
+ 
+export const ModalCloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+`;
+ 
+export const ModalBody = styled.div`
+  overflow-y: auto;
+  padding: 16px;
+`;
+ 
+//////////////////////////////////////////
+// PDF MODAL
+//////////////////////////////////////////
+ 
+export const PdfModalOverlay = styled(ModalOverlay)`
+  z-index: 1000;
+`;
+ 
+export const PdfModalContainer = styled.div`
+  background: #f5f5f5;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+`;
+ 
+export const PdfModalBody = styled.div`
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+ 
+//////////////////////////////////////////
+// MISC
+//////////////////////////////////////////
+ 
+export const ExpandButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: #6b7280;
+  line-height: 1;
+`;
+ 
+//////////////////////////////////////////
+// ESTADO BADGE
+//////////////////////////////////////////
+ 
+export const estadoColor = {
+  APPROVED:  { background: "#dcfce7", color: "#16a34a" },
+  Realizado: { background: "#dcfce7", color: "#16a34a" },
+  PENDING:   { background: "#fef9c3", color: "#ca8a04" },
+  REJECTED:  { background: "#fee2e2", color: "#dc2626" },
+  EXPIRED:   { background: "#fee2e2", color: "#dc2626" },
+};
+ 
+export const EstadoBadgeWrapper = styled.span`
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
+`;
+
+export const CardNoPadding = styled(Card)`
+  padding: 0;
+  overflow: hidden;
 `;

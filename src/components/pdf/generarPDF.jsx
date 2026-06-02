@@ -399,7 +399,7 @@ const generarNotaEntrega = (doc, venta, copia) => {
 
   doc.setFont("helvetica", "normal");
 
-  doc.text(venta.customer?.address || "-", 45, y);
+  doc.text(venta.customerAddressSnapshot || "-", 45, y);
 
   const finalY = drawTablaProductos(doc, venta, y + 12);
 
