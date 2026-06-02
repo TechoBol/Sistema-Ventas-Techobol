@@ -200,14 +200,6 @@ export const StepPanelTitle = styled.h3`
   color: ${theme.colors.textPrimary};
 `;
 
-/* *************************************** */
-export const StepPanelText = styled.p`
-  margin: 0 0 24px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: ${theme.colors.textSecondary};
-`;
-
 export const AddButton = styled.button`
   height: 38px;
   padding: 0 14px;
@@ -409,7 +401,7 @@ export const WizardHelperText = styled.span`
   color: ${theme.colors.textSecondary};
 `;
 
-/* tabla */
+/* tabla de Producto */
 export const TableWrapper = styled.div`
   width: 100%;
   border: 1px solid #eef0f3;
@@ -435,9 +427,9 @@ export const TableWrapper = styled.div`
 `;
 
 export const TableHeader = styled.div`
-  min-width: 1180px;
+  min-width: 1320px;
   display: grid;
-  grid-template-columns: 1.1fr 1.5fr 0.9fr 1fr 1fr 0.9fr 44px;
+  grid-template-columns: 1.7fr 1fr 1fr 1fr 1fr 0.9fr 0.7fr 44px;
   gap: 14px;
   padding: 14px 16px;
   background: #f8fafc;
@@ -448,9 +440,9 @@ export const TableHeader = styled.div`
 `;
 
 export const TableRow = styled.div`
-  min-width: 1180px;
+  min-width: 1320px;
   display: grid;
-  grid-template-columns: 1.1fr 1.5fr 0.9fr 1fr 1fr 0.9fr 44px;
+  grid-template-columns: 1.7fr 1fr 1fr 1fr 1fr 0.9fr 0.7fr 44px;
   align-items: center;
   gap: 14px;
   padding: 12px 16px;
@@ -459,7 +451,7 @@ export const TableRow = styled.div`
   &:last-child {
     border-bottom: none;
   }
-  
+
   strong {
     font-size: 14px;
     font-weight: 600;
@@ -664,5 +656,335 @@ export const ExpensesSummary = styled.div`
 
   @media (max-width: 760px) {
     grid-template-columns: 1fr;
+  }
+`;
+
+// paso resumen
+export const SummaryCardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 850px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const SummaryCard = styled.div`
+  background: ${({ $highlight }) =>
+    $highlight ? "rgba(242, 12, 31, 0.08)" : theme.colors.background};
+  border: 1px solid
+    ${({ $highlight }) =>
+      $highlight ? "rgba(242, 12, 31, 0.16)" : "#eef0f3"};
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  span {
+    font-size: 12px;
+    font-weight: 700;
+    color: ${({ $highlight }) =>
+      $highlight ? theme.colors.primary : theme.colors.textSecondary};
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: ${({ $highlight }) =>
+      $highlight ? theme.colors.primary : theme.colors.text};
+  }
+`;
+
+export const SummaryTableWrapper = styled.div`
+  width: 100%;
+  border: 1px solid #eef0f3;
+  border-radius: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: ${theme.colors.background};
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.38);
+    border-radius: 999px;
+  }
+`;
+
+export const SummaryTable = styled.div`
+  min-width: 1680px;
+`;
+
+const summaryGridColumns = `
+  1.7fr
+  0.9fr
+  1.1fr
+  1fr
+  1fr
+  1.2fr
+  1.3fr
+  0.9fr
+  1fr
+  1.1fr
+  1.4fr
+`;
+
+export const SummaryTableHead = styled.div`
+  display: grid;
+  grid-template-columns: ${summaryGridColumns};
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef0f3;
+  font-size: 13px;
+  font-weight: 900;
+  color: ${theme.colors.textSecondary};
+`;
+
+export const SummaryTableRow = styled.div`
+  display: grid;
+  grid-template-columns: ${summaryGridColumns};
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:hover {
+    background: #fffafa;
+  }
+`;
+
+export const SummaryTableCell = styled.div`
+  font-size: 14px;
+  color: ${theme.colors.text};
+  display: flex;
+  align-items: center;
+
+  strong {
+    font-weight: 900;
+    color: ${theme.colors.text};
+  }
+`;
+
+export const SummaryTableFooter = styled.div`
+  display: grid;
+  grid-template-columns: ${summaryGridColumns};
+  gap: 12px;
+  padding: 15px 16px;
+  background: rgba(242, 12, 31, 0.06);
+  border-top: 1px solid rgba(242, 12, 31, 0.14);
+
+  span {
+    font-size: 14px;
+    font-weight: 900;
+    color: ${theme.colors.primary};
+
+    display: flex;
+    align-items: center;
+  }
+`;
+
+// gastos adicionales
+export const WizardSelect = styled.select`
+  width: 100%;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 15px;
+  box-sizing: border-box;
+  background: ${theme.colors.background};
+  color: ${theme.colors.text};
+  font-size: 14px;
+  outline: none;
+
+  &:focus {
+    border-color: #cbd5e1;
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.04);
+  }
+`;
+
+export const AdditionalCostsIntro = styled.p`
+  margin: 8px 0 0;
+  max-width: 860px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: ${theme.colors.textSecondary};
+`;
+
+export const AdditionalCostsTableWrapper = styled.div`
+  width: 100%;
+  border: 1px solid #eef0f3;
+  border-radius: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: ${theme.colors.background};
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.38);
+    border-radius: 999px;
+  }
+`;
+
+const additionalCostsGridColumns = `
+  1.8fr
+  0.9fr
+  0.7fr
+  1.3fr
+  1fr
+  1.1fr
+  1.1fr
+  44px
+`;
+
+export const AdditionalCostsTableHeader = styled.div`
+  min-width: 1320px;
+  display: grid;
+  grid-template-columns: ${additionalCostsGridColumns};
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  background: #f8fafc;
+  border-bottom: 1px solid #eef0f3;
+
+  font-size: 13px;
+  font-weight: 800;
+  color: ${theme.colors.textSecondary};
+`;
+
+export const AdditionalCostsTableRow = styled.div`
+  min-width: 1320px;
+  display: grid;
+  grid-template-columns: ${additionalCostsGridColumns};
+  align-items: center;
+  gap: 14px;
+
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: ${theme.colors.text};
+  }
+`;
+
+export const CreditCheckLabel = styled.label`
+  display: grid;
+  grid-template-columns: 18px auto 72px;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+  color: ${theme.colors.textSecondary};
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: ${theme.colors.primary};
+    cursor: pointer;
+  }
+
+  ${WizardInput} {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  ${WizardInput}:disabled {
+    background: #f3f4f6;
+    color: #94a3b8;
+    cursor: not-allowed;
+  }
+`;
+
+export const AdditionalCostsTotals = styled.div`
+  margin-top: 20px;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+
+  div {
+    min-height: 46px;
+    padding: 0 16px;
+
+    border: 1px solid #eef0f3;
+    border-radius: 14px;
+    background: ${theme.colors.background};
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  span {
+    font-size: 14px;
+    color: ${theme.colors.textSecondary};
+  }
+
+  strong {
+    font-size: 15px;
+    font-weight: 800;
+    color: ${theme.colors.text};
+  }
+
+  .highlight {
+    background: rgba(242, 12, 31, 0.08);
+    border-color: rgba(242, 12, 31, 0.16);
+
+    span,
+    strong {
+      color: ${theme.colors.primary};
+    }
+  }
+
+  @media (max-width: 760px) {
+    justify-content: flex-start;
+    align-items: stretch;
+    flex-direction: column;
+
+    div {
+      justify-content: space-between;
+    }
   }
 `;

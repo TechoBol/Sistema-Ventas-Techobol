@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import GeneralDataStep from "./importationSteps/GeneralDataStep";
-import ProductsStep from "./importationSteps/ProductsStep";
-import ExpensesStep from "./importationSteps/ExpensesStep";
+import GeneralDataStep from "./GeneralDataStep";
+import ProductsStep from "./ProductsStep";
+import ExpensesStep from "./ExpensesStep";
+import SummaryStep from "./SummaryStep";
+import AdditionalCostsStep from "./AdditionalCostsStep";
 import {
   ArrowLeft,
   Check,
@@ -23,20 +25,20 @@ import {
   StepContent,
   StepPanel,
   StepPanelTitle,
-  StepPanelText,
   StepPreviewGrid,
   StepPreviewCard,
   StepActions,
   StepActionsRight,
   StepSecondaryButton,
   StepPrimaryButton,
-} from "../ui/ImportationWizard.styles";
+} from "../../ui/ImportationWizard.styles";
 
 const STEPS = [
   "Datos generales",
   "Productos",
-  "Gastos importación",
-  "Resumen",
+  "Gastos base",
+  "Base imponible e impuestos",
+  "Gastos adicionales",
 ];
 
 function ImportationWizard({ onCancel, onSubmit }) {
@@ -51,10 +53,11 @@ function ImportationWizard({ onCancel, onSubmit }) {
   });
   const [products, setProducts] = useState([
     {
-      code: "",
       productName: "",
-      quantity: "",
+      baseQuantity: "",
+      referenceQuantity: "",
       priceUsd: "",
+      gaPercent: "",
     },
   ]);
   const [expenses, setExpenses] = useState({
@@ -63,6 +66,79 @@ function ImportationWizard({ onCancel, onSubmit }) {
     portCosts: [{ name: "", amount: "" }],
     otherCosts: [{ name: "", amount: "" }],
   });
+  // estado de gastos adicionales
+  const [additionalCosts, setAdditionalCosts] = useState([
+    {
+      concept: "Comisión aduana por despacho",
+      amount: "",
+      currency: "USD",
+      hasFiscalCredit: true,
+      creditRate: "13",
+    },
+    {
+      concept: "Impuestos globales",
+      amount: "",
+      currency: "USD",
+      hasFiscalCredit: false,
+      creditRate: "13",
+    },
+    {
+      concept: "Flete PISIGA-CBBA",
+      amount: "",
+      currency: "USD",
+      hasFiscalCredit: false,
+      creditRate: "13",
+    },
+    {
+      concept: "Comisiones bancarias",
+      amount: "",
+      currency: "BS",
+      hasFiscalCredit: true,
+      creditRate: "13",
+    },
+    {
+      concept: "ITF",
+      amount: "",
+      currency: "BS",
+      hasFiscalCredit: false,
+      creditRate: "13",
+    },
+    {
+      concept: "SAMC",
+      amount: "",
+      currency: "BS",
+      hasFiscalCredit: true,
+      creditRate: "13",
+    },
+    {
+      concept: "Gate In devolución",
+      amount: "",
+      currency: "BS",
+      hasFiscalCredit: true,
+      creditRate: "13",
+    },
+    {
+      concept: "Emisión de documentos",
+      amount: "",
+      currency: "USD",
+      hasFiscalCredit: true,
+      creditRate: "13",
+    },
+    {
+      concept: "Diferencia tipo de cambio",
+      amount: "",
+      currency: "BS",
+      hasFiscalCredit: false,
+      creditRate: "13",
+    },
+    {
+      concept: "Pago transporte interno diferencia",
+      amount: "",
+      currency: "USD",
+      hasFiscalCredit: false,
+      creditRate: "13",
+    },
+  ]);
   // funciones del contenido los pasos
   const handleGeneralDataChange = (field, value) => {
     setGeneralData((current) => ({
@@ -88,7 +164,7 @@ function ImportationWizard({ onCancel, onSubmit }) {
       generalData,
       products,
       expenses,
-      message: "Aquí luego irá el resumen y cálculo final",
+      additionalCosts,
     };
     onSubmit?.(payload);
   };
@@ -121,11 +197,23 @@ function ImportationWizard({ onCancel, onSubmit }) {
         />
       );
     }
+    // paso -> resumen
+    if (currentStep === 3) {
+      return (
+        <SummaryStep
+          generalData={generalData}
+          products={products}
+          expenses={expenses}
+        />
+      );
+    }
 
     return (
-      <StepPanel>
-        
-      </StepPanel>
+      <AdditionalCostsStep
+        additionalCosts={additionalCosts}
+        onChangeAdditionalCosts={setAdditionalCosts}
+        officialExchangeRate={generalData.officialExchangeRate}
+      />
     );
   };
 

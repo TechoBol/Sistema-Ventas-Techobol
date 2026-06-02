@@ -14,26 +14,27 @@ import {
 } from "../../ui/ImportationWizard.styles";
 
 const emptyProduct = {
-  code: "",
   productName: "",
-  quantity: "",
+  baseQuantity: "",
+  referenceQuantity: "",
   priceUsd: "",
+  gaPercent: "",
 };
 
-const roundToTwoDecimals = (value) => {
-  return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
+const roundToFourDecimals = (value) => {
+  return Math.round((Number(value || 0) + Number.EPSILON) * 10000) / 10000;
 };
 
 const formatUsd = (value) =>
   `$ ${Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
   })}`;
 
 const formatQuantity = (value) =>
   Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
   });
 
 const formatFactor = (value) =>
@@ -43,30 +44,38 @@ const formatFactor = (value) =>
   });
 
 function ProductsStep({ products, onChangeProducts }) {
-  // calculo del Subtotal USD = cantidad * precio USD
+  // Subtotal USD = Cantidad base * Precio USD
   const getProductSubtotal = (product) => {
-    const quantity = Number(product.quantity || 0);
+    const baseQuantity = Number(product.baseQuantity || 0);
     const priceUsd = Number(product.priceUsd || 0);
-    return roundToTwoDecimals(quantity * priceUsd);
+
+    return roundToFourDecimals(baseQuantity * priceUsd);
   };
-  // calculo de la Cantidad total = suma de todas las cantidades
-  const totalQuantity = useMemo(() => {
+
+  // Cantidad base total = suma de cantidades que participan en el subtotal
+  const totalBaseQuantity = useMemo(() => {
     return products.reduce(
-      (total, product) => total + Number(product.quantity || 0),
+      (total, product) => total + Number(product.baseQuantity || 0),
       0
     );
   }, [products]);
-  // calculo del Total USD = suma de todos los subtotales USD
+
+  // Total USD = suma de subtotales USD redondeados a 4 decimales
   const totalUsd = useMemo(() => {
-    return products.reduce(
-      (total, product) => total + getProductSubtotal(product),
+    const total = products.reduce(
+      (acc, product) => acc + getProductSubtotal(product),
       0
     );
+
+    return roundToFourDecimals(total);
   }, [products]);
-  // calculo del Factor = Subtotal USD del producto / Total USD general
+
+  // Factor = Subtotal USD del producto / Total USD general
   const getProductFactor = (product) => {
     const subtotal = getProductSubtotal(product);
+
     if (totalUsd <= 0 || subtotal <= 0) return 0;
+
     return subtotal / totalUsd;
   };
 
@@ -101,6 +110,7 @@ function ProductsStep({ products, onChangeProducts }) {
     <StepPanel>
       <SectionHeader>
         <StepPanelTitle>Productos importados</StepPanelTitle>
+
         <AddButton type="button" onClick={handleAddProduct}>
           <Plus size={15} />
           Agregar producto
@@ -109,12 +119,13 @@ function ProductsStep({ products, onChangeProducts }) {
 
       <TableWrapper>
         <TableHeader>
-          <span>Código</span>
           <span>Producto</span>
-          <span>Cantidad</span>
+          <span>Cantidad referencial</span>
+          <span>Cantidad base</span>
           <span>Precio USD</span>
-          <span>Subtotal</span>
+          <span>Subtotal USD</span>
           <span>Factor</span>
+          <span>GA %</span>
           <span></span>
         </TableHeader>
 
@@ -124,15 +135,6 @@ function ProductsStep({ products, onChangeProducts }) {
 
           return (
             <TableRow key={index}>
-              <WizardInput
-                type="text"
-                placeholder="Código..."
-                value={product.code}
-                onChange={(event) =>
-                  handleProductChange(index, "code", event.target.value)
-                }
-              />
-
               <WizardInput
                 type="text"
                 placeholder="Producto..."
@@ -145,11 +147,22 @@ function ProductsStep({ products, onChangeProducts }) {
               <WizardInput
                 type="number"
                 min="0"
-                step="0.001"
-                placeholder="0"
-                value={product.quantity}
+                step="0.0001"
+                placeholder="Cantidad adicional"
+                value={product.referenceQuantity}
                 onChange={(event) =>
-                  handleProductChange(index, "quantity", event.target.value)
+                  handleProductChange(index, "referenceQuantity", event.target.value)
+                }
+              />
+
+              <WizardInput
+                type="number"
+                min="0"
+                step="0.0001"
+                placeholder="Cantidad para subtotal"
+                value={product.baseQuantity}
+                onChange={(event) =>
+                  handleProductChange(index, "baseQuantity", event.target.value)
                 }
               />
 
@@ -168,6 +181,17 @@ function ProductsStep({ products, onChangeProducts }) {
 
               <strong>{factor > 0 ? formatFactor(factor) : "-"}</strong>
 
+              <WizardInput
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Ej: 10"
+                value={product.gaPercent}
+                onChange={(event) =>
+                  handleProductChange(index, "gaPercent", event.target.value)
+                }
+              />
+
               <IconButton
                 type="button"
                 title="Eliminar producto"
@@ -183,8 +207,8 @@ function ProductsStep({ products, onChangeProducts }) {
 
       <TotalsBar>
         <div>
-          <span>Cantidad total:</span>
-          <strong>{formatQuantity(totalQuantity)}</strong>
+          <span>Cantidad base total:</span>
+          <strong>{formatQuantity(totalBaseQuantity)}</strong>
         </div>
         <div>
           <span>Total USD:</span>

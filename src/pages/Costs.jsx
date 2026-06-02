@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Search, Plus, Eye } from "lucide-react";
 import DataTable from "../components/table/DataTable";
-import ImportationWizard from "../components/forms/ImportationWizard";
+import ImportationWizard from "../components/forms/importationSteps/ImportationWizard";
 
 import {
   PageSurface,
