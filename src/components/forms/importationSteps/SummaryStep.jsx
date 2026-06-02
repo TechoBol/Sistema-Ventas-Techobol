@@ -14,6 +14,8 @@ import {
   SummaryTableFooter,
 } from "../../ui/ImportationWizard.styles";
 
+const IVA_RATE = 0.1494;
+
 const roundToFourDecimals = (value) => {
   return Math.round((Number(value || 0) + Number.EPSILON) * 10000) / 10000;
 };
@@ -30,11 +32,11 @@ const formatBs = (value) =>
     maximumFractionDigits: 4,
   })}`;
 
-const formatQuantity = (value) =>
-  Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  });
+const formatPercent = (value) =>
+  `${Number(value || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}%`;
 
 const formatFactor = (value) =>
   Number(value || 0).toLocaleString("en-US", {
@@ -45,131 +47,202 @@ const formatFactor = (value) =>
 function SummaryStep({ generalData, products, expenses }) {
   const officialExchangeRate = Number(generalData.officialExchangeRate || 0);
 
-  // Subtotal USD = Cantidad base * Precio USD
-  const getProductSubtotal = (product) => {
+  /*
+    Subtotal USD = Cantidad base * Precio USD
+    Este subtotal es el equivalente a COMMODITIES en dólares.
+  */
+  const getProductSubtotalUsd = (product) => {
     const baseQuantity = Number(product.baseQuantity || 0);
     const priceUsd = Number(product.priceUsd || 0);
 
     return roundToFourDecimals(baseQuantity * priceUsd);
   };
 
-  // Total por grupo de gastos = suma de montos del grupo
-  const getSectionTotal = (items = []) => {
+  /*
+    Total de una sección de gastos en USD.
+    En este cálculo base usamos:
+    - Fletes
+    - Seguros
+    - Gastos portuarios
+
+    Otros gastos NO entran todavía aquí porque en el Excel aparecen
+    en pasos posteriores al valor después de impuestos.
+  */
+  const getSectionTotalUsd = (items = []) => {
     const total = items.reduce((acc, item) => acc + Number(item.amount || 0), 0);
 
     return roundToFourDecimals(total);
   };
 
   const totals = useMemo(() => {
-    const totalProductsUsd = products.reduce(
-      (acc, product) => acc + getProductSubtotal(product),
-      0
+    const totalProductsUsd = roundToFourDecimals(
+      products.reduce(
+        (acc, product) => acc + getProductSubtotalUsd(product),
+        0
+      )
     );
 
-    const totalBaseQuantity = products.reduce(
-      (acc, product) => acc + Number(product.baseQuantity || 0),
-      0
+    const totalFreightsUsd = getSectionTotalUsd(expenses.freights);
+    const totalInsurancesUsd = getSectionTotalUsd(expenses.insurances);
+    const totalPortCostsUsd = getSectionTotalUsd(expenses.portCosts);
+
+    const totalBaseExpensesUsd = roundToFourDecimals(
+      totalFreightsUsd + totalInsurancesUsd + totalPortCostsUsd
     );
 
-    const totalFreights = getSectionTotal(expenses.freights);
-    const totalInsurances = getSectionTotal(expenses.insurances);
-    const totalPortCosts = getSectionTotal(expenses.portCosts);
-    const totalOtherCosts = getSectionTotal(expenses.otherCosts);
-
-    const totalExpensesUsd = roundToFourDecimals(
-      totalFreights + totalInsurances + totalPortCosts + totalOtherCosts
+    const totalProductsBs = roundToFourDecimals(
+      totalProductsUsd * officialExchangeRate
     );
 
-    const totalEstimatedUsd = roundToFourDecimals(
-      totalProductsUsd + totalExpensesUsd
+    const totalFreightsBs = roundToFourDecimals(
+      totalFreightsUsd * officialExchangeRate
     );
 
-    const totalEstimatedBs = roundToFourDecimals(
-      totalEstimatedUsd * officialExchangeRate
+    const totalInsurancesBs = roundToFourDecimals(
+      totalInsurancesUsd * officialExchangeRate
+    );
+
+    const totalPortCostsBs = roundToFourDecimals(
+      totalPortCostsUsd * officialExchangeRate
+    );
+
+    const totalBaseExpensesBs = roundToFourDecimals(
+      totalBaseExpensesUsd * officialExchangeRate
     );
 
     return {
-      totalProductsUsd: roundToFourDecimals(totalProductsUsd),
-      totalBaseQuantity,
-      totalFreights,
-      totalInsurances,
-      totalPortCosts,
-      totalOtherCosts,
-      totalExpensesUsd,
-      totalEstimatedUsd,
-      totalEstimatedBs,
+      totalProductsUsd,
+      totalFreightsUsd,
+      totalInsurancesUsd,
+      totalPortCostsUsd,
+      totalBaseExpensesUsd,
+      totalProductsBs,
+      totalFreightsBs,
+      totalInsurancesBs,
+      totalPortCostsBs,
+      totalBaseExpensesBs,
     };
   }, [products, expenses, officialExchangeRate]);
 
-  const productSummary = useMemo(() => {
-    return products.map((product, index) => {
-      const baseQuantity = Number(product.baseQuantity || 0);
-      const referenceQuantity = Number(product.referenceQuantity || 0);
-      const subtotalUsd = getProductSubtotal(product);
+  const productCalculations = useMemo(() => {
+    const rows = products.map((product, index) => {
+      const subtotalUsd = getProductSubtotalUsd(product);
 
-      // Factor = Subtotal USD del producto / Total USD general
+      /*
+        Factor = Subtotal USD del producto / Total USD de productos
+        Es el mismo factor que se usa para distribuir fletes, seguros
+        y gastos portuarios entre los productos.
+      */
       const factor =
-        totals.totalProductsUsd > 0 ? subtotalUsd / totals.totalProductsUsd : 0;
+        totals.totalProductsUsd > 0
+          ? subtotalUsd / totals.totalProductsUsd
+          : 0;
 
+      /*
+        COMMODITIES en Bs por producto:
+        Subtotal USD * tipo de cambio
+      */
+      const commoditiesBs = roundToFourDecimals(
+        subtotalUsd * officialExchangeRate
+      );
+
+      /*
+        Distribución proporcional de gastos base:
+        Total gasto USD * tipo de cambio * factor
+      */
+      const freightsBs = roundToFourDecimals(
+        totals.totalFreightsUsd * officialExchangeRate * factor
+      );
+
+      const insurancesBs = roundToFourDecimals(
+        totals.totalInsurancesUsd * officialExchangeRate * factor
+      );
+
+      const portCostsBs = roundToFourDecimals(
+        totals.totalPortCostsUsd * officialExchangeRate * factor
+      );
+
+      /*
+        BASE IMPONIBLE (CIF) Bs:
+        Commodities Bs + fletes Bs + seguros Bs + gastos portuarios Bs
+      */
+      const cifBs = roundToFourDecimals(
+        commoditiesBs + freightsBs + insurancesBs + portCostsBs
+      );
+
+      /*
+        GA alícuota:
+        En productos lo capturamos como porcentaje visible:
+        Ej: 15 significa 15%
+      */
       const gaPercent = Number(product.gaPercent || 0);
       const gaRate = gaPercent / 100;
 
-      // Gasto asignado = Total gastos importación * Factor
-      const assignedExpenseUsd = roundToFourDecimals(
-        totals.totalExpensesUsd * factor
-      );
+      /*
+        GA Bs:
+        Base imponible CIF Bs * GA alícuota
+      */
+      const gaBs = roundToFourDecimals(cifBs * gaRate);
 
-      // CIF estimado = Subtotal USD + gasto asignado
-      const cifUsd = roundToFourDecimals(subtotalUsd + assignedExpenseUsd);
+      /*
+        IVA 14.94%:
+        Según la explicación: se calcula sobre Base imponible + GA
+      */
+      const ivaBs = roundToFourDecimals((cifBs + gaBs) * IVA_RATE);
 
-      // GA USD = CIF estimado * GA %
-      const gaUsd = roundToFourDecimals(cifUsd * gaRate);
-
-      // Costo total estimado = CIF estimado + GA
-      const estimatedTotalUsd = roundToFourDecimals(cifUsd + gaUsd);
-
-      // Para costo unitario por ahora usamos cantidad referencial si existe;
-      // si no existe, usamos cantidad base.
-      const quantityForUnitCost = referenceQuantity || baseQuantity;
-
-      const estimatedUnitUsd =
-        quantityForUnitCost > 0
-          ? roundToFourDecimals(estimatedTotalUsd / quantityForUnitCost)
-          : 0;
-
-      const estimatedTotalBs = roundToFourDecimals(
-        estimatedTotalUsd * officialExchangeRate
-      );
-
-      const estimatedUnitBs =
-        quantityForUnitCost > 0
-          ? roundToFourDecimals(estimatedTotalBs / quantityForUnitCost)
-          : 0;
+      /*
+        VALOR DESPUÉS DE IMPUESTOS:
+        En la hoja Calculodecostos, hasta la fila 14,
+        este valor corresponde a Base imponible + GA.
+        El IVA se muestra como crédito fiscal, pero no se suma aquí.
+      */
+      const valueAfterTaxesBs = roundToFourDecimals(cifBs + gaBs);
 
       return {
         id: index + 1,
         productName: product.productName || "Sin nombre",
-        baseQuantity,
-        referenceQuantity,
-        quantityForUnitCost,
-        subtotalUsd,
         factor,
+        commoditiesBs,
+        freightsBs,
+        insurancesBs,
+        portCostsBs,
+        cifBs,
         gaPercent,
-        assignedExpenseUsd,
-        cifUsd,
-        gaUsd,
-        estimatedTotalUsd,
-        estimatedUnitUsd,
-        estimatedTotalBs,
-        estimatedUnitBs,
+        gaBs,
+        ivaBs,
+        valueAfterTaxesBs,
       };
     });
+
+    const totalCifBs = roundToFourDecimals(
+      rows.reduce((acc, row) => acc + row.cifBs, 0)
+    );
+
+    const totalGaBs = roundToFourDecimals(
+      rows.reduce((acc, row) => acc + row.gaBs, 0)
+    );
+
+    const totalIvaBs = roundToFourDecimals(
+      rows.reduce((acc, row) => acc + row.ivaBs, 0)
+    );
+
+    const totalValueAfterTaxesBs = roundToFourDecimals(
+      rows.reduce((acc, row) => acc + row.valueAfterTaxesBs, 0)
+    );
+
+    return {
+      rows,
+      totalCifBs,
+      totalGaBs,
+      totalIvaBs,
+      totalValueAfterTaxesBs,
+    };
   }, [products, totals, officialExchangeRate]);
 
   return (
     <StepPanel>
       <SectionHeader>
-        <StepPanelTitle>Resumen de importación</StepPanelTitle>
+        <StepPanelTitle>Base imponible e impuestos</StepPanelTitle>
       </SectionHeader>
 
       <SummaryCardsGrid>
@@ -184,37 +257,37 @@ function SummaryStep({ generalData, products, expenses }) {
         </SummaryCard>
 
         <SummaryCard>
-          <span>Fecha</span>
-          <strong>{generalData.date || "Sin fecha"}</strong>
+          <span>Tipo de cambio</span>
+          <strong>
+            {officialExchangeRate > 0
+              ? officialExchangeRate.toFixed(4)
+              : "Sin tipo de cambio"}
+          </strong>
         </SummaryCard>
 
         <SummaryCard>
-          <span>Cantidad base total</span>
-          <strong>{formatQuantity(totals.totalBaseQuantity)}</strong>
-        </SummaryCard>
-
-        <SummaryCard>
-          <span>Total productos</span>
+          <span>Total productos USD</span>
           <strong>{formatUsd(totals.totalProductsUsd)}</strong>
         </SummaryCard>
 
         <SummaryCard>
-          <span>Total gastos</span>
-          <strong>{formatUsd(totals.totalExpensesUsd)}</strong>
+          <span>Total productos Bs</span>
+          <strong>{formatBs(totals.totalProductsBs)}</strong>
+        </SummaryCard>
+
+        <SummaryCard>
+          <span>Gastos base USD</span>
+          <strong>{formatUsd(totals.totalBaseExpensesUsd)}</strong>
         </SummaryCard>
 
         <SummaryCard $highlight>
-          <span>Total estimado USD</span>
-          <strong>{formatUsd(totals.totalEstimatedUsd)}</strong>
+          <span>Base imponible total</span>
+          <strong>{formatBs(productCalculations.totalCifBs)}</strong>
         </SummaryCard>
 
         <SummaryCard $highlight>
-          <span>Total estimado Bs</span>
-          <strong>
-            {officialExchangeRate > 0
-              ? formatBs(totals.totalEstimatedBs)
-              : "Sin tipo de cambio"}
-          </strong>
+          <span>Valor después de impuestos</span>
+          <strong>{formatBs(productCalculations.totalValueAfterTaxesBs)}</strong>
         </SummaryCard>
       </SummaryCardsGrid>
 
@@ -222,68 +295,46 @@ function SummaryStep({ generalData, products, expenses }) {
         <SummaryTable>
           <SummaryTableHead>
             <span>Producto</span>
-            <span>Cant. ref.</span>
-            <span>Cant. base</span>
-            <span>Subtotal USD</span>
             <span>Factor</span>
-            <span>Gasto asignado</span>
-            <span>CIF estimado</span>
-            <span>GA %</span>
-            <span>GA USD</span>
-            <span>Costo total USD</span>
-            <span>Costo unit. USD</span>
-            <span>Costo total Bs</span>
-            <span>Costo unit. Bs</span>
+            <span>Commodities Bs</span>
+            <span>Fletes Bs</span>
+            <span>Seguro Bs</span>
+            <span>Gastos portuarios Bs</span>
+            <span>Base imponible CIF Bs</span>
+            <span>GA alícuota</span>
+            <span>GA Bs</span>
+            <span>IVA 14.94% Bs</span>
+            <span>Valor después impuestos Bs</span>
           </SummaryTableHead>
 
-          {productSummary.map((item) => (
+          {productCalculations.rows.map((item) => (
             <SummaryTableRow key={item.id}>
               <SummaryTableCell>{item.productName}</SummaryTableCell>
 
-              <SummaryTableCell>
-                {item.referenceQuantity > 0
-                  ? formatQuantity(item.referenceQuantity)
-                  : "-"}
-              </SummaryTableCell>
-
-              <SummaryTableCell>
-                {formatQuantity(item.baseQuantity)}
-              </SummaryTableCell>
-
-              <SummaryTableCell>{formatUsd(item.subtotalUsd)}</SummaryTableCell>
-
               <SummaryTableCell>{formatFactor(item.factor)}</SummaryTableCell>
 
-              <SummaryTableCell>
-                {formatUsd(item.assignedExpenseUsd)}
-              </SummaryTableCell>
+              <SummaryTableCell>{formatBs(item.commoditiesBs)}</SummaryTableCell>
 
-              <SummaryTableCell>{formatUsd(item.cifUsd)}</SummaryTableCell>
+              <SummaryTableCell>{formatBs(item.freightsBs)}</SummaryTableCell>
 
-              <SummaryTableCell>
-                {Number(item.gaPercent || 0).toFixed(2)}%
-              </SummaryTableCell>
+              <SummaryTableCell>{formatBs(item.insurancesBs)}</SummaryTableCell>
 
-              <SummaryTableCell>{formatUsd(item.gaUsd)}</SummaryTableCell>
+              <SummaryTableCell>{formatBs(item.portCostsBs)}</SummaryTableCell>
 
               <SummaryTableCell>
-                <strong>{formatUsd(item.estimatedTotalUsd)}</strong>
+                <strong>{formatBs(item.cifBs)}</strong>
               </SummaryTableCell>
 
               <SummaryTableCell>
-                <strong>{formatUsd(item.estimatedUnitUsd)}</strong>
+                {formatPercent(item.gaPercent)}
               </SummaryTableCell>
 
-              <SummaryTableCell>
-                {officialExchangeRate > 0
-                  ? formatBs(item.estimatedTotalBs)
-                  : "-"}
-              </SummaryTableCell>
+              <SummaryTableCell>{formatBs(item.gaBs)}</SummaryTableCell>
+
+              <SummaryTableCell>{formatBs(item.ivaBs)}</SummaryTableCell>
 
               <SummaryTableCell>
-                {officialExchangeRate > 0
-                  ? formatBs(item.estimatedUnitBs)
-                  : "-"}
+                <strong>{formatBs(item.valueAfterTaxesBs)}</strong>
               </SummaryTableCell>
             </SummaryTableRow>
           ))}
@@ -291,21 +342,15 @@ function SummaryStep({ generalData, products, expenses }) {
           <SummaryTableFooter>
             <span>Total</span>
             <span></span>
-            <span>{formatQuantity(totals.totalBaseQuantity)}</span>
-            <span>{formatUsd(totals.totalProductsUsd)}</span>
+            <span>{formatBs(totals.totalProductsBs)}</span>
+            <span>{formatBs(totals.totalFreightsBs)}</span>
+            <span>{formatBs(totals.totalInsurancesBs)}</span>
+            <span>{formatBs(totals.totalPortCostsBs)}</span>
+            <span>{formatBs(productCalculations.totalCifBs)}</span>
             <span></span>
-            <span>{formatUsd(totals.totalExpensesUsd)}</span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span>{formatUsd(totals.totalEstimatedUsd)}</span>
-            <span></span>
-            <span>
-              {officialExchangeRate > 0
-                ? formatBs(totals.totalEstimatedBs)
-                : "-"}
-            </span>
-            <span></span>
+            <span>{formatBs(productCalculations.totalGaBs)}</span>
+            <span>{formatBs(productCalculations.totalIvaBs)}</span>
+            <span>{formatBs(productCalculations.totalValueAfterTaxesBs)}</span>
           </SummaryTableFooter>
         </SummaryTable>
       </SummaryTableWrapper>

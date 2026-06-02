@@ -703,7 +703,7 @@ export const SummaryCard = styled.div`
 
   strong {
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 700;
     color: ${({ $highlight }) =>
       $highlight ? theme.colors.primary : theme.colors.text};
   }
@@ -734,23 +734,26 @@ export const SummaryTableWrapper = styled.div`
 `;
 
 export const SummaryTable = styled.div`
-  min-width: 1450px;
+  min-width: 1680px;
+`;
+
+const summaryGridColumns = `
+  1.7fr
+  0.9fr
+  1.1fr
+  1fr
+  1fr
+  1.2fr
+  1.3fr
+  0.9fr
+  1fr
+  1.1fr
+  1.4fr
 `;
 
 export const SummaryTableHead = styled.div`
   display: grid;
-  grid-template-columns:
-    0.8fr
-    1.5fr
-    0.9fr
-    1fr
-    0.9fr
-    1.1fr
-    1.1fr
-    1.1fr
-    1.1fr
-    1.1fr;
-
+  grid-template-columns: ${summaryGridColumns};
   gap: 12px;
   padding: 14px 16px;
   background: #f8fafc;
@@ -762,18 +765,7 @@ export const SummaryTableHead = styled.div`
 
 export const SummaryTableRow = styled.div`
   display: grid;
-  grid-template-columns:
-    0.8fr
-    1.5fr
-    0.9fr
-    1fr
-    0.9fr
-    1.1fr
-    1.1fr
-    1.1fr
-    1.1fr
-    1.1fr;
-
+  grid-template-columns: ${summaryGridColumns};
   gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid #f1f5f9;
@@ -797,18 +789,7 @@ export const SummaryTableCell = styled.div`
 
 export const SummaryTableFooter = styled.div`
   display: grid;
-  grid-template-columns:
-    0.8fr
-    1.5fr
-    0.9fr
-    1fr
-    0.9fr
-    1.1fr
-    1.1fr
-    1.1fr
-    1.1fr
-    1.1fr;
-
+  grid-template-columns: ${summaryGridColumns};
   gap: 12px;
   padding: 15px 16px;
   background: rgba(242, 12, 31, 0.06);
@@ -818,6 +799,7 @@ export const SummaryTableFooter = styled.div`
     font-size: 14px;
     font-weight: 900;
     color: ${theme.colors.primary};
+
     display: flex;
     align-items: center;
   }
