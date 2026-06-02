@@ -18,7 +18,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import PrintIcon from "@mui/icons-material/Print";
 
 import { FaTrash } from "react-icons/fa";
-import { FileText, Search , ReceiptText } from "lucide-react";
+import { FileText, Search, ReceiptText } from "lucide-react";
 
 import { Document, Page, pdfjs } from "react-pdf";
 
@@ -62,6 +62,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 function Receipts() {
   const { data } = useSales();
   const { getFileUrl } = useAmazonS3();
+
+  console.log("SALES:", data);
 
   const containerRef = useRef(null);
 
@@ -107,7 +109,8 @@ function Receipts() {
 
         const matchCode = sale?.code?.toLowerCase()?.includes(q);
         const matchCliente = sale?.customer?.name?.toLowerCase()?.includes(q);
-        const matchNit = sale?.customer?.nitCi?.toLowerCase()?.includes(q);
+        const matchNit = sale?.customerNitSnapshot?.toLowerCase()?.includes(q);
+        const matchRazon = sale?.customerNitCompanySnapshot?.toLowerCase()?.includes(q);
         const matchEmpleado = sale?.employee?.name?.toLowerCase()?.includes(q);
         const matchSucursal = sale?.location?.name?.toLowerCase()?.includes(q);
         const matchTipo = sale?.typeSale?.trim()?.toLowerCase()?.includes(q);
@@ -116,6 +119,7 @@ function Receipts() {
           !matchCode &&
           !matchCliente &&
           !matchNit &&
+          !matchRazon &&
           !matchEmpleado &&
           !matchSucursal &&
           !matchTipo
@@ -242,11 +246,20 @@ function Receipts() {
         valueGetter: (_, row) => row?.customer?.name || "S/N",
       },
       {
-        field: "nitCi",
+        field: "nit",
         headerName: "NIT/CI",
         flex: 1,
-        minWidth: 130,
-        valueGetter: (_, row) => row?.customer?.nitCi || "-",
+        minWidth: 140,
+        valueGetter: (_, row) =>
+          row?.customerNitSnapshot || "-",
+      },
+      {
+        field: "companyName",
+        headerName: "Razón Social",
+        flex: 1.5,
+        minWidth: 220,
+        valueGetter: (_, row) =>
+          row?.customerNitCompanySnapshot || "-",
       },
       {
         field: "employee",
@@ -270,20 +283,6 @@ function Receipts() {
         flex: 1,
         minWidth: 120,
         valueGetter: (_, row) => row?.typeSale || "-",
-      },
-      {
-        field: "subtotal",
-        headerName: "Subtotal",
-        flex: 1,
-        minWidth: 120,
-        valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
-      },
-      {
-        field: "discount",
-        headerName: "Descuento",
-        flex: 1,
-        minWidth: 120,
-        valueFormatter: (value) => `${Number(value || 0).toFixed(2)} Bs.`,
       },
       {
         field: "total",
@@ -345,54 +344,54 @@ function Receipts() {
             </SearchWrapper>
 
             <FiltersGroup>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-              <DatePicker
-                label="Desde"
-                value={startDate}
-                onChange={(value) => setStartDate(value)}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: {
-                      width: "150px",
-                      "& .MuiOutlinedInput-root": {
-                        height: "40px",
-                        borderRadius: "25px",
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                <DatePicker
+                  label="Desde"
+                  value={startDate}
+                  onChange={(value) => setStartDate(value)}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      sx: {
+                        width: "150px",
+                        "& .MuiOutlinedInput-root": {
+                          height: "40px",
+                          borderRadius: "25px",
+                        },
                       },
                     },
-                  },
-                }}
-              />
+                  }}
+                />
 
-              <DatePicker
-                label="Hasta"
-                value={endDate}
-                onChange={(value) => setEndDate(value)}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: {
-                      width: "150px",
-                      "& .MuiOutlinedInput-root": {
-                        height: "40px",
-                        borderRadius: "10px",
+                <DatePicker
+                  label="Hasta"
+                  value={endDate}
+                  onChange={(value) => setEndDate(value)}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      sx: {
+                        width: "150px",
+                        "& .MuiOutlinedInput-root": {
+                          height: "40px",
+                          borderRadius: "10px",
+                        },
                       },
                     },
-                  },
-                }}
-              />
+                  }}
+                />
 
-              <ClearFiltersButton
-                type="button"
-                title="Limpiar filtros"
-                onClick={() => {
-                  setStartDate(null);
-                  setEndDate(null);
-                }}
-              >
-                <FaTrash size={16} />
-              </ClearFiltersButton>
-            </LocalizationProvider>
+                <ClearFiltersButton
+                  type="button"
+                  title="Limpiar filtros"
+                  onClick={() => {
+                    setStartDate(null);
+                    setEndDate(null);
+                  }}
+                >
+                  <FaTrash size={16} />
+                </ClearFiltersButton>
+              </LocalizationProvider>
             </FiltersGroup>
           </TopActions>
         </PageHeader>

@@ -34,6 +34,7 @@ export const useCart = () => {
       mode: string;
       validityDays?: number;
       notes?: string;
+      nitId?: number | null;
     },
     cartItems: any[],
     subtotal: number,
@@ -81,6 +82,7 @@ export const useCart = () => {
           notes: data.notes || null,
           expiresAt,
           customerId: data.customerId || undefined,
+          nitId: data.nitId ?? null, 
         };
 
         const result = await createQuotationService(payload, token);
@@ -107,11 +109,14 @@ export const useCart = () => {
         total,
         locationId: location.id,
         metodoPago: data.paymentMethod,
+        nitId: data.nitId ?? null,
       };
+      
+      console.log("PAYLOAD SALE:", payload);
 
       const venta = await createSaleService(payload, token);
       const sale = venta.sale;
-      console.log(sale)
+      console.log(sale);
       // 1. PDF nota de venta
       const pdfBlob = generarDocumentoVenta(sale);
       const file = new File([pdfBlob], `venta_${sale.code}.pdf`, {

@@ -632,3 +632,231 @@ export const ChannelTooltip = styled.span`
     opacity: 1;
   }
 `;
+
+/* ── NIT SELECTOR ── */
+export const NitTrigger = styled.div`
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  user-select: none;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &.open {
+    border-color: var(--form-primary);
+    box-shadow: 0 0 0 4px var(--form-shadow);
+  }
+`;
+
+export const NitTriggerText = styled.span`
+  font-size: 14px;
+  color: ${({ $hasValue }) => ($hasValue ? "#0f172a" : "#94a3b8")};
+  font-weight: ${({ $hasValue }) => ($hasValue ? "600" : "400")};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const NitTriggerSub = styled.span`
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const NitDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  z-index: 200;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+`;
+
+export const NitSectionLabel = styled.div`
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 8px 14px 4px;
+`;
+
+export const NitOption = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--form-hover-bg);
+  }
+`;
+
+export const NitOptionNumber = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+`;
+
+export const NitOptionCompany = styled.span`
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 1px;
+`;
+
+export const NitCheckMark = styled.span`
+  margin-left: auto;
+  color: var(--form-primary);
+  display: flex;
+  align-items: center;
+`;
+
+export const NitDivider = styled.div`
+  height: 1px;
+  background: #f1f5f9;
+  margin: 2px 0;
+`;
+
+export const NitAddRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  color: var(--form-primary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--form-hover-bg);
+  }
+`;
+
+export const NitAddForm = styled.div`
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const NitAddFormTitle = styled.div`
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+`;
+
+export const NitAddFormRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+`;
+
+export const NitMiniLabel = styled.label`
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+  display: block;
+`;
+
+export const NitMiniInput = styled.input`
+  width: 100%;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:focus {
+    border-color: var(--form-primary);
+    box-shadow: 0 0 0 3px var(--form-shadow);
+  }
+
+  &.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  }
+`;
+
+export const NitAddFormActions = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+`;
+
+export const NitBtnCancel = styled.button`
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+`;
+
+export const NitBtnSave = styled.button`
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(135deg, var(--form-primary) 0%, var(--form-gradient) 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 3px 10px var(--form-shadow);
+
+  &:hover {
+    filter: brightness(1.06);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: none;
+  }
+`;

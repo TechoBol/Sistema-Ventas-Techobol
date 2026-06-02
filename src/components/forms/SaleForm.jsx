@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeft, MapPin, ReceiptText, ShieldCheck, CreditCard, Info } from "lucide-react";
 import { useCustomer } from "../../hooks/useCustomer";
+import { useLoginStore } from "../store/loginStore";
 import LocationPicker from "../modals/LocationPicker";
 import { errorToast } from "../../services/toasts";
 import { CHANNELS } from "../ui/SaleForm.channels";
+import NitSelector from "../utils/NitSelector";
+import { addCustomerNitService } from "../../services/customerService";
 
 import {
   SaleCard,
@@ -79,9 +82,13 @@ function SaleForm({
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerAddresses, setCustomerAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("new");
+  const [customerNits, setCustomerNits] = useState([]);
+  const [selectedNit, setSelectedNit] = useState(null);
+  const [savingNit, setSavingNit] = useState(false);
 
   const customerRef = useRef(null);
   const { customers, setSearchTerm } = useCustomer();
+  const { token } = useLoginStore();
   const pendingAmount = Math.max(0, totalCartAmount - total);
 
   useEffect(() => {
@@ -109,15 +116,23 @@ function SaleForm({
 
   const selectCustomer = (customer) => {
     setSelectedCustomer(customer);
+
+    // Direcciones
     const addresses = customer.addresses || [];
     setCustomerAddresses(addresses);
-
     const primaryAddress = addresses.find((addr) => addr.isPrimary) || addresses[0];
     setSelectedAddressId(primaryAddress?.id || "new");
 
+    // NITs
+    const nits = customer.nits || [];
+    setCustomerNits(nits);
+    const primaryNit = nits.find((n) => n.isPrimary) || nits[0] || null;
+    setSelectedNit(primaryNit);
+
+    // Setear customerData en una sola llamada
     setCustomerData({
       name: customer.name || "",
-      ci: customer.ci || "",
+      ci: primaryNit?.number || "",
       occupation: customer.occupation || "",
       phone: customer.phone || "",
       whatsapp: customer.whatsapp || "",
@@ -129,6 +144,24 @@ function SaleForm({
 
     setSearchTerm("");
     setOpenCustomerDrop(false);
+  };
+
+  const handleAddNit = async ({ number, companyName }) => {
+    setSavingNit(true);
+    try {
+      const newNit = await addCustomerNitService(
+        selectedCustomer.id,
+        { number, companyName },
+        token,
+      );
+      setCustomerNits((prev) => [...prev, newNit]);
+      setSelectedNit(newNit);
+      handleChange("ci", newNit.number);
+    } catch (error) {
+      errorToast(error.message || "No se pudo agregar el NIT.");
+    } finally {
+      setSavingNit(false);
+    }
   };
 
   const handleFinish = () => {
@@ -148,7 +181,6 @@ function SaleForm({
     let finalCi = tieneNit ? customerData.ci.trim() : null;
     let finalName = tieneNombre ? customerData.name.trim() : "S/N (Sin Nombre)";
 
-    // Generar identificador único temporal para anonimato en ventas rápidas
     if (!tieneNit && !tieneNombre && mode === "venta") {
       finalCi = `SN-${Date.now()}`;
       finalName = "Anónimo / Sin Nombre";
@@ -159,6 +191,7 @@ function SaleForm({
       ci: finalCi,
       name: finalName,
       customerId: selectedCustomer ? selectedCustomer.id : null,
+      nitId: selectedNit ? selectedNit.id : null,
       generateInvoice: mode === "cotizacion" ? false : generateInvoice,
       bankName: mode === "cotizacion" ? "" : bankName,
     });
@@ -171,14 +204,14 @@ function SaleForm({
           title: "Datos de la Cotización",
           labelTotal: "TOTAL COTIZADO",
           btnText: "Guardar Cotización",
-          colorTheme: "#2563eb"
+          colorTheme: "#2563eb",
         };
       case "reserva":
         return {
           title: "Datos de la Reserva",
           labelTotal: "SALDO PENDIENTE",
           btnText: "Confirmar Reserva",
-          colorTheme: "#d97706"
+          colorTheme: "#d97706",
         };
       case "venta":
       default:
@@ -186,7 +219,7 @@ function SaleForm({
           title: "Datos del Cliente",
           labelTotal: "TOTAL VENTA",
           btnText: `Cobrar Bs ${Number(total || 0).toFixed(2)}`,
-          colorTheme: "#fb0404"
+          colorTheme: "#fb0404",
         };
     }
   };
@@ -216,7 +249,6 @@ function SaleForm({
                   </InvoiceSubtitle>
                 </InvoiceInfo>
               </div>
-              {/* Corrección del stopPropagation para evitar doble evento */}
               <SwitchWrapper onClick={(event) => event.stopPropagation()}>
                 <SwitchInput
                   type="checkbox"
@@ -240,13 +272,15 @@ function SaleForm({
               {openCustomerDrop && (
                 <CustomerDropdown>
                   <CustomerHeader>
-                    <CustomerHeaderCode>Código / CI</CustomerHeaderCode>
+                    <CustomerHeaderCode>NIT / CI</CustomerHeaderCode>
                     <CustomerHeaderName>Nombre / Razón Social</CustomerHeaderName>
                   </CustomerHeader>
                   {customers.length > 0 ? (
                     customers.map((c) => (
                       <CustomerItem key={c.id} onClick={() => selectCustomer(c)}>
-                        <CustomerCode>{c.ci || "S/C"}</CustomerCode>
+                        <CustomerCode>
+                          {c.nits?.[0]?.number || "S/N"}
+                        </CustomerCode>
                         <CustomerName>{c.name}</CustomerName>
                       </CustomerItem>
                     ))
@@ -259,12 +293,25 @@ function SaleForm({
 
             <Field>
               <Label>CI / NIT</Label>
-              <Input
-                value={customerData.ci}
-                onFocus={() => { setSearchTerm(customerData.ci); setOpenCustomerDrop(true); }}
-                onChange={(event) => handleCustomerSearch("ci", event.target.value)}
-                placeholder="Buscar o ingresar NIT/CI..."
-              />
+              {selectedCustomer ? (
+                <NitSelector
+                  nits={customerNits}
+                  selectedNit={selectedNit}
+                  onChange={(nit) => {
+                    setSelectedNit(nit);
+                    handleChange("ci", nit.number);
+                  }}
+                  onAddNit={handleAddNit}
+                  loading={savingNit}
+                />
+              ) : (
+                <Input
+                  value={customerData.ci}
+                  onFocus={() => { setSearchTerm(customerData.ci); setOpenCustomerDrop(true); }}
+                  onChange={(event) => handleCustomerSearch("ci", event.target.value)}
+                  placeholder="Buscar o ingresar NIT/CI..."
+                />
+              )}
             </Field>
 
             <Field>
@@ -348,7 +395,7 @@ function SaleForm({
                   value={customerData.address}
                   onChange={(event) => {
                     handleChange("address", event.target.value);
-                    setSelectedAddressId("new"); // Reseteamos el selector de arriba
+                    setSelectedAddressId("new");
                   }}
                   placeholder="Calle, avenida, número de casa..."
                 />

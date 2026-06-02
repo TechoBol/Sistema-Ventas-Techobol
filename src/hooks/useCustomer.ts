@@ -9,7 +9,6 @@ const fetcher = ([_, token]: [string, string]) => getCustomersService(token);
 const mapCustomerToTable = (customer: any) => ({
   id: customer.id,
   name: customer.name ?? "",
-  ci: customer.nitCi ?? "",
   phone: customer.phone ?? "",
   whatsapp: customer.whatsapp ?? "",
   occupation: customer.occupation ?? "",
@@ -19,6 +18,7 @@ const mapCustomerToTable = (customer: any) => ({
   latitude: customer.latitude ?? null,
   longitude: customer.longitude ?? null,
   addresses: customer.addresses ?? [],
+  nits: customer.nits ?? [],
   isVisible: customer.isVisible,
   createdAt: customer.createdAt,
 });
@@ -47,18 +47,23 @@ export const useCustomer = () => {
 
     if (!value) return customers;
 
-    return customers.filter((customer: any) =>
-      [
+    return customers.filter((customer: any) => {
+      // Busca también dentro de los NITs y nombres de empresa
+      const nitsText = customer.nits
+        .map((n: any) => `${n.number} ${n.companyName ?? ""}`)
+        .join(" ");
+
+      return [
         customer.name,
-        customer.ci,
         customer.phone,
         customer.address,
         customer.businessName,
+        nitsText,
       ]
         .join(" ")
         .toLowerCase()
-        .includes(value)
-    );
+        .includes(value);
+    });
   }, [customers, searchTerm]);
 
   return {

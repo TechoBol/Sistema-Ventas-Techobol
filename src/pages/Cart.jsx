@@ -253,6 +253,8 @@ const Cart = () => {
     if (isProcessing) return;
     setIsProcessing(true);
 
+    console.log("CUSTOMER DATA:", customerData);
+    
     try {
       // 1. Armamos el objeto con la información del cliente + parámetros financieros requeridos por el hook
       const dataPayload = {
