@@ -277,24 +277,19 @@ export const ActivityDate = styled.span`
 
 export const NotesInput = styled.textarea`
   width: 100%;
-  min-height: 160px;
-  border-radius: 16px;
-  border: 1px solid transparent;
+  height: 72px;
+  border: none;
+  border-top: 1px solid ${theme.colors.border};
+  border-radius: 0 0 24px 24px;
   background: #fff5f5;
-  padding: 16px;
-  resize: vertical;
+  padding: 14px 22px;
+  resize: none;
   outline: none;
   font-size: 14px;
   font-family: inherit;
-  transition: 0.2s ease;
-  cursor: text;
-
-  &:hover {
-    border-color: ${theme.colors.border};
-  }
+  display: block;
   &:focus {
-    border-color: ${theme.colors.primary};
-    cursor: text;
+    background: #fff0f0;
   }
 `;
 
@@ -352,7 +347,7 @@ export const Map = styled.div`
 //////////////////////////////////////////
 // MODALS
 //////////////////////////////////////////
- 
+
 export const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
@@ -362,7 +357,7 @@ export const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
 `;
- 
+
 export const ModalContainer = styled.div`
   background: #fff;
   border-radius: 12px;
@@ -373,7 +368,7 @@ export const ModalContainer = styled.div`
   flex-direction: column;
   overflow: hidden;
 `;
- 
+
 export const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -382,12 +377,12 @@ export const ModalHeader = styled.div`
   border-bottom: 1px solid #e5e7eb;
   background: #fff;
 `;
- 
+
 export const ModalTitle = styled.span`
   font-weight: 600;
   font-size: 15px;
 `;
- 
+
 export const ModalCloseButton = styled.button`
   background: none;
   border: none;
@@ -395,20 +390,20 @@ export const ModalCloseButton = styled.button`
   cursor: pointer;
   color: #6b7280;
 `;
- 
+
 export const ModalBody = styled.div`
   overflow-y: auto;
   padding: 16px;
 `;
- 
+
 //////////////////////////////////////////
 // PDF MODAL
 //////////////////////////////////////////
- 
+
 export const PdfModalOverlay = styled(ModalOverlay)`
   z-index: 1000;
 `;
- 
+
 export const PdfModalContainer = styled.div`
   background: #f5f5f5;
   border-radius: 12px;
@@ -420,7 +415,7 @@ export const PdfModalContainer = styled.div`
   overflow: hidden;
   position: relative;
 `;
- 
+
 export const PdfModalBody = styled.div`
   overflow-y: auto;
   padding: 20px;
@@ -428,11 +423,11 @@ export const PdfModalBody = styled.div`
   flex-direction: column;
   align-items: center;
 `;
- 
+
 //////////////////////////////////////////
 // MISC
 //////////////////////////////////////////
- 
+
 export const ExpandButton = styled.button`
   background: none;
   border: none;
@@ -441,19 +436,19 @@ export const ExpandButton = styled.button`
   color: #6b7280;
   line-height: 1;
 `;
- 
+
 //////////////////////////////////////////
 // ESTADO BADGE
 //////////////////////////////////////////
- 
+
 export const estadoColor = {
-  APPROVED:  { background: "#dcfce7", color: "#16a34a" },
+  APPROVED: { background: "#dcfce7", color: "#16a34a" },
   Realizado: { background: "#dcfce7", color: "#16a34a" },
-  PENDING:   { background: "#fef9c3", color: "#ca8a04" },
-  REJECTED:  { background: "#fee2e2", color: "#dc2626" },
-  EXPIRED:   { background: "#fee2e2", color: "#dc2626" },
+  PENDING: { background: "#fef9c3", color: "#ca8a04" },
+  REJECTED: { background: "#fee2e2", color: "#dc2626" },
+  EXPIRED: { background: "#fee2e2", color: "#dc2626" },
 };
- 
+
 export const EstadoBadgeWrapper = styled.span`
   padding: 2px 10px;
   border-radius: 999px;
@@ -467,3 +462,59 @@ export const CardNoPadding = styled(Card)`
   padding: 0;
   overflow: hidden;
 `;
+
+export const NitList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 100px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+export const NitItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: ${theme.colors.background};
+  border-radius: 10px;
+  gap: 8px;
+`;
+
+export const NitNumber = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${theme.colors.text};
+  white-space: nowrap;
+`;
+
+export const NitCompany = styled.div`
+  font-size: 12px;
+  color: ${theme.colors.textSecondary};
+  flex: 1;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const NitLabel = styled.div`
+  font-size: 11px;
+  color: ${theme.colors.textSecondary};
+`;
+
+export const NitBadge = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: ${({ $primary }) => ($primary ? "#fee2e2" : "#eff6ff")};
+  color: ${({ $primary }) => ($primary ? "#dc2626" : "#2563eb")};
+`;
+
+export const NotesCard = styled(Card)`
+  padding: 10px;
+  overflow: hidden;
+`;  

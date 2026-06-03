@@ -178,13 +178,8 @@ function SaleForm({
       return;
     }
 
-    let finalCi = tieneNit ? customerData.ci.trim() : null;
-    let finalName = tieneNombre ? customerData.name.trim() : "S/N (Sin Nombre)";
-
-    if (!tieneNit && !tieneNombre && mode === "venta") {
-      finalCi = `SN-${Date.now()}`;
-      finalName = "Anónimo / Sin Nombre";
-    }
+    const finalCi = tieneNit ? customerData.ci.trim() : null;
+    const finalName = tieneNombre ? customerData.name.trim() : null;
 
     onFinish?.({
       ...customerData,

@@ -61,6 +61,13 @@ import {
   estadoColor,
   EstadoBadgeWrapper,
   CardNoPadding,
+  NitList,
+  NitItem,
+  NitNumber,
+  NitLabel,
+  NitBadge,
+  NotesCard,
+  NitCompany,
 } from "../components/ui/DetailCustomer";
 
 const formatBs = (n) =>
@@ -223,7 +230,7 @@ export default function DetailCustomer() {
             <CardHeader>
               <CardTitle>
                 <RedDot />
-                Cliente
+                Información del cliente
               </CardTitle>
             </CardHeader>
 
@@ -289,28 +296,36 @@ export default function DetailCustomer() {
                   </InfoList>
                 </Section>
 
-                <Section>
-                  <SectionTitle>Información Financiera</SectionTitle>
-
-                  <InfoList>
-                    <InfoRow>
-                      <InfoLabel>Total gastado</InfoLabel>
-                      <InfoValue>{formatBs(totalGastado)}</InfoValue>
-                    </InfoRow>
-
-                    <InfoRow>
-                      <InfoLabel>Ticket promedio</InfoLabel>
-                      <InfoValue>{formatBs(ticketPromedio)}</InfoValue>
-                    </InfoRow>
-                  </InfoList>
-                </Section>
               </>
             )}
           </Card>
 
-          {/* NOTAS */}
-          <Card>
+          {/* NITs */}
+          <Card style={{ padding: "22px" }}>
             <CardHeader>
+              <CardTitle>
+                <RedDot />
+                NIT
+              </CardTitle>
+            </CardHeader>
+            <NitList>
+              {customer?.nits?.map((nit) => (
+                <NitItem key={nit.id}>
+                  <div>
+                    <NitNumber>{nit.number}</NitNumber>
+                    <NitCompany>{nit.companyName ?? "—"}</NitCompany>
+                  </div>
+                  <NitBadge $primary={nit.isPrimary}>
+                    {nit.isPrimary ? "Principal" : ""}
+                  </NitBadge>
+                </NitItem>
+              ))}
+            </NitList>
+          </Card>
+
+          {/* NOTAS */}
+          <NotesCard>
+            <CardHeader style={{ padding: "16px 22px 14px", marginBottom: 0 }}>
               <CardTitle>
                 <RedDot />
                 Notas
@@ -321,7 +336,7 @@ export default function DetailCustomer() {
               onChange={handleNotaChange}
               placeholder="Escribe una nota..."
             />
-          </Card>
+          </NotesCard>
         </Column>
 
         {/* CENTER */}
