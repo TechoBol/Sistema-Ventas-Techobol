@@ -4,6 +4,7 @@ import ProductsStep from "./ProductsStep";
 import ExpensesStep from "./ExpensesStep";
 import SummaryStep from "./SummaryStep";
 import AdditionalCostsStep from "./AdditionalCostsStep";
+import FinalCostStep from "./FinalCostStep";
 import {
   ArrowLeft,
   Check,
@@ -39,6 +40,7 @@ const STEPS = [
   "Gastos base",
   "Base imponible e impuestos",
   "Gastos adicionales",
+  "Costo final",
 ];
 
 function ImportationWizard({ onCancel, onSubmit }) {
@@ -188,7 +190,7 @@ function ImportationWizard({ onCancel, onSubmit }) {
         />
       );
     }
-    // paso -> gastos importacion
+    // paso -> gastos base
     if (currentStep === 2) {
       return (
         <ExpensesStep
@@ -197,7 +199,7 @@ function ImportationWizard({ onCancel, onSubmit }) {
         />
       );
     }
-    // paso -> resumen
+    // paso -> base imponible e impuestos
     if (currentStep === 3) {
       return (
         <SummaryStep
@@ -207,12 +209,23 @@ function ImportationWizard({ onCancel, onSubmit }) {
         />
       );
     }
-
+    // paso -> gastos adicionales
+    if (currentStep === 4) {
+      return (
+        <AdditionalCostsStep
+          additionalCosts={additionalCosts}
+          onChangeAdditionalCosts={setAdditionalCosts}
+          officialExchangeRate={generalData.officialExchangeRate}
+        />
+      );
+    }
+    // paso -> costo final
     return (
-      <AdditionalCostsStep
+      <FinalCostStep
+        generalData={generalData}
+        products={products}
+        expenses={expenses}
         additionalCosts={additionalCosts}
-        onChangeAdditionalCosts={setAdditionalCosts}
-        officialExchangeRate={generalData.officialExchangeRate}
       />
     );
   };
