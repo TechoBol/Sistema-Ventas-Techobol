@@ -97,7 +97,7 @@ export const StepperWrapper = styled.div`
 `;
 
 export const StepItem = styled.div`
-  min-width: 150px;
+  min-width: 145px;
   display: flex;
   flex-direction: column;
   align-items: center;

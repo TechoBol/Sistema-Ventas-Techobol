@@ -228,7 +228,7 @@ function ImportationWizard({ onCancel, onSubmit }) {
   const baseImponibleBs =
     (totalProductosUsd + totalFletes + totalSeguros + totalPortCosts) *
     tcOficial;
-
+ñ
   const segurosBs = totalSeguros * tcOficial;
   const restaFinal = bankTotals.montoBs + segurosBs + fletes;
   const diferenciaTC = baseImponibleBs - restaFinal;

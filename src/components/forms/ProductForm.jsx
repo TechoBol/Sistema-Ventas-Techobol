@@ -55,6 +55,10 @@ const UNITS = [
     label: "Caja 10",
   },
   {
+    code: "BOX1K",
+    label: "Caja 1000",
+  },
+  {
     code: "DOZEN",
     label: "Docena",
   },
@@ -69,6 +73,10 @@ const UNITS = [
   {
     code: "ROLL",
     label: "Rollo",
+  },
+  {
+    code: "ROLL10",
+    label: "Rollo 10",
   },
   {
     code: "BAG",

@@ -183,7 +183,6 @@ export default function BanksStep({
                     step="0.01"
                     placeholder="Ej. 12.00"
                   />
-                  <WizardHelperText>Puede variar por banco</WizardHelperText>
                 </WizardField>
 
                 <WizardField>
@@ -254,16 +253,16 @@ export default function BanksStep({
                     `Bs ${fmt(c.total1Bs)}`,
                   ],
                   [
-                    "ITF Salida $",
-                    `$${fmt(parseFloat(b.itfSalidaUsd) || 0)}`,
-                    "ITF Salida Bs",
-                    `Bs ${fmt(c.itfSalidaBs)}`,
-                  ],
-                  [
                     "ITF Ingreso $",
                     `$${fmt(parseFloat(b.itfIngresoUsd) || 0)}`,
                     "ITF Ingreso Bs",
                     `Bs ${fmt(c.itfIngresoBs)}`,
+                  ],
+                  [
+                    "ITF Salida $",
+                    `$${fmt(parseFloat(b.itfSalidaUsd) || 0)}`,
+                    "ITF Salida Bs",
+                    `Bs ${fmt(c.itfSalidaBs)}`,
                   ],
                 ].map(([l1, v1, l2, v2]) => (
                   <React.Fragment key={l1}>
