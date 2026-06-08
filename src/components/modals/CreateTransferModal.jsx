@@ -43,7 +43,7 @@ export default function CreateTransferModal({
   const destDropdownRef = useRef(null);
 
   const permissions = usePermissions();
-  const viewTo = permissions.isAdmin;
+  const viewTo = permissions.isAdmin || permissions.isManager;
 
   
   // ── cerrar al click afuera ──────────────────────────────────────────
