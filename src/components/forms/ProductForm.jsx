@@ -66,6 +66,10 @@ const UNITS = [
     code: "ROLL",
     label: "Rollo",
   },
+  {
+    code: "BAG",
+    label: "Bolsa",
+  },
 ];
 
 function ProductForm({ onBack, product = null }) {
