@@ -182,6 +182,7 @@ function FinalCostStep({
 
       return {
         id: index + 1,
+        productCode: product.productCode || "Sin código",
         productName: product.productName || "Sin nombre",
         factor,
         valueAfterTaxesBs,
@@ -253,6 +254,7 @@ function FinalCostStep({
       <FinalCostTableWrapper>
         <FinalCostTable>
           <FinalCostTableHead>
+            <span>Código</span>
             <span>Producto</span>
             <span>Factor</span>
             <span>Valor después impuestos Bs</span>
@@ -264,6 +266,7 @@ function FinalCostStep({
 
           {finalRows.rows.map((item) => (
             <FinalCostTableRow key={item.id}>
+              <FinalCostTableCell>{item.productCode}</FinalCostTableCell>
               <FinalCostTableCell>{item.productName}</FinalCostTableCell>
 
               <FinalCostTableCell>{formatFactor(item.factor)}</FinalCostTableCell>
@@ -292,6 +295,7 @@ function FinalCostStep({
 
           <FinalCostTableFooter>
             <span>Total</span>
+            <span></span>
             <span></span>
             <span>{formatBs(finalRows.totalValueAfterTaxesBs)}</span>
             <span>{formatBs(finalRows.totalAdditionalAssignedBs)}</span>
