@@ -38,11 +38,11 @@ function timeAgo(date) {
 }
 
 const FILTERS = [
-  { key: "all",         label: "Todas"          },
-  { key: "SALE",        label: "Ventas"         },
-  { key: "QUOTATION",   label: "Cotizaciones"   },
-  { key: "TRANSFER",    label: "Transferencias" },
-  { key: "IMPORTACION", label: "Importaciones"  },
+  { key: "all", label: "Todas" },
+  { key: "SALE", label: "Ventas" },
+  { key: "QUOTATION", label: "Cotizaciones" },
+  { key: "TRANSFER", label: "Transferencias" },
+  { key: "IMPORTACION", label: "Importaciones" },
 ];
 
 function BellNotifications({
@@ -54,11 +54,12 @@ function BellNotifications({
   onClearToast,
 }) {
   const navigate = useNavigate();
-  const [open, setOpen]       = useState(false);
+  const [open, setOpen] = useState(false);
   const [ringing, setRinging] = useState(false);
-  const [filter, setFilter]   = useState("all");
-  const panelRef              = useRef(null);
-  const prevCountRef          = useRef(notifications.length);
+  const [filter, setFilter] = useState("all");
+  const panelRef = useRef(null);
+  const filterRowRef = useRef(null);
+  const prevCountRef = useRef(notifications.length);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -82,14 +83,30 @@ function BellNotifications({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
+  // Redirigir scroll vertical del mouse en categorias
+  useEffect(() => {
+    if (!open) return;  
+
+    const el = filterRowRef.current;
+    if (!el) return;
+
+    const handler = (e) => {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [open]);
+
   const handleNotifClick = (n) => {
     onMarkRead?.(n.id);
     setOpen(false);
 
     const routeMap = {
-      SALE:      { path: "/receipts",   code: n.sale?.code },
+      SALE: { path: "/receipts", code: n.sale?.code },
       QUOTATION: { path: "/quotations", code: n.quotation?.code },
-      TRANSFER:  { path: "/transfers",  code: n.transfer?.transferCode },
+      TRANSFER: { path: "/transfers", code: n.transfer?.transferCode },
     };
 
     const route = routeMap[n.type];
@@ -138,7 +155,7 @@ function BellNotifications({
             )}
           </PanelHeader>
 
-          <FilterRow>
+          <FilterRow ref={filterRowRef}>
             {FILTERS.map(({ key, label }) => {
               const cfg = NOTIF_TYPES[key];
               return (

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import DataTable from "../components/table/DataTable";
 import CreateTransferModal from "../components/modals/CreateTransferModal";
 import { useTransfers } from "../hooks/useTransfers";
@@ -50,7 +50,15 @@ function Transfer() {
   const [form, setForm] = useState(EMPTY_TRANSFER_FORM);
   const { location, token } = useLoginStore();
   const { products } = useInventory();
-  
+
+
+  useEffect(() => {
+    const code = searchParams.get("search");
+    if (code !== null) {
+      setSearchTerm(code);
+    }
+  }, [searchParams]);
+
   const {
     data: transfers,
     createTransfer,
@@ -88,25 +96,25 @@ function Transfer() {
 
   const filteredTransfers = useMemo(() => {
     const value = searchTerm.trim().toLowerCase();
-  
+
     let result = [];
-  
+
     if (selectedView === "all") {
       result = formattedTransfers.filter(
         (transfer) =>
           transfer.raw?.toLocationId === location?.id,
       );
     }
-  
+
     if (selectedView === "requests") {
       result = formattedTransfers.filter(
         (transfer) =>
           transfer.raw?.fromLocationId === location?.id,
       );
     }
-  
+
     if (!value) return result;
-  
+
     return result.filter((transfer) =>
       [
         transfer.code,
@@ -204,17 +212,17 @@ function Transfer() {
         key: "details",
         title: "Ver detalles",
         icon: Eye,
-  
+
         onClick: (transfer) => {
           handleViewDetail(transfer);
         },
       },
-  
+
       {
         key: "pdf",
         title: "Ver PDF",
         icon: FileText,
-  
+
         onClick: (transfer) => {
           handleViewPDF(transfer.code);
         },

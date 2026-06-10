@@ -66,6 +66,15 @@ function Receipts() {
   const [pageWidth, setPageWidth] = useState(600);
   const [currentCode, setCurrentCode] = useState("");
 
+
+
+  useEffect(() => {
+    const code = searchParams.get("search");
+    if (code !== null) {
+      setSearch(code);
+    }
+  }, [searchParams]);
+  
   // =====================================================
   // RESPONSIVE PDF
   // =====================================================

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import DataTable from "../components/table/DataTable";
 import { useQuotations } from "../hooks/useQuotation";
 import { useAmazonS3 } from "../hooks/useAmazonS3";
@@ -174,6 +174,13 @@ function Quotations() {
     const [convertOpen, setConvertOpen] = useState(false);
     const [convertLoading, setConvertLoading] = useState(false);
     const [selectedQuotation, setSelectedQuotation] = useState(null);
+
+    useEffect(() => {
+        const code = searchParams.get("search");
+        if (code !== null) {
+            setSearch(code);
+        }
+    }, [searchParams]);
 
     // =====================================================
     // FILTROS
