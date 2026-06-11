@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Bell } from "lucide-react";
 import { NOTIF_TYPES } from "../ui/NotificationTypes";
 import {
   ToastWrapper,
@@ -6,39 +7,49 @@ import {
   ToastContent,
   ToastTitle,
   ToastBody,
-  ToastProgressBar,
 } from "../ui/NotificationBell";
 
-const VISIBLE_MS = 4000;
-const CLOSE_ANIM_MS = 350;
+const VISIBLE_MS  = 4000;
+const CLOSE_ANIM  = 400;
 
 function NotificationToast({ notification, onDone }) {
-  const [closing, setClosing] = useState(false);
+  const [closing,   setClosing]   = useState(false);
+  const [showIcon,  setShowIcon]  = useState(false); // empieza como campana
 
+  const cfg = NOTIF_TYPES[notification?.type];
+  const NotifIcon = cfg?.Icon;
+
+  // Tras 120ms morfea al ícono del tipo
   useEffect(() => {
-    const closeTimer = setTimeout(() => {
-      setClosing(true);
-      setTimeout(onDone, CLOSE_ANIM_MS);
-    }, VISIBLE_MS);
+    const t = setTimeout(() => setShowIcon(true), 120);
+    return () => clearTimeout(t);
+  }, []);
 
-    return () => clearTimeout(closeTimer);
+  // Cierra después de VISIBLE_MS
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setClosing(true);
+      setTimeout(onDone, CLOSE_ANIM);
+    }, VISIBLE_MS);
+    return () => clearTimeout(t);
   }, [onDone]);
 
-  const cfg = NOTIF_TYPES[notification.type];
-
   return (
-    <ToastWrapper $closing={closing}>
-      <ToastIconBox $color={notification.iconBg ?? cfg?.iconBg}>
-        {notification.icon ?? (cfg?.Icon
-          ? <cfg.Icon size={13} color={cfg.iconColor} />
-          : "🔔"
-        )}
+    <ToastWrapper $closing={closing} $accentColor={cfg?.accentColor}>
+
+      {/* Ícono: campana → ícono del tipo */}
+      <ToastIconBox $color={cfg?.iconBg}>
+        {showIcon && NotifIcon
+          ? <NotifIcon size={13} color={cfg.iconColor} />
+          : <Bell size={13} color={cfg?.iconColor ?? "#888"} />
+        }
       </ToastIconBox>
+
       <ToastContent>
         <ToastTitle>{notification.title}</ToastTitle>
         <ToastBody>{notification.body}</ToastBody>
       </ToastContent>
-      <ToastProgressBar $duration={VISIBLE_MS} $accentColor={cfg?.accentColor} />
+
     </ToastWrapper>
   );
 }

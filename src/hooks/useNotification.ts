@@ -25,18 +25,18 @@ const bgByType: Record<string, string> = {
 };
 
 const normalize = (n: any) => ({
-  id: n.id,
-  title: n.title,   
-  body: n.body,     
-  read: n.isRead,
-  createdAt: n.createdAt,
-  icon: iconByType[n.type] ?? '🔔',
-  iconBg: bgByType[n.type] ?? '#f3f4f6',
-  type: n.type,
-  sale: n.sale,
-  transfer: n.transfer,
-  quotation: n.quotation,
-  importacion: n.importacion,
+    id: n.id,
+    title: n.title,
+    body: n.body,
+    read: n.isRead,
+    createdAt: n.createdAt,
+    icon: iconByType[n.type] ?? '🔔',
+    iconBg: bgByType[n.type] ?? '#f3f4f6',
+    type: n.type,
+    sale: n.sale,
+    transfer: n.transfer,
+    quotation: n.quotation,
+    importacion: n.importacion,
 });
 
 function useNotifications() {
@@ -72,14 +72,27 @@ function useNotifications() {
 
     useEffect(() => {
         if (!employeeId) return;
-        socket.emit('join', employeeId);
-        socket.on('new_notification', (notif: any) => {
+        const handleNewNotification = (notif: any) => {
             const normalized = normalize(notif);
-            setNotifications((prev) => [normalized, ...prev]);
+            setNotifications((prev) => {
+                if (prev.some((n) => n.id === normalized.id)) return prev;
+                return [normalized, ...prev];
+            });
             setToastNotification(normalized);
-        });
+        };
+
+        const handleConnect = () => {
+            socket.emit('join', employeeId);
+        };
+        socket.on('new_notification', handleNewNotification);
+        socket.on('connect', handleConnect);
+        if (socket.connected) {
+            socket.emit('join', employeeId);
+        }
+
         return () => {
-            socket.off('new_notification');
+            socket.off('new_notification', handleNewNotification);
+            socket.off('connect', handleConnect);
         };
     }, [employeeId]);
 

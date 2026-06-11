@@ -351,43 +351,70 @@ export const ViewAllBtn = styled.button`
   }
 `;
 
+export const NotifFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+`;
+
 /* ─── Toast ───────────────────────────────────────────────────────── */
+
+export const expandFromBell = keyframes`
+  0%   { width: 36px; opacity: 0.6; border-radius: 8px; }
+  60%  { width: 310px; opacity: 1; }
+  100% { width: 290px; opacity: 1; border-radius: 12px; }
+`;
+
+export const collapseToBell = keyframes`
+  0%   { width: 290px; opacity: 1; border-radius: 12px; }
+  40%  { width: 310px; opacity: 0.8; }
+  100% { width: 36px; opacity: 0; border-radius: 8px; }
+`;
 
 export const ToastWrapper = styled.div`
   position: absolute;
   top: 0;
   right: 0;
+  height: 36px;
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 36px;
   background: ${colors.background};
-  border: 1px solid ${colors.border};
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid ${({ $accentColor }) => $accentColor ?? colors.primary};
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   white-space: nowrap;
   z-index: 999;
-  padding: 0 10px;
+  padding: 0 12px 0 6px;
   animation: ${({ $closing }) =>
-    $closing ? collapseToRight : expandFromRight} 0.35s ease forwards;
+    $closing ? collapseToBell : expandFromBell} 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 `;
 
 export const ToastIconBox = styled.div`
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
   background: ${({ $color }) => $color ?? colors.primaryLight};
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
 `;
 
 export const ToastContent = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 0;
+  opacity: 0;
+  animation: fadeInContent 0.2s ease 0.25s forwards;
+
+  @keyframes fadeInContent {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
 `;
 
 export const ToastTitle = styled.span`
@@ -407,26 +434,5 @@ export const ToastBody = styled.span`
   max-width: 200px;
 `;
 
-export const ToastProgressBar = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: ${({ $accentColor }) => $accentColor ?? colors.primary};
-  animation: progress ${({ $duration }) => $duration}ms linear forwards;
-
-  @keyframes progress {
-    from { width: 100%; }
-    to   { width: 0%; }
-  }
-`;
-
-export const NotifFooter = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 2px;
-`;
-
-/* Backwards compat */
+export const ToastProgressBar = styled.div``;
 export const NotifMessage = NotifTitle;
