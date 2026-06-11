@@ -167,27 +167,33 @@ function DataTable({
         filterable: false,
         renderCell: (params) => (
           <TableActionGroup>
-            {actions.map((action) => {
-              const Icon = action.icon;
-
-              return (
-                <Tooltip
-                  key={action.key}
-                  title={action.title}
-                  {...actionTooltipProps}
-                >
-                  <TableIconButton
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      action.onClick?.(params.row);
-                    }}
+            {actions
+              .filter((action) => {
+                if (typeof action.hidden === "function") {
+                  return !action.hidden(params.row);
+                }
+                return !action.hidden;
+              })
+              .map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Tooltip
+                    key={action.key}
+                    title={action.title}
+                    {...actionTooltipProps}
                   >
-                    <Icon size={17} />
-                  </TableIconButton>
-                </Tooltip>
-              );
-            })}
+                    <TableIconButton
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        action.onClick?.(params.row);
+                      }}
+                    >
+                      <Icon size={17} />
+                    </TableIconButton>
+                  </Tooltip>
+                );
+              })}
           </TableActionGroup>
         ),
       });

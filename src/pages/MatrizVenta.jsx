@@ -101,12 +101,20 @@ export default function Kardex() {
       return rawRows.map((item) => {
         const purchasePrice = Number(item.purchasePrice || 0);
 
-        const finalPrice = getLastFinalPrice(item.details || []);
+        const totalCost = purchasePrice * Number(item.quantity || 0);
 
-        const utility = finalPrice - purchasePrice;
+        const utilityTotal = (item.details || []).reduce((acc, detail) => {
+          return (
+            acc +
+            (Number(detail.finalPrice || 0) - purchasePrice) *
+              Number(detail.quantity || 0)
+          );
+        }, 0);
 
-        const utilityTotal = utility * Number(item.quantity || 0);
-
+        const utility =
+          Number(item.quantity || 0) > 0
+            ? utilityTotal / Number(item.quantity)
+            : 0;
         return {
           id: item.id,
 
@@ -115,8 +123,9 @@ export default function Kardex() {
           quantity: Number(item.quantity || 0),
 
           purchasePrice,
+          totalCost,
 
-          finalPrice,
+          price: item.price,
 
           utility,
 
@@ -279,63 +288,34 @@ export default function Kardex() {
     ////////////////////////////////////////////////////////////
 
     if (groupBy === "month") {
-      const grouped = {};
-
       rawRows.forEach((item) => {
-        //////////////////////////////////////////////////////////
-        // 🔥 RECORRER FECHAS DEL PRODUCTO
-        //////////////////////////////////////////////////////////
-
         (item.dates || []).forEach((dateItem) => {
-          ////////////////////////////////////////////////////////
-          // 🔥 VALIDAR FECHA
-          ////////////////////////////////////////////////////////
-
           if (!dateItem.date) return;
 
           const date = new Date(dateItem.date);
 
           if (isNaN(date.getTime())) return;
 
-          ////////////////////////////////////////////////////////
-          // 🔥 KEY
-          ////////////////////////////////////////////////////////
-
           const monthKey = `${date.getFullYear()}-${String(
             date.getMonth() + 1,
           ).padStart(2, "0")}`;
 
-          ////////////////////////////////////////////////////////
-          // 🔥 LABEL
-          ////////////////////////////////////////////////////////
-
-          const monthLabel = formatMonth(dateItem.date);
-
-          ////////////////////////////////////////////////////////
-          // 🔥 INIT
-          ////////////////////////////////////////////////////////
+          const monthLabel = date.toLocaleDateString("es-BO", {
+            month: "long",
+            year: "numeric",
+          });
 
           if (!grouped[monthKey]) {
             grouped[monthKey] = {
               id: `month-${monthKey}`,
-
-              name: monthLabel,
-
+              name: monthLabel.toUpperCase(),
               orderDate: monthKey,
-
               quantity: 0,
-
               subtotal: 0,
-
               discount: 0,
-
               total: 0,
             };
           }
-
-          ////////////////////////////////////////////////////////
-          // 🔥 ACUMULAR
-          ////////////////////////////////////////////////////////
 
           grouped[monthKey].quantity += Number(dateItem.quantity || 0);
 
@@ -352,10 +332,6 @@ export default function Kardex() {
           );
         });
       });
-
-      ////////////////////////////////////////////////////////////
-      // 🔥 ORDENAR
-      ////////////////////////////////////////////////////////////
 
       return Object.values(grouped).sort((a, b) =>
         b.orderDate.localeCompare(a.orderDate),
@@ -438,6 +414,15 @@ export default function Kardex() {
         .toFixed(2),
     );
   }, [rows]);
+
+  const totalCostGeneral = useMemo(() => {
+    return Number(
+      rows
+        .reduce((acc, item) => acc + Number(item.totalCost || 0), 0)
+        .toFixed(2),
+    );
+  }, [rows]);
+
   const firstColumnTitle =
     groupBy === "seller"
       ? "Vendedor"
@@ -511,7 +496,42 @@ export default function Kardex() {
                     </div>
                   ),
                 },
-
+                {
+                  field: "totalCost",
+                  headerName: "Costo Total",
+                  width: 160,
+                  sortable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{
+                        fontSize: 14,
+                        color: "#64748b",
+                        width: "100%",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {formatMoney(params.value)}
+                    </div>
+                  ),
+                },
+                {
+                  field: "price",
+                  headerName: "Precio Venta",
+                  width: 160,
+                  sortable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{
+                        fontSize: 14,
+                        color: "#111827",
+                        width: "100%",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatMoney(params.value)}
+                    </div>
+                  ),
+                },
                 {
                   field: "utility",
                   headerName: "Utilidad",
@@ -529,15 +549,13 @@ export default function Kardex() {
                     </div>
                   ),
                 },
-
                 {
                   field: "utilityPercent",
                   headerName: "% Utilidad",
                   width: 150,
                   valueGetter: (_, row) => {
                     const cost = Number(row.purchasePrice || 0);
-
-                    const sale = Number(row.finalPrice || 0);
+                    const sale = Number(row.price || 0);
 
                     if (!cost) return 0;
 
@@ -564,7 +582,6 @@ export default function Kardex() {
                     );
                   },
                 },
-
                 {
                   field: "utilityTotal",
                   headerName: "Utilidad Total",
@@ -582,26 +599,26 @@ export default function Kardex() {
                   ),
                 },
               ]
-            : []),
-
-          {
-            field: "price",
-            headerName: "Precio Venta",
-            width: 150,
-            sortable: true,
-            renderCell: (params) => (
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "#111827",
-                  width: "100%",
-                }}
-              >
-                {formatMoney(params.value)}
-              </div>
-            ),
-          },
+            : [
+                {
+                  field: "price",
+                  headerName: "Precio Venta",
+                  width: 150,
+                  sortable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#111827",
+                        width: "100%",
+                      }}
+                    >
+                      {formatMoney(params.value)}
+                    </div>
+                  ),
+                },
+              ]),
 
           {
             field: "details",
@@ -849,6 +866,18 @@ export default function Kardex() {
         <TotalBar>
           {!groupBy && canViewProfits && (
             <>
+              <TotalText $bold style={{ color: "#16a34a" }}>
+                Total Costos
+              </TotalText>
+
+              <TotalText
+                style={{
+                  color: "#000000",
+                  fontWeight: 700,
+                }}
+              >
+                {formatMoney(totalCostGeneral)}
+              </TotalText>
               <TotalText $bold style={{ color: "#16a34a" }}>
                 Total Utilidad
               </TotalText>

@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Search, Plus, Eye, Pencil } from "lucide-react";
+import { Search, Plus, FileText, Pencil } from "lucide-react";
 import DataTable from "../components/table/DataTable";
 import ImportationWizard from "../components/forms/importationSteps/ImportationWizard";
 import { useImportations } from "../hooks/useImportations";
+import { generarImportationPDF } from "../components/pdf/generarImportationPDF";
 //import { socket } from "../services/SocketIOConnection";
 
 import {
@@ -58,9 +59,11 @@ const getStatusValue = (status) => {
 
 function Costs() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-
-  const { data, createImportation, isLoading } = useImportations();
+  const [viewState, setViewState] = useState({
+    mode: "list",
+    selectedImportation: null,
+  });
+  const { data, createImportation, updateImportation, isLoading } = useImportations();
 
   const importations = useMemo(() => {
     return data.map((item) => ({
@@ -146,50 +149,84 @@ function Costs() {
     []
   );
 
+  // funciones
+  const handleOpenCreate = () => {
+    setViewState({
+      mode: "create",
+      selectedImportation: null,
+    });
+  };
+
+  const handleOpenEdit = (importation) => {
+    setViewState({
+      mode: "edit",
+      selectedImportation: importation.rawData,
+    });
+  };
+
+  const handleCloseForm = () => {
+    setViewState({
+      mode: "list",
+      selectedImportation: null,
+    });
+  };
+
+  const handleSaveImportation = async (payload) => {
+    if (viewState.mode === "edit") {
+      const updated = await updateImportation(
+        viewState.selectedImportation.id,
+        payload
+      );
+      if (updated) {
+        handleCloseForm();
+      }
+      return;
+    }
+    const created = await createImportation(payload);
+    if (created) {
+      handleCloseForm();
+    }
+  };
+
+  // actions
   const importActions = useMemo(
     () => [
       {
         key: "detail",
-        title: "Ver detalle",
-        icon: Eye,
+        title: "Ver reporte PDF",
+        icon: FileText,
         onClick: (importation) => {
-          console.log("Ver detalle de importación:", importation.rawData);
+          try {
+            generarImportationPDF(
+              importation.rawData
+            );
+          } catch (error) {
+            console.error(
+              "Error generando PDF:",
+              error
+            );
+          }
         },
       },
       {
         key: "edit",
         title: "Editar importación",
         icon: Pencil,
-        onClick: (importation) => {
-          console.log("Editar importación:", importation.rawData);
-        },
+        hidden: (importation) => importation.status === "verificado",
+        onClick: handleOpenEdit,
       },
     ],
-    []
+    [handleOpenEdit]
   );
 
-  const handleOpenCreate = () => {
-    setIsCreating(true);
-  };
-
-  const handleCloseCreate = () => {
-    setIsCreating(false);
-  };
-
-  const handleSaveImportation = async (payload) => {
-    const created = await createImportation(payload);
-
-    if (created) {
-      setIsCreating(false);
-    }
-  };
-
-  if (isCreating) {
+  if (viewState.mode === "create" || viewState.mode === "edit") {
     return (
       <PageSurface>
         <PageWrapper>
           <ImportationWizard
-            onCancel={handleCloseCreate}
+            mode={viewState.mode}
+            initialData={viewState.selectedImportation}
+            onCancel={handleCloseForm}
             onSubmit={handleSaveImportation}
           />
         </PageWrapper>

@@ -12,10 +12,7 @@ import {
   FinalCostTableCell,
   FinalCostTableFooter,
 } from "../../ui/ImportationWizard.styles";
-
-const roundToFourDecimals = (value) => {
-  return Math.round((Number(value || 0) + Number.EPSILON) * 10000) / 10000;
-};
+import { calculateImportation } from "../../utils/importationCalculations";
 
 const formatBs = (value) =>
   `Bs ${Number(value || 0).toLocaleString("es-BO", {
@@ -41,213 +38,90 @@ function FinalCostStep({
   expenses,
   additionalCosts,
 }) {
-  const officialExchangeRate = Number(generalData.officialExchangeRate || 0);
+  const calculations = useMemo(
+    () =>
+      calculateImportation({
+        generalData,
+        products,
+        expenses,
+        additionalCosts,
+      }),
+    [
+      generalData,
+      products,
+      expenses,
+      additionalCosts,
+    ]
+  );
 
-  const getProductSubtotalUsd = (product) => {
-    const baseQuantity = Number(product.baseQuantity || 0);
-    const priceUsd = Number(product.priceUsd || 0);
-
-    return roundToFourDecimals(baseQuantity * priceUsd);
-  };
-
-  const getSectionTotalUsd = (items = []) => {
-    const total = items.reduce((acc, item) => acc + Number(item.amount || 0), 0);
-
-    return roundToFourDecimals(total);
-  };
-
-  const getAdditionalCostCalculation = (cost) => {
-    const amount = Number(cost.amount || 0);
-    const creditRate = Number(cost.creditRate || 0) / 100;
-
-    const amountUsd =
-      cost.currency === "USD"
-        ? roundToFourDecimals(amount)
-        : officialExchangeRate > 0
-          ? roundToFourDecimals(amount / officialExchangeRate)
-          : 0;
-
-    const amountBs =
-      cost.currency === "BS"
-        ? roundToFourDecimals(amount)
-        : roundToFourDecimals(amount * officialExchangeRate);
-
-    const fiscalCreditBs = cost.hasFiscalCredit
-      ? roundToFourDecimals(amountBs * creditRate)
-      : 0;
-
-    const netAmountBs = roundToFourDecimals(amountBs - fiscalCreditBs);
-
-    return {
-      amountUsd,
-      amountBs,
-      fiscalCreditBs,
-      netAmountBs,
-    };
-  };
-
-  const totals = useMemo(() => {
-    const totalProductsUsd = roundToFourDecimals(
-      products.reduce(
-        (acc, product) => acc + getProductSubtotalUsd(product),
-        0
-      )
-    );
-
-    const totalFreightsUsd = getSectionTotalUsd(expenses.freights);
-    const totalInsurancesUsd = getSectionTotalUsd(expenses.insurances);
-    const totalPortCostsUsd = getSectionTotalUsd(expenses.portCosts);
-
-    const totalAdditionalCosts = additionalCosts.reduce(
-      (acc, cost) => {
-        const calculation = getAdditionalCostCalculation(cost);
-
-        return {
-          amountUsd: roundToFourDecimals(acc.amountUsd + calculation.amountUsd),
-          amountBs: roundToFourDecimals(acc.amountBs + calculation.amountBs),
-          fiscalCreditBs: roundToFourDecimals(
-            acc.fiscalCreditBs + calculation.fiscalCreditBs
-          ),
-          netAmountBs: roundToFourDecimals(
-            acc.netAmountBs + calculation.netAmountBs
-          ),
-        };
-      },
-      {
-        amountUsd: 0,
-        amountBs: 0,
-        fiscalCreditBs: 0,
-        netAmountBs: 0,
-      }
-    );
-
-    return {
-      totalProductsUsd,
-      totalFreightsUsd,
-      totalInsurancesUsd,
-      totalPortCostsUsd,
-      totalAdditionalCosts,
-    };
-  }, [products, expenses, additionalCosts, officialExchangeRate]);
-
-  const finalRows = useMemo(() => {
-    const rows = products.map((product, index) => {
-      const subtotalUsd = getProductSubtotalUsd(product);
-
-      const factor =
-        totals.totalProductsUsd > 0
-          ? subtotalUsd / totals.totalProductsUsd
-          : 0;
-
-      const productValueBs = roundToFourDecimals(
-        subtotalUsd * officialExchangeRate
-      );
-
-      const freightsBs = roundToFourDecimals(
-        totals.totalFreightsUsd * officialExchangeRate * factor
-      );
-
-      const insurancesBs = roundToFourDecimals(
-        totals.totalInsurancesUsd * officialExchangeRate * factor
-      );
-
-      const portCostsBs = roundToFourDecimals(
-        totals.totalPortCostsUsd * officialExchangeRate * factor
-      );
-
-      const cifBs = roundToFourDecimals(
-        productValueBs + freightsBs + insurancesBs + portCostsBs
-      );
-
-      const gaPercent = Number(product.gaPercent || 0);
-      const gaRate = gaPercent / 100;
-
-      const gaBs = roundToFourDecimals(cifBs * gaRate);
-
-      const valueAfterTaxesBs = roundToFourDecimals(cifBs + gaBs);
-
-      const additionalAssignedBs = roundToFourDecimals(
-        totals.totalAdditionalCosts.netAmountBs * factor
-      );
-
-      const finalCostBs = roundToFourDecimals(
-        valueAfterTaxesBs + additionalAssignedBs
-      );
-
-      const referenceQuantity = Number(product.referenceQuantity || 0);
-      const unitCostBs =
-        referenceQuantity > 0
-          ? roundToFourDecimals(finalCostBs / referenceQuantity)
-          : null;
-
-      return {
-        id: index + 1,
-        productCode: product.productCode || "Sin código",
-        productName: product.productName || "Sin nombre",
-        factor,
-        valueAfterTaxesBs,
-        additionalAssignedBs,
-        finalCostBs,
-        referenceQuantity,
-        unitCostBs,
-      };
-    });
-
-    const totalValueAfterTaxesBs = roundToFourDecimals(
-      rows.reduce((acc, row) => acc + row.valueAfterTaxesBs, 0)
-    );
-
-    const totalAdditionalAssignedBs = roundToFourDecimals(
-      rows.reduce((acc, row) => acc + row.additionalAssignedBs, 0)
-    );
-
-    const totalFinalCostBs = roundToFourDecimals(
-      rows.reduce((acc, row) => acc + row.finalCostBs, 0)
-    );
-
-    return {
-      rows,
-      totalValueAfterTaxesBs,
-      totalAdditionalAssignedBs,
-      totalFinalCostBs,
-    };
-  }, [products, totals, officialExchangeRate]);
+  const { finalRows, totals } =
+    calculations;
 
   return (
     <StepPanel>
       <SectionHeader>
-        <StepPanelTitle>Costo final por producto</StepPanelTitle>
+        <StepPanelTitle>
+          Costo final por producto
+        </StepPanelTitle>
       </SectionHeader>
 
       <SummaryCardsGrid>
         <SummaryCard>
           <span>Proveedor</span>
-          <strong>{generalData.supplier || "Sin proveedor"}</strong>
+          <strong>
+            {generalData.supplier ||
+              "Sin proveedor"}
+          </strong>
         </SummaryCard>
 
         <SummaryCard>
           <span>Referencia</span>
-          <strong>{generalData.reference || "Sin referencia"}</strong>
+          <strong>
+            {generalData.reference ||
+              "Sin referencia"}
+          </strong>
         </SummaryCard>
 
         <SummaryCard>
-          <span>Valor después de impuestos</span>
-          <strong>{formatBs(finalRows.totalValueAfterTaxesBs)}</strong>
+          <span>
+            Valor después de impuestos
+          </span>
+          <strong>
+            {formatBs(
+              totals.totalValueAfterTaxesBs
+            )}
+          </strong>
         </SummaryCard>
 
         <SummaryCard>
-          <span>Gastos adicionales netos</span>
-          <strong>{formatBs(totals.totalAdditionalCosts.netAmountBs)}</strong>
+          <span>
+            Gastos adicionales netos
+          </span>
+          <strong>
+            {formatBs(
+              totals.totalAdditionalCosts
+                .netAmountBs
+            )}
+          </strong>
         </SummaryCard>
 
         <SummaryCard>
           <span>Crédito fiscal gastos</span>
-          <strong>{formatBs(totals.totalAdditionalCosts.fiscalCreditBs)}</strong>
+          <strong>
+            {formatBs(
+              totals.totalAdditionalCosts
+                .fiscalCreditBs
+            )}
+          </strong>
         </SummaryCard>
 
         <SummaryCard $highlight>
           <span>Costo final total</span>
-          <strong>{formatBs(finalRows.totalFinalCostBs)}</strong>
+          <strong>
+            {formatBs(
+              totals.totalFinalCostBs
+            )}
+          </strong>
         </SummaryCard>
       </SummaryCardsGrid>
 
@@ -257,38 +131,69 @@ function FinalCostStep({
             <span>Código</span>
             <span>Producto</span>
             <span>Factor</span>
-            <span>Valor después impuestos Bs</span>
-            <span>Gastos adicionales asignados Bs</span>
+            <span>
+              Valor después impuestos Bs
+            </span>
+            <span>
+              Gastos adicionales asignados Bs
+            </span>
             <span>Costo final Bs</span>
-            <span>Cantidad para costo unitario</span>
+            <span>
+              Cantidad referencial
+            </span>
             <span>Costo unitario Bs</span>
           </FinalCostTableHead>
 
-          {finalRows.rows.map((item) => (
-            <FinalCostTableRow key={item.id}>
-              <FinalCostTableCell>{item.productCode}</FinalCostTableCell>
-              <FinalCostTableCell>{item.productName}</FinalCostTableCell>
-
-              <FinalCostTableCell>{formatFactor(item.factor)}</FinalCostTableCell>
-
+          {finalRows.map((item) => (
+            <FinalCostTableRow
+              key={item.id}
+            >
               <FinalCostTableCell>
-                {formatBs(item.valueAfterTaxesBs)}
+                {item.productCode}
               </FinalCostTableCell>
 
               <FinalCostTableCell>
-                {formatBs(item.additionalAssignedBs)}
+                {item.productName}
               </FinalCostTableCell>
 
               <FinalCostTableCell>
-                <strong>{formatBs(item.finalCostBs)}</strong>
+                {formatFactor(item.factor)}
               </FinalCostTableCell>
 
               <FinalCostTableCell>
-                {formatQuantity(item.referenceQuantity)}
+                {formatBs(
+                  item.valueAfterTaxesBs
+                )}
               </FinalCostTableCell>
 
               <FinalCostTableCell>
-                <strong>{formatBs(item.unitCostBs)}</strong>
+                {formatBs(
+                  item.additionalAssignedBs
+                )}
+              </FinalCostTableCell>
+
+              <FinalCostTableCell>
+                <strong>
+                  {formatBs(
+                    item.finalCostBs
+                  )}
+                </strong>
+              </FinalCostTableCell>
+
+              <FinalCostTableCell>
+                {formatQuantity(
+                  item.referenceQuantity
+                )}
+              </FinalCostTableCell>
+
+              <FinalCostTableCell>
+                <strong>
+                  {item.unitCostBs !== null
+                    ? formatBs(
+                        item.unitCostBs
+                      )
+                    : "Sin cantidad"}
+                </strong>
               </FinalCostTableCell>
             </FinalCostTableRow>
           ))}
@@ -297,9 +202,21 @@ function FinalCostStep({
             <span>Total</span>
             <span></span>
             <span></span>
-            <span>{formatBs(finalRows.totalValueAfterTaxesBs)}</span>
-            <span>{formatBs(finalRows.totalAdditionalAssignedBs)}</span>
-            <span>{formatBs(finalRows.totalFinalCostBs)}</span>
+            <span>
+              {formatBs(
+                totals.totalValueAfterTaxesBs
+              )}
+            </span>
+            <span>
+              {formatBs(
+                totals.totalAdditionalAssignedBs
+              )}
+            </span>
+            <span>
+              {formatBs(
+                totals.totalFinalCostBs
+              )}
+            </span>
             <span></span>
             <span></span>
           </FinalCostTableFooter>

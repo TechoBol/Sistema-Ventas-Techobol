@@ -43,7 +43,7 @@ const STEPS = [
 
 function ImportationWizard({ onCancel, onSubmit }) {
   const [currentStep, setCurrentStep] = useState(0);
-
+  // estado de los pasos
   const [generalData, setGeneralData] = useState({
     supplier: "",
     reference: "",
@@ -51,7 +51,6 @@ function ImportationWizard({ onCancel, onSubmit }) {
     officialExchangeRate: "6.96",
     bankExchangeRate: "",
   });
-
   const [products, setProducts] = useState([
     {
       productCode: "",
@@ -62,7 +61,6 @@ function ImportationWizard({ onCancel, onSubmit }) {
       gaPercent: "",
     },
   ]);
-
   // estados de gastos base
   const [expenses, setExpenses] = useState({
     freights: [
@@ -73,7 +71,7 @@ function ImportationWizard({ onCancel, onSubmit }) {
     portCosts: [{ name: "", amount: "" }],
     otherCosts: [{ name: "", amount: "" }],
   });
-
+  // estado de gastos adicionales
   const [additionalCosts, setAdditionalCosts] = useState([
     {
       concept: "Comisión aduana por despacho",
@@ -146,109 +144,13 @@ function ImportationWizard({ onCancel, onSubmit }) {
       creditRate: "13",
     },
   ]);
-
-  // ── Estado de bancos ──────────────────────────────────────────────
-  const [bankBlocks, setBankBlocks] = useState([
-    {
-      id: 1,
-      type: "anticipo",
-      banco: "",
-      monto: "",
-      tc: "",
-      comisionUsd: "",
-      itfSalidaUsd: "",
-      itfIngresoUsd: "",
-    },
-  ]);
-
-  // ── totalProductosUsd viene de SummaryStep ────────────────────────
-  const [totalProductosUsd, setTotalProductosUsd] = useState(0);
-
-  // ── Función de cálculo por bloque ─────────────────────────────────
-  function calcBlockTotals({
-    monto,
-    tc,
-    comisionUsd,
-    itfSalidaUsd,
-    itfIngresoUsd,
-  }) {
-    const m = parseFloat(monto) || 0;
-    const t = parseFloat(tc) || 1;
-    const com = parseFloat(comisionUsd) || 0;
-    const its = parseFloat(itfSalidaUsd) || 0;
-    const iti = parseFloat(itfIngresoUsd) || 0;
-    const comisionBs = com * 6.97;
-    const itfSalidaBs = its * t;
-    const itfIngresoBs = iti * t;
-    const total1Usd = m + com;
-    const total1Bs = m * t + comisionBs;
-    return {
-      totalUsd: total1Usd + its + iti,
-      totalBs: total1Bs + itfSalidaBs + itfIngresoBs,
-      comisionUsd: com,
-      comisionBs,
-      itfUsd: its + iti,
-      itfBs: itfSalidaBs + itfIngresoBs,
-    };
-  }
-
-  // ── Totales bancarios ─────────────────────────────────────────────
-  const bankTotals = bankBlocks.reduce(
-    (acc, b) => {
-      const c = calcBlockTotals(b);
-      acc.montoUsd += parseFloat(b.monto) || 0;
-      acc.montoBs += (parseFloat(b.monto) || 0) * (parseFloat(b.tc) || 1);
-      acc.comisionUsd += c.comisionUsd;
-      acc.comisionBs += c.comisionBs;
-      acc.itfUsd += c.itfUsd;
-      acc.itfBs += c.itfBs;
-      return acc;
-    },
-    {
-      montoUsd: 0,
-      montoBs: 0,
-      comisionUsd: 0,
-      comisionBs: 0,
-      itfUsd: 0,
-      itfBs: 0,
-    },
-  );
-
-  // ── Variables para diferencia TC ──────────────────────────────────
-  const tcOficial = parseFloat(generalData.officialExchangeRate) || 1;
-  const tcBancario = parseFloat(generalData.bankExchangeRate) || 1;
-
-  const totalFletes = expenses.freights.reduce(
-    (acc, f) => acc + Number(f.amount || 0),
-    0,
-  );
-  const totalSeguros = expenses.insurances.reduce(
-    (acc, s) => acc + Number(s.amount || 0),
-    0,
-  );
-  const totalPortCosts = expenses.portCosts.reduce(
-    (acc, p) => acc + Number(p.amount || 0),
-    0,
-  );
-
-  const flete1Usd = Number(expenses.freights[0]?.amount || 0);
-  const flete2Usd = Number(expenses.freights[1]?.amount || 0);
-  const flete1Bs = flete1Usd * tcBancario; // flete 1 × tipo de cambio bancario
-  const flete2Bs = flete2Usd * tcOficial; // flete 2 × tipo de cambio oficial
-
-  const fletes = flete1Bs + flete2Bs;
-
-  const baseImponibleBs =
-    (totalProductosUsd + totalFletes + totalSeguros + totalPortCosts) *
-    tcOficial;
-
-  const segurosBs = totalSeguros * tcOficial;
-  const restaFinal = bankTotals.montoBs + segurosBs + fletes;
-  const diferenciaTC = baseImponibleBs - restaFinal;
-
-  // ── Handlers ──────────────────────────────────────────────────────
-  const handleGeneralDataChange = (field, value) =>
-    setGeneralData((cur) => ({ ...cur, [field]: value }));
+  // funciones del contenido los pasos
+  const handleGeneralDataChange = (field, value) => {
+    setGeneralData((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
 
   const handleNextStep = () =>
     setCurrentStep((p) => Math.min(p + 1, STEPS.length - 1));
@@ -327,7 +229,9 @@ function ImportationWizard({ onCancel, onSubmit }) {
             <ArrowLeft size={20} />
           </WizardBackButton>
           <div>
-            <WizardTitle>Nueva importación</WizardTitle>
+            <WizardTitle>
+              {mode === "edit" ? "Editar importación" : "Nueva importación"}
+            </WizardTitle>
           </div>
         </WizardHeaderLeft>
       </WizardHeader>
