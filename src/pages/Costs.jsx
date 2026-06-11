@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Search, Plus, Eye, Pencil } from "lucide-react";
+import { Search, Plus, FileText, Pencil } from "lucide-react";
 import DataTable from "../components/table/DataTable";
 import ImportationWizard from "../components/forms/importationSteps/ImportationWizard";
 import { useImportations } from "../hooks/useImportations";
+import { generarImportationPDF } from "../components/pdf/generarImportationPDF";
 //import { socket } from "../services/SocketIOConnection";
 
 import {
@@ -192,10 +193,19 @@ function Costs() {
     () => [
       {
         key: "detail",
-        title: "Ver detalle",
-        icon: Eye,
+        title: "Ver reporte PDF",
+        icon: FileText,
         onClick: (importation) => {
-          console.log("Ver detalle de importación:", importation.rawData);
+          try {
+            generarImportationPDF(
+              importation.rawData
+            );
+          } catch (error) {
+            console.error(
+              "Error generando PDF:",
+              error
+            );
+          }
         },
       },
       {
