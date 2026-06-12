@@ -866,14 +866,13 @@ export default function Kardex() {
         <TotalBar>
           {!groupBy && canViewProfits && (
             <>
-              <TotalText $bold style={{ color: "#16a34a" }}>
+              <TotalText $bold >
                 Total Costos
               </TotalText>
 
               <TotalText
                 style={{
                   color: "#000000",
-                  fontWeight: 700,
                 }}
               >
                 {formatMoney(totalCostGeneral)}
@@ -885,7 +884,6 @@ export default function Kardex() {
               <TotalText
                 style={{
                   color: "#16a34a",
-                  fontWeight: 700,
                 }}
               >
                 {formatMoney(totalUtility)}

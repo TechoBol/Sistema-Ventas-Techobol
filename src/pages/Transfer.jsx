@@ -24,6 +24,7 @@ import {
 import useInventory from "../hooks/useInventory";
 import TransferDetailModal from "../components/modals/TransferDetailModal";
 import { useAmazonS3 } from "../hooks/useAmazonS3";
+import { usePermissions } from "../hooks/usePermissions";
 
 const fechaHoy = () => {
   const fecha = new Date().toLocaleDateString("es-BO", {
@@ -44,13 +45,14 @@ const EMPTY_TRANSFER_FORM = {
 
 function Transfer() {
   const [searchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") ?? "");
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") ?? "",
+  );
   const [selectedView, setSelectedView] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_TRANSFER_FORM);
-  const { location, token } = useLoginStore();
+const { location, token, employeeId } = useLoginStore();
   const { products } = useInventory();
-
 
   useEffect(() => {
     const code = searchParams.get("search");
@@ -94,23 +96,33 @@ function Transfer() {
     }));
   }, [transfers]);
 
+  const { level } = usePermissions();
+
   const filteredTransfers = useMemo(() => {
+    
     const value = searchTerm.trim().toLowerCase();
 
     let result = [];
 
+    const canSeeAllTransfers = [1, 2, 5].includes(level);
+
     if (selectedView === "all") {
-      result = formattedTransfers.filter(
-        (transfer) =>
-          transfer.raw?.toLocationId === location?.id,
-      );
+      result = canSeeAllTransfers
+        ? formattedTransfers
+        : formattedTransfers.filter(
+            (transfer) =>
+              transfer.raw?.toLocationId === location?.id ||
+              transfer.raw?.fromLocationId === location?.id,
+          );
     }
 
     if (selectedView === "requests") {
-      result = formattedTransfers.filter(
-        (transfer) =>
-          transfer.raw?.fromLocationId === location?.id,
-      );
+      result = formattedTransfers.filter((transfer) => {
+        console.log("Comparando:", transfer.raw?.requestedById, employeeId);
+
+        return Number(transfer.raw?.requestedById) === employeeId;
+      });
+
     }
 
     if (!value) return result;
@@ -128,12 +140,7 @@ function Transfer() {
         .toLowerCase()
         .includes(value),
     );
-  }, [
-    searchTerm,
-    selectedView,
-    formattedTransfers,
-    location,
-  ]);
+  }, [searchTerm, selectedView, formattedTransfers, location, employeeId, level]);
   const transferColumns = useMemo(
     () => [
       {
@@ -257,12 +264,12 @@ function Transfer() {
   };
 
   const handleApprove = async (id) => {
-    if (!canApproveActions) return;
+    //if (!canApproveActions) return;
     await approveTransfer(id, location.id);
   };
 
   const handleReject = async (id) => {
-    if (!canApproveActions) return;
+    //if (!canApproveActions) return;
     await rejectTransfer(id);
   };
   const { getFileUrl } = useAmazonS3();

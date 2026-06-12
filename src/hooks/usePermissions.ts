@@ -46,5 +46,6 @@ export const usePermissions = () => {
     // SOLO ADMIN
     canViewProfits: isAdmin,
     canViewCosts : isAdmin || isManager || isViewer,
+    canApproveTransfers : isAdmin || isManager
   };
 };

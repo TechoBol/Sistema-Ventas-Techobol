@@ -178,7 +178,7 @@ export default function TransferDetailModal({
                     {item.product?.line?.name || "Sin marca"}
                   </ProductMeta>
 
-                  <ProductMeta>Código: {item.product?.barcode}</ProductMeta>
+                  <ProductMeta>Código: {item.product?.code}</ProductMeta>
                 </ProductItem>
               ))}
             </ProductsBox>
@@ -191,7 +191,7 @@ export default function TransferDetailModal({
               Bs.{" "}
               {transfer.items?.reduce(
                 (acc, item) =>
-                  acc + item.quantity * (item.product?.finalPrice || 0),
+                  acc + item.quantity * (item.product?.salePrice || 0),
                 0,
               )}
             </span>
