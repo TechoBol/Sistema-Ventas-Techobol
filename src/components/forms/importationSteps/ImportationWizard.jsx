@@ -1,17 +1,12 @@
 import React, { useState } from "react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import GeneralDataStep from "./GeneralDataStep";
 import ProductsStep from "./ProductsStep";
 import ExpensesStep from "./ExpensesStep";
 import SummaryStep from "./SummaryStep";
+import BanksStep, { emptyBankPayment } from "./BanksStep";
 import AdditionalCostsStep from "./AdditionalCostsStep";
 import FinalCostStep from "./FinalCostStep";
-import {
-  ArrowLeft,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-
 import {
   WizardCard,
   WizardHeader,
@@ -29,20 +24,19 @@ import {
   StepSecondaryButton,
   StepPrimaryButton,
 } from "../../ui/ImportationWizard.styles";
-import BanksStep from "./BanksStep";
 
 const STEPS = [
   "Datos generales",
   "Productos",
   "Gastos base",
   "Base imponible e impuestos",
-  "Pagos de bancos",
+  "Pagos bancarios",
   "Gastos adicionales",
   "Costo final",
 ];
 
-// constantes para arracar con datos existentes
 const emptyProduct = {
+  productId: null,
   productCode: "",
   productName: "",
   referenceQuantity: "",
@@ -51,7 +45,7 @@ const emptyProduct = {
   gaPercent: "",
 };
 
-const defaultExpenses = {
+const createDefaultExpenses = () => ({
   freights: [
     { name: "Flete Naviero (FLETE I)", amount: "" },
     { name: "Flete terrestre Frontera FLETE(II)", amount: "" },
@@ -59,15 +53,16 @@ const defaultExpenses = {
   insurances: [{ name: "", amount: "" }],
   portCosts: [{ name: "", amount: "" }],
   otherCosts: [{ name: "", amount: "" }],
-};
+});
 
-const defaultAdditionalCosts = [
+const createDefaultAdditionalCosts = () => [
   {
     concept: "Comisión aduana por despacho",
     amount: "",
     currency: "USD",
     hasFiscalCredit: true,
     creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "Impuestos globales",
@@ -75,6 +70,7 @@ const defaultAdditionalCosts = [
     currency: "USD",
     hasFiscalCredit: false,
     creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "Flete PISIGA-CBBA",
@@ -82,20 +78,7 @@ const defaultAdditionalCosts = [
     currency: "USD",
     hasFiscalCredit: false,
     creditRate: "13",
-  },
-  {
-    concept: "Comisiones bancarias",
-    amount: "",
-    currency: "BS",
-    hasFiscalCredit: true,
-    creditRate: "13",
-  },
-  {
-    concept: "ITF",
-    amount: "",
-    currency: "BS",
-    hasFiscalCredit: false,
-    creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "SAMC",
@@ -103,6 +86,7 @@ const defaultAdditionalCosts = [
     currency: "BS",
     hasFiscalCredit: true,
     creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "Gate In devolución",
@@ -110,6 +94,7 @@ const defaultAdditionalCosts = [
     currency: "BS",
     hasFiscalCredit: true,
     creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "Emisión de documentos",
@@ -117,6 +102,7 @@ const defaultAdditionalCosts = [
     currency: "USD",
     hasFiscalCredit: true,
     creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "Diferencia tipo de cambio",
@@ -124,6 +110,7 @@ const defaultAdditionalCosts = [
     currency: "BS",
     hasFiscalCredit: false,
     creditRate: "13",
+    source: "MANUAL",
   },
   {
     concept: "Pago transporte interno diferencia",
@@ -131,277 +118,299 @@ const defaultAdditionalCosts = [
     currency: "USD",
     hasFiscalCredit: false,
     creditRate: "13",
+    source: "MANUAL",
+  },
+];
+
+const createDefaultBankPayments = (officialExchangeRate = "6.96") => [
+  {
+    ...emptyBankPayment,
+    bankExchangeRate: officialExchangeRate,
   },
 ];
 
 const getDateInputValue = (value) => {
   if (!value) return "";
-  const [datePart] = value.split("T");
+  const [datePart] = String(value).split("T");
   return datePart || "";
 };
 
 const mapApiDataToWizardState = (importation) => {
   const snapshot = importation?.snapshot ?? {};
+
+  const officialExchangeRate = importation?.officialExchangeRate
+    ? String(importation.officialExchangeRate)
+    : "6.96";
+
+  const savedProducts = Array.isArray(snapshot.products)
+    ? snapshot.products
+    : [];
+
+  const savedBankPayments = Array.isArray(
+    snapshot.bankPayments?.payments
+  )
+    ? snapshot.bankPayments.payments
+    : [];
+
+  /*
+   * Se filtran posibles filas bancarias antiguas para evitar que
+   * "Comisiones bancarias" e "ITF" se dupliquen al recalcularse.
+   */
+  const savedAdditionalCosts = Array.isArray(snapshot.additionalCosts)
+    ? snapshot.additionalCosts.filter(
+        (cost) => cost?.source !== "BANK"
+      )
+    : [];
+
   return {
     generalData: {
       supplier: importation?.supplierName || "",
       reference: importation?.referenceNumber || "",
       date: getDateInputValue(importation?.importationDate),
-      officialExchangeRate: importation?.officialExchangeRate
-        ? String(importation.officialExchangeRate)
-        : "6.96",
+      officialExchangeRate,
       bankExchangeRate: importation?.bankExchangeRate
         ? String(importation.bankExchangeRate)
         : "",
     },
+
     products:
-      Array.isArray(snapshot.products) && snapshot.products.length > 0
-        ? snapshot.products.map((product) => ({
+      savedProducts.length > 0
+        ? savedProducts.map((product) => ({
             productId: product.productId ?? null,
             productCode: product.productCode || "",
             productName: product.productName || "",
-            referenceQuantity: product.referenceQuantity ?? "",
+            referenceQuantity:
+              product.referenceQuantity ?? "",
             baseQuantity: product.baseQuantity ?? "",
             priceUsd: product.priceUsd ?? "",
             gaPercent: product.gaPercent ?? "",
           }))
         : [{ ...emptyProduct }],
+
     expenses: {
       freights:
         snapshot.baseExpenses?.freights?.length > 0
           ? snapshot.baseExpenses.freights.map((item) => ({
               name: item.name || "",
-              amount: item.amountUsd ?? "",
+              amount: item.amountUsd ?? item.amount ?? "",
             }))
-          : defaultExpenses.freights,
+          : createDefaultExpenses().freights,
+
       insurances:
         snapshot.baseExpenses?.insurances?.length > 0
           ? snapshot.baseExpenses.insurances.map((item) => ({
               name: item.name || "",
-              amount: item.amountUsd ?? "",
+              amount: item.amountUsd ?? item.amount ?? "",
             }))
-          : defaultExpenses.insurances,
+          : createDefaultExpenses().insurances,
+
       portCosts:
         snapshot.baseExpenses?.portCosts?.length > 0
           ? snapshot.baseExpenses.portCosts.map((item) => ({
               name: item.name || "",
-              amount: item.amountUsd ?? "",
+              amount: item.amountUsd ?? item.amount ?? "",
             }))
-          : defaultExpenses.portCosts,
+          : createDefaultExpenses().portCosts,
+
       otherCosts:
         snapshot.baseExpenses?.otherCosts?.length > 0
           ? snapshot.baseExpenses.otherCosts.map((item) => ({
               name: item.name || "",
-              amount: item.amountUsd ?? "",
+              amount: item.amountUsd ?? item.amount ?? "",
             }))
-          : defaultExpenses.otherCosts,
+          : createDefaultExpenses().otherCosts,
     },
+
+    bankPayments:
+      savedBankPayments.length > 0
+        ? savedBankPayments.map((payment) => ({
+            paymentType:
+              payment.paymentType || "PAYMENT",
+            date: payment.date || "",
+            bankName: payment.bankName || "",
+            amountUsd: payment.amountUsd ?? "",
+            bankExchangeRate:
+              payment.bankExchangeRate ?? officialExchangeRate,
+            commissionUsd:
+              payment.commissionUsd ?? "",
+            itfEntryUsd: payment.itfEntryUsd ?? "",
+          }))
+        : createDefaultBankPayments(
+            officialExchangeRate
+          ),
+
     additionalCosts:
-      Array.isArray(snapshot.additionalCosts) &&
-      snapshot.additionalCosts.length > 0
-        ? snapshot.additionalCosts.map((cost) => ({
+      savedAdditionalCosts.length > 0
+        ? savedAdditionalCosts.map((cost) => ({
             concept: cost.concept || "",
             amount: cost.amount ?? "",
             currency: cost.currency || "BS",
-            hasFiscalCredit: Boolean(cost.hasFiscalCredit),
-            creditRate: cost.fiscalCreditPercent ?? "",
+            hasFiscalCredit: Boolean(
+              cost.hasFiscalCredit
+            ),
+            creditRate:
+              cost.fiscalCreditPercent ??
+              cost.creditRate ??
+              "",
+            source: cost.source || "MANUAL",
           }))
-        : defaultAdditionalCosts,
+        : createDefaultAdditionalCosts(),
   };
 };
-/* fin - constantes para arracar con datos existentes */
 
-function ImportationWizard({ mode = "create", initialData = null, onCancel, onSubmit }) {
-  const [currentStep, setCurrentStep] = useState(0);
-  // estado de los pasos
+const createInitialWizardState = () => ({
+  generalData: {
+    supplier: "",
+    reference: "",
+    date: "",
+    officialExchangeRate: "6.96",
+    bankExchangeRate: "",
+  },
+  products: [{ ...emptyProduct }],
+  expenses: createDefaultExpenses(),
+  bankPayments: createDefaultBankPayments("6.96"),
+  additionalCosts: createDefaultAdditionalCosts(),
+});
+
+function ImportationWizard({
+  mode = "create",
+  initialData = null,
+  onCancel,
+  onSubmit,
+}) {
   const initialWizardState =
     mode === "edit" && initialData
       ? mapApiDataToWizardState(initialData)
-      : {
-          generalData: {
-            supplier: "",
-            reference: "",
-            date: "",
-            officialExchangeRate: "6.96",
-            bankExchangeRate: "",
-          },
-          products: [{ ...emptyProduct }],
-          expenses: defaultExpenses,
-          additionalCosts: defaultAdditionalCosts,
-        };
-  const [generalData, setGeneralData] = useState(initialWizardState.generalData);
-  const [products, setProducts] = useState(initialWizardState.products);
-  const [expenses, setExpenses] = useState(initialWizardState.expenses); //estados de gastos base
-  const [additionalCosts, setAdditionalCosts] = useState(initialWizardState.additionalCosts); // estado de gastos adicionales
-
-  // ── Estado de bancos ──────────────────────────────────────────────
-  const [bankBlocks, setBankBlocks] = useState([
-    {
-      id: 1,
-      type: "anticipo",
-      banco: "",
-      monto: "",
-      tc: "",
-      comisionUsd: "",
-      itfSalidaUsd: "",
-      itfIngresoUsd: "",
-    },
-  ]);
-
-  // ── totalProductosUsd viene de SummaryStep ────────────────────────
-  const [totalProductosUsd, setTotalProductosUsd] = useState(0);
-
-  // ── Función de cálculo por bloque ─────────────────────────────────
-  function calcBlockTotals({
-    monto,
-    tc,
-    comisionUsd,
-    itfSalidaUsd,
-    itfIngresoUsd,
-  }) {
-    const m = parseFloat(monto) || 0;
-    const t = parseFloat(tc) || 1;
-    const com = parseFloat(comisionUsd) || 0;
-    const its = parseFloat(itfSalidaUsd) || 0;
-    const iti = parseFloat(itfIngresoUsd) || 0;
-    const comisionBs = com * 6.97;
-    const itfSalidaBs = its * t;
-    const itfIngresoBs = iti * t;
-    const total1Usd = m + com;
-    const total1Bs = m * t + comisionBs;
-    return {
-      totalUsd: total1Usd + its + iti,
-      totalBs: total1Bs + itfSalidaBs + itfIngresoBs,
-      comisionUsd: com,
-      comisionBs,
-      itfUsd: its + iti,
-      itfBs: itfSalidaBs + itfIngresoBs,
-    };
-  }
-
-  // ── Totales bancarios ─────────────────────────────────────────────
-  const bankTotals = bankBlocks.reduce(
-    (acc, b) => {
-      const c = calcBlockTotals(b);
-      acc.montoUsd += parseFloat(b.monto) || 0;
-      acc.montoBs += (parseFloat(b.monto) || 0) * (parseFloat(b.tc) || 1);
-      acc.comisionUsd += c.comisionUsd;
-      acc.comisionBs += c.comisionBs;
-      acc.itfUsd += c.itfUsd;
-      acc.itfBs += c.itfBs;
-      return acc;
-    },
-    {
-      montoUsd: 0,
-      montoBs: 0,
-      comisionUsd: 0,
-      comisionBs: 0,
-      itfUsd: 0,
-      itfBs: 0,
-    },
+      : createInitialWizardState();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [generalData, setGeneralData] = useState(
+    initialWizardState.generalData
   );
 
-  // ── Variables para diferencia TC ──────────────────────────────────
-  const tcOficial = parseFloat(generalData.officialExchangeRate) || 1;
-  const tcBancario = parseFloat(generalData.bankExchangeRate) || 1;
-
-  const totalFletes = expenses.freights.reduce(
-    (acc, f) => acc + Number(f.amount || 0),
-    0,
-  );
-  const totalSeguros = expenses.insurances.reduce(
-    (acc, s) => acc + Number(s.amount || 0),
-    0,
-  );
-  const totalPortCosts = expenses.portCosts.reduce(
-    (acc, p) => acc + Number(p.amount || 0),
-    0,
+  const [products, setProducts] = useState(
+    initialWizardState.products
   );
 
-  const flete1Usd = Number(expenses.freights[0]?.amount || 0);
-  const flete2Usd = Number(expenses.freights[1]?.amount || 0);
-  const flete1Bs = flete1Usd * tcBancario; // flete 1 × tipo de cambio bancario
-  const flete2Bs = flete2Usd * tcOficial; // flete 2 × tipo de cambio oficial
+  const [expenses, setExpenses] = useState(
+    initialWizardState.expenses
+  );
 
-  const fletes = flete1Bs + flete2Bs;
+  const [bankPayments, setBankPayments] = useState(
+    initialWizardState.bankPayments
+  );
 
-  const baseImponibleBs =
-    (totalProductosUsd + totalFletes + totalSeguros + totalPortCosts) *
-    tcOficial;
+  const [additionalCosts, setAdditionalCosts] = useState(
+    initialWizardState.additionalCosts
+  );
 
-  const segurosBs = totalSeguros * tcOficial;
-  const restaFinal = bankTotals.montoBs + segurosBs + fletes;
-  const diferenciaTC = baseImponibleBs - restaFinal;
+  const handleGeneralDataChange = (field, value) => {
+    setGeneralData((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
 
-  // ── Handlers ──────────────────────────────────────────────────────
-  const handleGeneralDataChange = (field, value) =>
-    setGeneralData((cur) => ({ ...cur, [field]: value }));
+  const handleNextStep = () => {
+    setCurrentStep((current) =>
+      Math.min(current + 1, STEPS.length - 1)
+    );
+  };
 
-  const handleNextStep = () =>
-    setCurrentStep((p) => Math.min(p + 1, STEPS.length - 1));
-  const handlePrevStep = () => setCurrentStep((p) => Math.max(p - 1, 0));
-  const handleGoToStep = (i) => setCurrentStep(i);
+  const handlePrevStep = () => {
+    setCurrentStep((current) =>
+      Math.max(current - 1, 0)
+    );
+  };
+
+  const handleGoToStep = (stepIndex) => {
+    setCurrentStep(stepIndex);
+  };
 
   const handleSubmit = (status) => {
-    onSubmit?.({
+    const payload = {
       status,
       generalData,
       products,
       expenses,
+      bankPayments,
       additionalCosts,
-      bankBlocks,
-    });
+    };
+    onSubmit?.(payload);
   };
 
   const renderStepContent = () => {
-    if (currentStep === 0)
+    // Paso 1: Datos generales
+    if (currentStep === 0) {
       return (
         <GeneralDataStep
           formData={generalData}
           onChange={handleGeneralDataChange}
         />
       );
-
-    if (currentStep === 1)
+    }
+    // Paso 2: Productos
+    if (currentStep === 1) {
       return (
-        <ProductsStep products={products} onChangeProducts={setProducts} />
+        <ProductsStep
+          products={products}
+          onChangeProducts={setProducts}
+        />
       );
-
-    if (currentStep === 2)
+    }
+    // Paso 3: Gastos base
+    if (currentStep === 2) {
       return (
-        <ExpensesStep expenses={expenses} onChangeExpenses={setExpenses} />
+        <ExpensesStep
+          expenses={expenses}
+          onChangeExpenses={setExpenses}
+        />
       );
-
-    if (currentStep === 3)
+    }
+    // Paso 4: Base imponible e impuestos
+    if (currentStep === 3) {
       return (
         <SummaryStep
           generalData={generalData}
           products={products}
           expenses={expenses}
-          setTotalProductosUsd={setTotalProductosUsd}
         />
       );
-
-    if (currentStep === 4)
+    }
+    // Paso 5: Pagos bancarios
+    if (currentStep === 4) {
       return (
         <BanksStep
-          blocks={bankBlocks}
-          onChangeBlocks={setBankBlocks}
-          totalAnticipo={bankTotals.montoUsd}
-          totalComision={bankTotals.comisionUsd}
-          totalItf={bankTotals.itfUsd}
-          totalAnticipoBs={bankTotals.montoBs}
-          totalComisionBs={bankTotals.comisionBs}
-          totalItfBs={bankTotals.itfBs}
-          diferenciaTC={diferenciaTC}
+          bankPayments={bankPayments}
+          onChangeBankPayments={setBankPayments}
+          officialExchangeRate={
+            generalData.officialExchangeRate
+          }
         />
       );
-
+    }
+    // Paso 6: Gastos adicionales
+    if (currentStep === 5) {
+      return (
+        <AdditionalCostsStep
+          additionalCosts={additionalCosts}
+          onChangeAdditionalCosts={
+            setAdditionalCosts
+          }
+          officialExchangeRate={
+            generalData.officialExchangeRate
+          }
+          bankPayments={bankPayments}
+        />
+      );
+    }
+    // Paso 7: Costo final
     return (
-      <AdditionalCostsStep
+      <FinalCostStep
+        generalData={generalData}
+        products={products}
+        expenses={expenses}
+        bankPayments={bankPayments}
         additionalCosts={additionalCosts}
-        onChangeAdditionalCosts={setAdditionalCosts}
-        officialExchangeRate={generalData.officialExchangeRate}
       />
     );
   };
@@ -410,12 +419,18 @@ function ImportationWizard({ mode = "create", initialData = null, onCancel, onSu
     <WizardCard>
       <WizardHeader>
         <WizardHeaderLeft>
-          <WizardBackButton type="button" onClick={onCancel}>
+          <WizardBackButton
+            type="button"
+            onClick={onCancel}
+          >
             <ArrowLeft size={20} />
           </WizardBackButton>
+
           <div>
             <WizardTitle>
-              {mode === "edit" ? "Editar importación" : "Nueva importación"}
+              {mode === "edit"
+                ? "Editar importación"
+                : "Nueva importación"}
             </WizardTitle>
           </div>
         </WizardHeaderLeft>
@@ -435,41 +450,76 @@ function ImportationWizard({ mode = "create", initialData = null, onCancel, onSu
                   onClick={() => handleGoToStep(index)}
                   title={`Ir a ${step}`}
                 >
-                  {isCompleted ? <Check size={15} /> : index + 1}
+                  {isCompleted ? (
+                    <Check size={15} />
+                  ) : (
+                    index + 1
+                  )}
                 </StepCircle>
-                <StepLabel $active={isActive}>{step}</StepLabel>
+
+                <StepLabel $active={isActive}>
+                  {step}
+                </StepLabel>
               </StepItem>
+
               {index < STEPS.length - 1 && (
-                <StepConnector $completed={index < currentStep} />
+                <StepConnector
+                  $completed={index < currentStep}
+                />
               )}
             </React.Fragment>
           );
         })}
       </StepperWrapper>
 
-      <StepContent>{renderStepContent()}</StepContent>
+      <StepContent>
+        {renderStepContent()}
+      </StepContent>
 
       <StepActions>
         {currentStep > 0 ? (
-          <StepSecondaryButton type="button" onClick={handlePrevStep}>
+          <StepSecondaryButton
+            type="button"
+            onClick={handlePrevStep}
+          >
             <ChevronLeft size={17} />
             Anterior
           </StepSecondaryButton>
         ) : (
           <div />
         )}
+
         <StepActionsRight>
           {currentStep < STEPS.length - 1 ? (
-            <StepPrimaryButton type="button" onClick={handleNextStep}>
-              Siguiente <ChevronRight size={17} />
+            <StepPrimaryButton
+              type="button"
+              onClick={handleNextStep}
+            >
+              Siguiente
+              <ChevronRight size={17} />
             </StepPrimaryButton>
           ) : (
             <>
-              <StepSecondaryButton type="button" onClick={() => handleSubmit("borrador")}>
-                Guardar borrador
+              <StepSecondaryButton
+                type="button"
+                onClick={() =>
+                  handleSubmit("borrador")
+                }
+              >
+                {mode === "edit"
+                  ? "Actualizar borrador"
+                  : "Guardar borrador"}
               </StepSecondaryButton>
-              <StepPrimaryButton type="button" onClick={() => handleSubmit("verificado")}>
-                Guardar verificado
+
+              <StepPrimaryButton
+                type="button"
+                onClick={() =>
+                  handleSubmit("verificado")
+                }
+              >
+                {mode === "edit"
+                  ? "Actualizar y verificar"
+                  : "Guardar verificado"}
               </StepPrimaryButton>
             </>
           )}

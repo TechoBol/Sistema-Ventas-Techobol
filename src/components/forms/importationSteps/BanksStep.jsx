@@ -1,360 +1,229 @@
-import React, { useCallback } from "react";
+import React, { useMemo } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   StepPanel,
   SectionHeader,
   StepPanelTitle,
   AddButton,
-  WizardFormGrid,
-  WizardField,
-  WizardLabel,
   WizardInput,
-  WizardHelperText,
   IconButton,
-  SummaryCard,
-  SummaryCardsGrid,
 } from "../../ui/ImportationWizard.styles";
-import { Trash2, Plus } from "lucide-react";
+import {
+  BankTableWrapper,
+  BankTableHead,
+  BankTableRow,
+  BankSelect,
+  CalculatedValue,
+  BankSummaryGrid,
+  BankSummaryCard,
+} from "../../ui/BanksStep.styles";
+import { calculateBankPayments } from "../../utils/importationCalculations";
 
-const fmt = (n) => {
-  const truncated = Math.trunc(Number(n) * 100) / 100;
-  return truncated.toLocaleString("es-BO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+export const emptyBankPayment = {
+  paymentType: "PAYMENT",
+  date: "",
+  bankName: "BCP",
+  amountUsd: "",
+  bankExchangeRate: "",
+  commissionUsd: "",
+  itfEntryUsd: "",
 };
-function calcBlock({ monto, tc, comisionUsd, itfSalidaUsd, itfIngresoUsd }) {
-  const m = parseFloat(monto) || 0;
-  const t = parseFloat(tc) || 1;
-  const com = parseFloat(comisionUsd) || 0;
-  const its = parseFloat(itfSalidaUsd) || 0;
-  const iti = parseFloat(itfIngresoUsd) || 0;
 
-  const montoBs = m * t;
-  const comisionBs = com * 6.97;
-  const itfSalidaBs = its * t;
-  const itfIngresoBs = iti * t;
-  const total1Usd = m + com;
-  const total1Bs = montoBs + comisionBs;
-  const totalUsd = total1Usd + its + iti;
-  const totalBs = total1Bs + itfSalidaBs + itfIngresoBs;
+const formatUsd = (value) =>
+  `$ ${Number(value || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  })}`;
 
-  return {
-    montoBs,
-    comisionBs,
-    itfSalidaBs,
-    itfIngresoBs,
-    total1Usd,
-    total1Bs,
-    totalUsd,
-    totalBs,
-  };
-}
+const formatBs = (value) =>
+  `Bs ${Number(value || 0).toLocaleString("es-BO", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  })}`;
 
-export default function BanksStep({
-  blocks,
-  onChangeBlocks,
-  totalAnticipo,
-  totalComision,
-  totalItf,
-  totalAnticipoBs,
-  totalComisionBs,
-  totalItfBs,
-  diferenciaTC,
+function BanksStep({
+  bankPayments,
+  onChangeBankPayments,
+  officialExchangeRate,
 }) {
-  const updateBlock = useCallback(
-    (id, field, value) => {
-      onChangeBlocks((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, [field]: value } : b)),
-      );
-    },
-    [onChangeBlocks],
+  const calculations = useMemo(
+    () =>
+      calculateBankPayments({
+        payments: bankPayments,
+        officialExchangeRate,
+      }),
+    [bankPayments, officialExchangeRate]
   );
 
-  const addSaldo = () => {
-    onChangeBlocks((prev) => [
-      ...prev,
+  const handleAddPayment = () => {
+    onChangeBankPayments([
+      ...bankPayments,
       {
-        id: Date.now(),
-        type: "saldo",
-        banco: "",
-        monto: "",
-        tc: "",
-        comisionUsd: "",
-        itfSalidaUsd: "",
-        itfIngresoUsd: "",
+        ...emptyBankPayment,
+        bankExchangeRate: officialExchangeRate || "",
       },
     ]);
   };
 
-  const removeBlock = (id) =>
-    onChangeBlocks((prev) => prev.filter((b) => b.id !== id));
+  const handleChange = (index, field, value) => {
+    const updatedPayments = bankPayments.map((payment, paymentIndex) =>
+      paymentIndex === index
+        ? {
+            ...payment,
+            [field]: value,
+          }
+        : payment
+    );
+    onChangeBankPayments(updatedPayments);
+  };
+
+  const handleRemove = (index) => {
+    if (bankPayments.length === 1) return;
+    onChangeBankPayments(
+      bankPayments.filter((_, paymentIndex) => paymentIndex !== index)
+    );
+  };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <StepPanel>
       <SectionHeader>
         <StepPanelTitle>Pagos bancarios</StepPanelTitle>
-        <AddButton onClick={addSaldo}>
-          <Plus size={14} /> Agregar saldo
+        <AddButton type="button" onClick={handleAddPayment}>
+          <Plus size={15} />
+          Agregar pago
         </AddButton>
       </SectionHeader>
-      <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 16,
-  }}
->
-        {blocks.map((b) => {
-          const c = calcBlock(b);
-          return (
-            <StepPanel
-              key={b.id}
-              style={{
-                padding: "16px",
-                borderRadius: "16px",
-              }}
+
+      <BankTableWrapper>
+        <BankTableHead>
+          <span>Tipo de pago</span>
+          <span>Fecha</span>
+          <span>Banco</span>
+          <span>Monto USD</span>
+          <span>T/C banco</span>
+          <span>Pago Bs</span>
+          <span>Comisión USD</span>
+          <span>Comisión Bs</span>
+          <span>ITF entrada USD</span>
+          <span>ITF salida USD</span>
+          <span></span>
+        </BankTableHead>
+
+        {calculations.rows.map((row, index) => (
+          <BankTableRow key={row.id}>
+            <BankSelect
+              value={bankPayments[index]?.paymentType || "PAYMENT"}
+              onChange={(event) =>
+                handleChange(index, "paymentType", event.target.value)
+              }
             >
-              {/* Cabecera */}
-              <SectionHeader>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      padding: "3px 10px",
-                      borderRadius: 6,
-                      background: b.type === "anticipo" ? "#e8f0fb" : "#e8f7ef",
-                      color: b.type === "anticipo" ? "#1a56c4" : "#16714a",
-                    }}
-                  >
-                    {b.type === "anticipo" ? "Anticipo" : "Saldo"}
-                  </span>
-                  <span style={{ fontSize: 14, fontWeight: 700 }}>
-                    {b.banco || "Banco"}
-                  </span>
-                </div>
-                {b.type !== "anticipo" && (
-                  <IconButton onClick={() => removeBlock(b.id)}>
-                    <Trash2 size={15} />
-                  </IconButton>
-                )}
-              </SectionHeader>
+              <option value="ADVANCE">Anticipo</option>
+              <option value="PAYMENT">Pago</option>
+              <option value="FINAL_PAYMENT">Pago final</option>
+            </BankSelect>
 
-              {/* Inputs — todos manuales */}
-              <WizardFormGrid
-                style={{
-                  marginBottom: 12,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0,1fr))",
-                  gap: 12,
-                }}
-              >
-                <WizardField>
-                  <WizardLabel>Banco</WizardLabel>
-                  <WizardInput
-                    value={b.banco}
-                    onChange={(e) => updateBlock(b.id, "banco", e.target.value)}
-                    placeholder="Ej. BCP, Mercantil..."
-                  />
-                </WizardField>
+            <WizardInput
+              type="date"
+              value={bankPayments[index]?.date || ""}
+              onChange={(event) =>
+                handleChange(index, "date", event.target.value)
+              }
+            />
 
-                <WizardField>
-                  <WizardLabel>Monto ($)</WizardLabel>
-                  <WizardInput
-                    type="number"
-                    value={b.monto}
-                    onChange={(e) => updateBlock(b.id, "monto", e.target.value)}
-                    placeholder="0.00"
-                  />
-                </WizardField>
+            <WizardInput
+              type="text"
+              placeholder="Ej: BCP"
+              value={bankPayments[index]?.bankName || ""}
+              onChange={(event) =>
+                handleChange(index, "bankName", event.target.value)
+              }
+            />
 
-                <WizardField>
-                  <WizardLabel>Tipo de cambio</WizardLabel>
-                  <WizardInput
-                    type="number"
-                    value={b.tc}
-                    onChange={(e) => updateBlock(b.id, "tc", e.target.value)}
-                    step="0.01"
-                    placeholder="Ej. 12.00"
-                  />
-                </WizardField>
+            <WizardInput
+              type="number"
+              min="0"
+              step="0.0001"
+              placeholder="0.0000"
+              value={bankPayments[index]?.amountUsd || ""}
+              onChange={(event) =>
+                handleChange(index, "amountUsd", event.target.value)
+              }
+            />
 
-                <WizardField>
-                  <WizardLabel>Comisión ($)</WizardLabel>
-                  <WizardInput
-                    type="number"
-                    value={b.comisionUsd}
-                    onChange={(e) =>
-                      updateBlock(b.id, "comisionUsd", e.target.value)
-                    }
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </WizardField>
+            <WizardInput
+              type="number"
+              min="0"
+              step="0.0001"
+              placeholder="Ej: 12.0000"
+              value={bankPayments[index]?.bankExchangeRate || ""}
+              onChange={(event) =>
+                handleChange(index, "bankExchangeRate", event.target.value)
+              }
+            />
 
-                <WizardField>
-                  <WizardLabel>ITF Ingreso ($)</WizardLabel>
-                  <WizardInput
-                    type="number"
-                    value={b.itfSalidaUsd}
-                    onChange={(e) =>
-                      updateBlock(b.id, "itfSalidaUsd", e.target.value)
-                    }
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </WizardField>
+            <CalculatedValue>{formatBs(row.paymentAmountBs)}</CalculatedValue>
 
-                <WizardField>
-                  <WizardLabel>ITF Salida ($)</WizardLabel>
-                  <WizardInput
-                    type="number"
-                    value={b.itfIngresoUsd}
-                    onChange={(e) =>
-                      updateBlock(b.id, "itfIngresoUsd", e.target.value)
-                    }
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </WizardField>
-              </WizardFormGrid>
+            <WizardInput
+              type="number"
+              min="0"
+              step="0.0001"
+              placeholder="Según banco"
+              value={bankPayments[index]?.commissionUsd || ""}
+              onChange={(event) =>
+                handleChange(index, "commissionUsd", event.target.value)
+              }
+            />
 
-              {/* Detalle calculado (solo los Bs se derivan del TC) */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 10,
-                }}
-              >
-                {[
-                  [
-                    "Monto $",
-                    `$${fmt(parseFloat(b.monto) || 0)}`,
-                    "Monto Bs",
-                    `Bs ${fmt(c.montoBs)}`,
-                  ],
-                  [
-                    "Comisión $",
-                    `$${fmt(parseFloat(b.comisionUsd) || 0)}`,
-                    "Comisión Bs",
-                    `Bs ${fmt(c.comisionBs)}`,
-                  ],
-                  [
-                    "Total 1 $",
-                    `$${fmt(c.total1Usd)}`,
-                    "Total 1 Bs",
-                    `Bs ${fmt(c.total1Bs)}`,
-                  ],
-                  [
-                    "ITF Ingreso $",
-                    `$${fmt(parseFloat(b.itfIngresoUsd) || 0)}`,
-                    "ITF Ingreso Bs",
-                    `Bs ${fmt(c.itfIngresoBs)}`,
-                  ],
-                  [
-                    "ITF Salida $",
-                    `$${fmt(parseFloat(b.itfSalidaUsd) || 0)}`,
-                    "ITF Salida Bs",
-                    `Bs ${fmt(c.itfSalidaBs)}`,
-                  ],
-                ].map(([l1, v1, l2, v2]) => (
-                  <React.Fragment key={l1}>
-                    <ResultItem label={l1} value={v1} />
-                    <ResultItem label={l2} value={v2} />
-                  </React.Fragment>
-                ))}
-                <ResultItem
-                  label="Total $"
-                  value={`$${fmt(c.totalUsd)}`}
-                  accent
-                />
-                <ResultItem
-                  label="Total Bs"
-                  value={`Bs ${fmt(c.totalBs)}`}
-                  accent
-                />
-              </div>
-            </StepPanel>
-          );
-        })}
-      </div>
-      {/* Resumen global */}
-      <SummaryCardsGrid>
-        <SummaryCard>
-          <span>Total pago $</span>
-          <strong>${fmt(totalAnticipo || 0)}</strong>
-        </SummaryCard>
-        <SummaryCard>
-          <span>Total pago Bs</span>
-          <strong>Bs {fmt(totalAnticipoBs || 0)}</strong>
-        </SummaryCard>
-        <SummaryCard>
-          <span>Total comisión $</span>
-          <strong>${fmt(totalComision || 0)}</strong>
-        </SummaryCard>
-        <SummaryCard>
-          <span>Total comisión Bs</span>
-          <strong>Bs {fmt(totalComisionBs || 0)}</strong>
-        </SummaryCard>
-        <SummaryCard $highlight>
-          <span>Total ITF $</span>
-          <strong>${fmt(totalItf || 0)}</strong>
-        </SummaryCard>
-        <SummaryCard $highlight>
-          <span>Total ITF Bs</span>
-          <strong>${fmt(totalItfBs || 0)}</strong>
-        </SummaryCard>
-      </SummaryCardsGrid>
-      <StepPanel>
-        <SectionHeader>
-          <StepPanelTitle>Diferencia tipo de cambio</StepPanelTitle>
-        </SectionHeader>
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
-        >
-          <ResultItem
-            label="Diferencia de tipo de cambio"
-            value={`Bs ${fmt(diferenciaTC || 0)}`}
-            accent
-          />
-        </div>
-      </StepPanel>
-    </div>
+            <CalculatedValue>{formatBs(row.commissionBs)}</CalculatedValue>
+
+            <WizardInput
+              type="number"
+              min="0"
+              step="0.0001"
+              placeholder="Según banco"
+              value={bankPayments[index]?.itfEntryUsd || ""}
+              onChange={(event) =>
+                handleChange(index, "itfEntryUsd", event.target.value)
+              }
+            />
+
+            <CalculatedValue>{formatUsd(row.itfExitUsd)}</CalculatedValue>
+
+            <IconButton
+              type="button"
+              title="Eliminar pago"
+              disabled={bankPayments.length === 1}
+              onClick={() => handleRemove(index)}
+            >
+              <Trash2 size={16} />
+            </IconButton>
+          </BankTableRow>
+        ))}
+      </BankTableWrapper>
+
+      <BankSummaryGrid>
+        <BankSummaryCard>
+          <span>Total pagado al proveedor</span>
+          <strong>{formatUsd(calculations.totals.totalPaymentUsd)}</strong>
+        </BankSummaryCard>
+
+        <BankSummaryCard>
+          <span>Total pagado en bolivianos</span>
+          <strong>{formatBs(calculations.totals.totalPaymentBs)}</strong>
+        </BankSummaryCard>
+
+        <BankSummaryCard $highlight>
+          <span>Comisiones bancarias USD</span>
+          <strong>{formatUsd(calculations.totals.totalCommissionUsd)}</strong>
+        </BankSummaryCard>
+
+        <BankSummaryCard $highlight>
+          <span>ITF total USD</span>
+          <strong>{formatUsd(calculations.totals.totalItfUsd)}</strong>
+        </BankSummaryCard>
+      </BankSummaryGrid>
+    </StepPanel>
   );
 }
 
-function ResultItem({ label, value, accent }) {
-  return (
-    <div
-      style={{
-        background: accent ? "rgba(242,12,31,0.06)" : "#f8fafc",
-        border: `1px solid ${accent ? "rgba(242,12,31,0.16)" : "#eef0f3"}`,
-        borderRadius: 10,
-        padding: "10px 14px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-      }}
-    >
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: accent ? "#c0001a" : "#64748b",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontSize: 14,
-          fontWeight: 700,
-          color: accent ? "#c0001a" : "#0f172a",
-        }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
+export default BanksStep;
