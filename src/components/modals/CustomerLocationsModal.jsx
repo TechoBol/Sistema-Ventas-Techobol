@@ -29,7 +29,7 @@ export default function CustomerLocationsModal({
   if (!open) return null;
 
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <ModalHeaderText>

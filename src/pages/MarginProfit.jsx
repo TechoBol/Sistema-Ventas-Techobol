@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import DataTable from "../components/table/DataTable";
-
+import { MarginPriceCell } from "../components/modals/MarginPriceCell";
 import useInventory from "../hooks/useInventory";
 import { useLines } from "../hooks/useLine";
 import { useProduct } from "../hooks/useProduct";
@@ -39,24 +39,20 @@ const formatMoney = (value) =>
     maximumFractionDigits: 2,
   })}`;
 
-const formatPercent = (value) =>
-  `${Math.round(Number(value || 0))}%`;
+const formatPercent = (value) => `${Math.round(Number(value || 0))}%`;
 
 function MarginProfit() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [selectedBrandId, setSelectedBrandId] =
-    useState("all");
+  const [selectedBrandId, setSelectedBrandId] = useState("all");
 
   ////////////////////////////////////////////////////
   // ESTADOS TEMPORALES DE EDICIÓN
   ////////////////////////////////////////////////////
 
-  const [editingDiscounts, setEditingDiscounts] =
-    useState({});
+  const [editingDiscounts, setEditingDiscounts] = useState({});
 
-  const [editingBossDiscounts, setEditingBossDiscounts] =
-    useState({});
+  const [editingBossDiscounts, setEditingBossDiscounts] = useState({});
 
   const { products, isLoading } = useInventory();
 
@@ -93,73 +89,52 @@ function MarginProfit() {
 
   const rows = useMemo(() => {
     return products.map((product) => {
-      const unitCost = Number(
-        product.purchasePrice || 0,
-      );
+      const unitCost = Number(product.purchasePrice || 0);
 
-      const costIva =
-        calculateCostWithIva(unitCost);
+      const costIva = calculateCostWithIva(unitCost);
 
-      const profitMargin = Number(
-        product.porcentajeGanancia || 0,
-      );
+      const profitMargin = Number(product.porcentajeGanancia || 0);
 
       ////////////////////////////////////////////////////
       // DESCUENTOS
       ////////////////////////////////////////////////////
 
-      const quantityDiscount = Number(
-        product.quantityDiscount || 0,
-      );
+      const quantityDiscount = Number(product.quantityDiscount || 0);
 
-      const bossDiscount = Number(
-        product.bossDiscount || 0,
-      );
+      const bossDiscount = Number(product.bossDiscount || 0);
 
       ////////////////////////////////////////////////////
       // PRECIO EJECUTIVO
       ////////////////////////////////////////////////////
 
-      const executivePrice = Math.round(
-        costIva * (1 + profitMargin / 100),
-      );
+      const executivePrice = Math.round(costIva * (1 + profitMargin / 100));
 
       ////////////////////////////////////////////////////
       // +5 UNIDADES
       ////////////////////////////////////////////////////
 
-      const quantityPrice =
-        executivePrice - quantityDiscount;
+      const quantityPrice = executivePrice - quantityDiscount;
 
       const quantityPercent =
-        costIva > 0
-          ? ((quantityPrice - costIva) / costIva) *
-            100
-          : 0;
+        costIva > 0 ? ((quantityPrice - costIva) / costIva) * 100 : 0;
 
       ////////////////////////////////////////////////////
       // JEFE
       ////////////////////////////////////////////////////
 
-      const bossPrice =
-        executivePrice - bossDiscount;
+      const bossPrice = executivePrice - bossDiscount;
 
       const bossPercent =
-        costIva > 0
-          ? ((bossPrice - costIva) / costIva) *
-            100
-          : 0;
+        costIva > 0 ? ((bossPrice - costIva) / costIva) * 100 : 0;
 
       return {
         id: product.id,
 
         brandId: product.lineId,
 
-        brand:
-          product.line?.name ?? "Sin marca",
+        brand: product.line?.name ?? "Sin marca",
 
-        line:
-          product.brandName ?? "Sin línea",
+        line: product.brandName ?? "Sin línea",
 
         product: product.name,
 
@@ -170,6 +145,7 @@ function MarginProfit() {
         costIva,
 
         profitMargin,
+        productUnits: product.productUnits,
 
         executivePrice,
 
@@ -201,14 +177,11 @@ function MarginProfit() {
   ////////////////////////////////////////////////////
 
   const filteredRows = useMemo(() => {
-    const value = searchTerm
-      .trim()
-      .toLowerCase();
+    const value = searchTerm.trim().toLowerCase();
 
     return rows.filter((row) => {
       const matchesBrand =
-        selectedBrandId === "all" ||
-        row.brandId === selectedBrandId;
+        selectedBrandId === "all" || row.brandId === selectedBrandId;
 
       const matchesSearch =
         !value ||
@@ -225,39 +198,23 @@ function MarginProfit() {
   // UPDATE
   ////////////////////////////////////////////////////
 
-  const handleProcessRowUpdate = async (
-    newRow,
-    oldRow,
-  ) => {
+  const handleProcessRowUpdate = async (newRow, oldRow) => {
     try {
       ////////////////////////////////////////////////////
       // VALORES
       ////////////////////////////////////////////////////
 
-      const profitMargin = Number(
-        newRow.profitMargin || 0,
-      );
+      const profitMargin = Number(newRow.profitMargin || 0);
 
       const quantityDiscount =
         editingDiscounts[newRow.id] !== undefined
-          ? Number(
-              editingDiscounts[newRow.id],
-            )
-          : Number(
-              newRow.quantityDiscount || 0,
-            );
+          ? Number(editingDiscounts[newRow.id])
+          : Number(newRow.quantityDiscount || 0);
 
       const bossDiscount =
-        editingBossDiscounts[newRow.id] !==
-        undefined
-          ? Number(
-              editingBossDiscounts[
-                newRow.id
-              ],
-            )
-          : Number(
-              newRow.bossDiscount || 0,
-            );
+        editingBossDiscounts[newRow.id] !== undefined
+          ? Number(editingBossDiscounts[newRow.id])
+          : Number(newRow.bossDiscount || 0);
 
       ////////////////////////////////////////////////////
       // VALIDACIONES
@@ -276,21 +233,18 @@ function MarginProfit() {
       ////////////////////////////////////////////////////
 
       const executivePrice = Math.round(
-        Number(newRow.costIva || 0) *
-          (1 + profitMargin / 100),
+        Number(newRow.costIva || 0) * (1 + profitMargin / 100),
       );
 
       ////////////////////////////////////////////////////
       // +5 UNIDADES
       ////////////////////////////////////////////////////
 
-      const quantityPrice =
-        executivePrice - quantityDiscount;
+      const quantityPrice = executivePrice - quantityDiscount;
 
       const quantityPercent =
         Number(newRow.costIva || 0) > 0
-          ? ((quantityPrice -
-              Number(newRow.costIva || 0)) /
+          ? ((quantityPrice - Number(newRow.costIva || 0)) /
               Number(newRow.costIva || 0)) *
             100
           : 0;
@@ -299,13 +253,11 @@ function MarginProfit() {
       // JEFE
       ////////////////////////////////////////////////////
 
-      const bossPrice =
-        executivePrice - bossDiscount;
+      const bossPrice = executivePrice - bossDiscount;
 
       const bossPercent =
         Number(newRow.costIva || 0) > 0
-          ? ((bossPrice -
-              Number(newRow.costIva || 0)) /
+          ? ((bossPrice - Number(newRow.costIva || 0)) /
               Number(newRow.costIva || 0)) *
             100
           : 0;
@@ -314,27 +266,13 @@ function MarginProfit() {
       // BACKEND
       ////////////////////////////////////////////////////
 
-      await updateMargen(newRow.id, {
+      const response = await updateMargen(newRow.id, {
         porcentajeGanancia: profitMargin,
-
         quantityDiscount,
-
         bossDiscount,
       });
 
-      ////////////////////////////////////////////////////
-      // SOCKET
-      ////////////////////////////////////////////////////
-
-      socket.emit("updateProductMargin", {
-        id: newRow.id,
-
-        porcentajeGanancia: profitMargin,
-
-        quantityDiscount,
-
-        bossDiscount,
-      });
+      socket.emit("updateProductMargin", response.product);
 
       ////////////////////////////////////////////////////
       // LIMPIAR ESTADOS TEMPORALES
@@ -412,8 +350,7 @@ function MarginProfit() {
 
       {
         field: "product",
-        headerName:
-          "Nombre del producto",
+        headerName: "Nombre del producto",
         flex: 1.7,
         minWidth: 260,
       },
@@ -431,8 +368,7 @@ function MarginProfit() {
         headerName: "Costo unit.",
         flex: 1,
         minWidth: 140,
-        valueFormatter: (value) =>
-          formatMoney(value),
+        valueFormatter: (value) => formatMoney(value),
       },
 
       {
@@ -440,8 +376,7 @@ function MarginProfit() {
         headerName: "Costo + IVA",
         flex: 1,
         minWidth: 140,
-        valueFormatter: (value) =>
-          formatMoney(value),
+        valueFormatter: (value) => formatMoney(value),
       },
 
       {
@@ -460,8 +395,16 @@ function MarginProfit() {
         headerName: "Precio ejecutivo",
         flex: 1,
         minWidth: 160,
-        valueFormatter: (value) =>
-          formatMoney(value),
+        renderCell: (params) => (
+          <MarginPriceCell
+            type="executive"
+            price={params.row.executivePrice}
+            units={params.row.productUnits}
+            profitMargin={params.row.profitMargin}
+            quantityDiscount={params.row.quantityDiscount}
+            bossDiscount={params.row.bossDiscount}
+          />
+        ),
       },
 
       ////////////////////////////////////////////////////
@@ -479,37 +422,33 @@ function MarginProfit() {
 
       {
         field: "quantityPrice",
-
-        headerName:
-          "Precio arriba 5 unidades",
-
+        headerName: "Precio arriba 5 unidades",
         flex: 1,
-
         minWidth: 160,
-
         editable: true,
 
-        valueFormatter: (value) =>
-          formatMoney(value),
-
+        renderCell: (params) => (
+          <MarginPriceCell
+            type="quantity"
+            price={params.row.quantityPrice}
+            units={params.row.productUnits}
+            profitMargin={params.row.profitMargin}
+            quantityDiscount={params.row.quantityDiscount}
+            bossDiscount={params.row.bossDiscount}
+          />
+        ),
         renderEditCell: (params) => {
           return (
             <input
               type="number"
-              defaultValue={
-                params.row.quantityDiscount
-              }
+              defaultValue={params.row.quantityDiscount}
               autoFocus
               onChange={(e) => {
-                setEditingDiscounts(
-                  (prev) => ({
-                    ...prev,
+                setEditingDiscounts((prev) => ({
+                  ...prev,
 
-                    [params.id]: Number(
-                      e.target.value,
-                    ),
-                  }),
-                );
+                  [params.id]: Number(e.target.value),
+                }));
               }}
               onBlur={() => {
                 params.api.stopCellEditMode({
@@ -545,36 +484,33 @@ function MarginProfit() {
 
       {
         field: "bossPrice",
-
         headerName: "Precio jefe",
-
         flex: 1,
-
         minWidth: 150,
-
         editable: true,
 
-        valueFormatter: (value) =>
-          formatMoney(value),
-
+        renderCell: (params) => (
+          <MarginPriceCell
+            type="boss"
+            price={params.row.bossPrice}
+            units={params.row.productUnits}
+            profitMargin={params.row.profitMargin}
+            quantityDiscount={params.row.quantityDiscount}
+            bossDiscount={params.row.bossDiscount}
+          />
+        ),
         renderEditCell: (params) => {
           return (
             <input
               type="number"
-              defaultValue={
-                params.row.bossDiscount
-              }
+              defaultValue={params.row.bossDiscount}
               autoFocus
               onChange={(e) => {
-                setEditingBossDiscounts(
-                  (prev) => ({
-                    ...prev,
+                setEditingBossDiscounts((prev) => ({
+                  ...prev,
 
-                    [params.id]: Number(
-                      e.target.value,
-                    ),
-                  }),
-                );
+                  [params.id]: Number(e.target.value),
+                }));
               }}
               onBlur={() => {
                 params.api.stopCellEditMode({
@@ -602,9 +538,7 @@ function MarginProfit() {
     <PageSurface>
       <PageWrapper>
         <HeaderTitle>
-          <Title>
-            Márgenes y Utilidades
-          </Title>
+          <Title>Márgenes y Utilidades</Title>
 
           <Subtitle>{fechaHoy()}</Subtitle>
         </HeaderTitle>
@@ -617,11 +551,7 @@ function MarginProfit() {
               type="text"
               placeholder="Buscar producto, marca o línea"
               value={searchTerm}
-              onChange={(event) =>
-                setSearchTerm(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setSearchTerm(event.target.value)}
             />
           </SearchBox>
         </Toolbar>
@@ -631,14 +561,8 @@ function MarginProfit() {
             <FilterButton
               key={brand.id}
               type="button"
-              $active={
-                selectedBrandId === brand.id
-              }
-              onClick={() =>
-                setSelectedBrandId(
-                  brand.id,
-                )
-              }
+              $active={selectedBrandId === brand.id}
+              onClick={() => setSelectedBrandId(brand.id)}
             >
               {brand.name}
             </FilterButton>

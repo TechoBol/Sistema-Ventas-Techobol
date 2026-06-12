@@ -250,7 +250,7 @@ export default function CreateTransferModal({
 
   // ── render ─────────────────────────────────────────────────────────
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay>
       <ModalContent
         onClick={(e) => e.stopPropagation()}
         style={{

@@ -459,7 +459,7 @@ export default function DetailCustomer() {
 
       {/* MODAL ACTIVIDADES */}
       {modalActividades && (
-        <ModalOverlay onClick={() => setModalActividades(false)}>
+        <ModalOverlay>
           <ModalContainer onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>Todas las actividades — {customer?.name}</ModalTitle>
