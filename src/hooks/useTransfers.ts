@@ -72,7 +72,7 @@ export const useTransfers = () => {
 
   useEffect(() => {
     socket.on("transfer", (mensaje) => {
-      notificationToast(mensaje)
+      //notificationToast(mensaje)
       setTransferNotification(true);
       getTransfers();
     });

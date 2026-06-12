@@ -60,7 +60,7 @@ const useInventory = () => {
     };
 
     const handleTransfer = async (mensaje: string) => {
-      notificationToast(mensaje);
+      //notificationToast(mensaje);
 
       await fetchProducts();
     };

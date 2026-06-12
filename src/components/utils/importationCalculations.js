@@ -1,31 +1,161 @@
 export const IVA_RATE = 0.1494;
+export const ITF_RATE = 0.003;
 
 export const roundToFourDecimals = (value) => {
-  const numericValue = Number(value || 0);
-
-  return (
-    Math.round((numericValue + Number.EPSILON) * 10000) /
-    10000
-  );
+  return Math.round((Number(value || 0) + Number.EPSILON) * 10000) / 10000;
 };
 
 export const getProductSubtotalUsd = (product) => {
   const baseQuantity = Number(product?.baseQuantity || 0);
   const priceUsd = Number(product?.priceUsd || 0);
-
   return roundToFourDecimals(baseQuantity * priceUsd);
 };
 
 export const getSectionTotalUsd = (items = []) => {
   const safeItems = Array.isArray(items) ? items : [];
-
-  const total = safeItems.reduce(
-    (accumulator, item) =>
-      accumulator + Number(item?.amount ?? item?.amountUsd ?? 0),
-    0
+  return roundToFourDecimals(
+    safeItems.reduce(
+      (total, item) =>
+        total + Number(item?.amount ?? item?.amountUsd ?? 0),
+      0
+    )
   );
+};
 
-  return roundToFourDecimals(total);
+export const calculateBankPayments = ({
+  payments = [],
+  officialExchangeRate = 0,
+}) => {
+  const safePayments = Array.isArray(payments) ? payments : [];
+  const officialRate = Number(officialExchangeRate || 0);
+  const rows = safePayments.map((payment, index) => {
+    const amountUsd = Number(payment?.amountUsd || 0);
+    const bankExchangeRate = Number(payment?.bankExchangeRate || 0);
+    const commissionUsd = Number(payment?.commissionUsd || 0);
+    const itfEntryUsd = Number(payment?.itfEntryUsd || 0);
+    const paymentAmountBs = roundToFourDecimals(
+      amountUsd * bankExchangeRate
+    );
+
+    /* la comisión en dólares es convertida a bolivianos usando el tipo de cambio oficial */
+    const commissionBs = roundToFourDecimals(
+      commissionUsd * officialRate
+    );
+
+    /* El ITF de salida está consistente: monto del pago USD × 0,3 % */
+    const itfExitUsd = roundToFourDecimals(amountUsd * ITF_RATE);
+
+    /*
+     * El ITF de entrada se registra según el comprobante
+     * Ambos ITF son convertidos a Bs con el tipo de cambio del pago
+     */
+    const itfEntryBs = roundToFourDecimals(
+      itfEntryUsd * bankExchangeRate
+    );
+
+    const itfExitBs = roundToFourDecimals(
+      itfExitUsd * bankExchangeRate
+    );
+
+    const totalItfUsd = roundToFourDecimals(
+      itfEntryUsd + itfExitUsd
+    );
+
+    const totalItfBs = roundToFourDecimals(
+      itfEntryBs + itfExitBs
+    );
+
+    const totalBankCostUsd = roundToFourDecimals(
+      commissionUsd + totalItfUsd
+    );
+
+    const totalOperationUsd = roundToFourDecimals(
+      amountUsd + totalBankCostUsd
+    );
+
+    const totalOperationBs = roundToFourDecimals(
+      paymentAmountBs +
+        commissionBs +
+        itfEntryBs +
+        itfExitBs
+    );
+
+    return {
+      id: index + 1,
+      paymentType: payment?.paymentType || "PAYMENT",
+      date: payment?.date || "",
+      bankName: payment?.bankName || "",
+      amountUsd,
+      bankExchangeRate,
+      paymentAmountBs,
+      commissionUsd,
+      commissionBs,
+      itfEntryUsd,
+      itfExitUsd,
+      itfEntryBs,
+      itfExitBs,
+      totalItfUsd,
+      totalItfBs,
+      totalBankCostUsd,
+      totalOperationUsd,
+      totalOperationBs,
+    };
+  });
+
+  const totals = rows.reduce(
+    (accumulator, row) => ({
+      totalPaymentUsd: roundToFourDecimals(
+        accumulator.totalPaymentUsd + row.amountUsd
+      ),
+      totalPaymentBs: roundToFourDecimals(
+        accumulator.totalPaymentBs + row.paymentAmountBs
+      ),
+      totalCommissionUsd: roundToFourDecimals(
+        accumulator.totalCommissionUsd + row.commissionUsd
+      ),
+      totalCommissionBs: roundToFourDecimals(
+        accumulator.totalCommissionBs + row.commissionBs
+      ),
+      totalItfEntryUsd: roundToFourDecimals(
+        accumulator.totalItfEntryUsd + row.itfEntryUsd
+      ),
+      totalItfExitUsd: roundToFourDecimals(
+        accumulator.totalItfExitUsd + row.itfExitUsd
+      ),
+      totalItfUsd: roundToFourDecimals(
+        accumulator.totalItfUsd + row.totalItfUsd
+      ),
+      totalItfBs: roundToFourDecimals(
+        accumulator.totalItfBs + row.totalItfBs
+      ),
+      totalBankCostsUsd: roundToFourDecimals(
+        accumulator.totalBankCostsUsd + row.totalBankCostUsd
+      ),
+      totalOperationUsd: roundToFourDecimals(
+        accumulator.totalOperationUsd + row.totalOperationUsd
+      ),
+      totalOperationBs: roundToFourDecimals(
+        accumulator.totalOperationBs + row.totalOperationBs
+      ),
+    }),
+    {
+      totalPaymentUsd: 0,
+      totalPaymentBs: 0,
+      totalCommissionUsd: 0,
+      totalCommissionBs: 0,
+      totalItfEntryUsd: 0,
+      totalItfExitUsd: 0,
+      totalItfUsd: 0,
+      totalItfBs: 0,
+      totalBankCostsUsd: 0,
+      totalOperationUsd: 0,
+      totalOperationBs: 0,
+    }
+  );
+  return {
+    rows,
+    totals,
+  };
 };
 
 export const calculateAdditionalCost = (
@@ -61,6 +191,7 @@ export const calculateAdditionalCost = (
 
   return {
     concept: cost?.concept || "Sin concepto",
+    source: cost?.source || "MANUAL",
     currency,
     originalAmount: amount,
     amountUsd,
@@ -72,20 +203,69 @@ export const calculateAdditionalCost = (
   };
 };
 
+export const buildBankAdditionalCosts = (
+  bankPayments,
+  officialExchangeRate
+) => {
+  const bankCalculation = calculateBankPayments({
+    payments: bankPayments,
+    officialExchangeRate,
+  });
+
+  return [
+    {
+      concept: "Comisiones Bancarias DÓLARES",
+      amount: bankCalculation.totals.totalCommissionUsd,
+      currency: "USD",
+      hasFiscalCredit: false,
+      creditRate: 0,
+      source: "BANK",
+      locked: true,
+    },
+    {
+      concept: "ITF USD",
+      amount: bankCalculation.totals.totalItfUsd,
+      currency: "USD",
+      hasFiscalCredit: false,
+      creditRate: 0,
+      source: "BANK",
+      locked: true,
+    },
+  ];
+};
+
 export const calculateImportation = ({
   generalData = {},
   products = [],
   expenses = {},
+  bankPayments = [],
   additionalCosts = [],
 }) => {
   const safeProducts = Array.isArray(products) ? products : [];
-  const safeAdditionalCosts = Array.isArray(additionalCosts)
-    ? additionalCosts
-    : [];
 
   const officialExchangeRate = Number(
     generalData?.officialExchangeRate || 0
   );
+
+  const bankCalculation = calculateBankPayments({
+    payments: bankPayments,
+    officialExchangeRate,
+  });
+
+  /* Las filas bancarias se construyen automáticamente */
+  const manualAdditionalCosts = (
+    Array.isArray(additionalCosts) ? additionalCosts : []
+  ).filter((cost) => cost?.source !== "BANK");
+
+  const bankAdditionalCosts = buildBankAdditionalCosts(
+    bankPayments,
+    officialExchangeRate
+  );
+
+  const allAdditionalCosts = [
+    ...manualAdditionalCosts,
+    ...bankAdditionalCosts,
+  ];
 
   const totalProductsUsd = roundToFourDecimals(
     safeProducts.reduce(
@@ -95,28 +275,11 @@ export const calculateImportation = ({
     )
   );
 
-  const totalFreightsUsd = getSectionTotalUsd(
-    expenses?.freights
-  );
+  const totalFreightsUsd = getSectionTotalUsd(expenses?.freights);
+  const totalInsurancesUsd = getSectionTotalUsd(expenses?.insurances);
+  const totalPortCostsUsd = getSectionTotalUsd(expenses?.portCosts);
+  const totalOtherBaseCostsUsd = getSectionTotalUsd(expenses?.otherCosts);
 
-  const totalInsurancesUsd = getSectionTotalUsd(
-    expenses?.insurances
-  );
-
-  const totalPortCostsUsd = getSectionTotalUsd(
-    expenses?.portCosts
-  );
-
-  const totalOtherBaseCostsUsd = getSectionTotalUsd(
-    expenses?.otherCosts
-  );
-
-  /*
-   * Según el flujo actual:
-   * Base imponible = productos + fletes + seguros + gastos portuarios.
-   * Otros gastos base no se suman al CIF mientras no se confirme
-   * expresamente que deben formar parte de él.
-   */
   const totalBaseExpensesUsd = roundToFourDecimals(
     totalFreightsUsd +
       totalInsurancesUsd +
@@ -160,21 +323,15 @@ export const calculateImportation = ({
     );
 
     const freightsBs = roundToFourDecimals(
-      totalFreightsUsd *
-        officialExchangeRate *
-        factor
+      totalFreightsUsd * officialExchangeRate * factor
     );
 
     const insurancesBs = roundToFourDecimals(
-      totalInsurancesUsd *
-        officialExchangeRate *
-        factor
+      totalInsurancesUsd * officialExchangeRate * factor
     );
 
     const portCostsBs = roundToFourDecimals(
-      totalPortCostsUsd *
-        officialExchangeRate *
-        factor
+      totalPortCostsUsd * officialExchangeRate * factor
     );
 
     const cifBs = roundToFourDecimals(
@@ -185,36 +342,17 @@ export const calculateImportation = ({
     );
 
     const gaPercent = Number(product?.gaPercent || 0);
-    const gaRate = gaPercent / 100;
-
-    const gaBs = roundToFourDecimals(cifBs * gaRate);
-
-    const ivaBs = roundToFourDecimals(
-      (cifBs + gaBs) * IVA_RATE
-    );
-
-    /*
-     * Se conserva la misma lógica que venías usando:
-     * el IVA se muestra como crédito fiscal, pero no se suma al
-     * valor después de impuestos.
-     */
-    const valueAfterTaxesBs = roundToFourDecimals(
-      cifBs + gaBs
-    );
+    const gaBs = roundToFourDecimals(cifBs * (gaPercent / 100));
+    const ivaBs = roundToFourDecimals((cifBs + gaBs) * IVA_RATE);
+    const valueAfterTaxesBs = roundToFourDecimals(cifBs + gaBs);
 
     return {
       id: index + 1,
       productId: product?.productId ?? null,
-      productCode:
-        product?.productCode || "Sin código",
-      productName:
-        product?.productName || "Sin nombre",
-      referenceQuantity: Number(
-        product?.referenceQuantity || 0
-      ),
-      baseQuantity: Number(
-        product?.baseQuantity || 0
-      ),
+      productCode: product?.productCode || "Sin código",
+      productName: product?.productName || "Sin nombre",
+      referenceQuantity: Number(product?.referenceQuantity || 0),
+      baseQuantity: Number(product?.baseQuantity || 0),
       priceUsd: Number(product?.priceUsd || 0),
       subtotalUsd,
       factor,
@@ -230,30 +368,16 @@ export const calculateImportation = ({
     };
   });
 
-  const additionalCostRows = safeAdditionalCosts.map(
-    (cost) =>
-      calculateAdditionalCost(
-        cost,
-        officialExchangeRate
-      )
+  const additionalCostRows = allAdditionalCosts.map((cost) =>
+    calculateAdditionalCost(cost, officialExchangeRate)
   );
 
   const totalAdditionalCosts = additionalCostRows.reduce(
     (accumulator, cost) => ({
-      amountUsd: roundToFourDecimals(
-        accumulator.amountUsd + cost.amountUsd
-      ),
-      amountBs: roundToFourDecimals(
-        accumulator.amountBs + cost.amountBs
-      ),
-      fiscalCreditBs: roundToFourDecimals(
-        accumulator.fiscalCreditBs +
-          cost.fiscalCreditBs
-      ),
-      netAmountBs: roundToFourDecimals(
-        accumulator.netAmountBs +
-          cost.netAmountBs
-      ),
+      amountUsd: roundToFourDecimals(accumulator.amountUsd + cost.amountUsd),
+      amountBs: roundToFourDecimals(accumulator.amountBs + cost.amountBs),
+      fiscalCreditBs: roundToFourDecimals(accumulator.fiscalCreditBs + cost.fiscalCreditBs),
+      netAmountBs: roundToFourDecimals(accumulator.netAmountBs + cost.netAmountBs),
     }),
     {
       amountUsd: 0,
@@ -265,20 +389,17 @@ export const calculateImportation = ({
 
   const finalRows = productRows.map((product) => {
     const additionalAssignedBs = roundToFourDecimals(
-      totalAdditionalCosts.netAmountBs *
-        product.factor
+      totalAdditionalCosts.netAmountBs * product.factor
     );
 
     const finalCostBs = roundToFourDecimals(
-      product.valueAfterTaxesBs +
-        additionalAssignedBs
+      product.valueAfterTaxesBs + additionalAssignedBs
     );
 
     const unitCostBs =
       product.referenceQuantity > 0
         ? roundToFourDecimals(
-            finalCostBs /
-              product.referenceQuantity
+            finalCostBs / product.referenceQuantity
           )
         : null;
 
@@ -290,88 +411,39 @@ export const calculateImportation = ({
     };
   });
 
-  const totalCifBs = roundToFourDecimals(
-    productRows.reduce(
-      (accumulator, row) =>
-        accumulator + row.cifBs,
-      0
-    )
-  );
-
-  const totalGaBs = roundToFourDecimals(
-    productRows.reduce(
-      (accumulator, row) =>
-        accumulator + row.gaBs,
-      0
-    )
-  );
-
-  const totalIvaBs = roundToFourDecimals(
-    productRows.reduce(
-      (accumulator, row) =>
-        accumulator + row.ivaBs,
-      0
-    )
-  );
-
-  const totalValueAfterTaxesBs =
+  const sumRows = (field, rows = productRows) =>
     roundToFourDecimals(
-      productRows.reduce(
-        (accumulator, row) =>
-          accumulator +
-          row.valueAfterTaxesBs,
+      rows.reduce(
+        (total, row) => total + Number(row?.[field] || 0),
         0
       )
     );
-
-  const totalAdditionalAssignedBs =
-    roundToFourDecimals(
-      finalRows.reduce(
-        (accumulator, row) =>
-          accumulator +
-          row.additionalAssignedBs,
-        0
-      )
-    );
-
-  const totalFinalCostBs = roundToFourDecimals(
-    finalRows.reduce(
-      (accumulator, row) =>
-        accumulator + row.finalCostBs,
-      0
-    )
-  );
 
   return {
     officialExchangeRate,
+    bankCalculation,
+    allAdditionalCosts,
 
     totals: {
       totalProductsUsd,
       totalProductsBs,
-
       totalFreightsUsd,
       totalFreightsBs,
-
       totalInsurancesUsd,
       totalInsurancesBs,
-
       totalPortCostsUsd,
       totalPortCostsBs,
-
       totalOtherBaseCostsUsd,
       totalOtherBaseCostsBs,
-
       totalBaseExpensesUsd,
       totalBaseExpensesBs,
-
-      totalCifBs,
-      totalGaBs,
-      totalIvaBs,
-      totalValueAfterTaxesBs,
-
+      totalCifBs: sumRows("cifBs"),
+      totalGaBs: sumRows("gaBs"),
+      totalIvaBs: sumRows("ivaBs"),
+      totalValueAfterTaxesBs: sumRows("valueAfterTaxesBs"),
       totalAdditionalCosts,
-      totalAdditionalAssignedBs,
-      totalFinalCostBs,
+      totalAdditionalAssignedBs: sumRows("additionalAssignedBs", finalRows),
+      totalFinalCostBs: sumRows("finalCostBs", finalRows),
     },
 
     productRows,

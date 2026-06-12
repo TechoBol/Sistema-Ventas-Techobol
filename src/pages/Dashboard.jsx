@@ -158,17 +158,20 @@ function Dashboard() {
       <div style={styles.rankingsGrid}>
         <Card title="Productos más vendidos">
           {productos_top.map((p, i) => (
-            <RankingRow key={i} index={i + 1} nombre={p.nombre} valor={`${p.cantidad} und`} rawValue={p.cantidad} max={productos_top[0].cantidad} />
+            <RankingRow key={i} index={i + 1} nombre={p.nombre} valor={`${p.cantidad} und`}
+              rawValue={p.cantidad} max={productos_top[0]?.cantidad ?? 0} />
           ))}
         </Card>
         <Card title="Sucursales con más ventas">
           {sucursales_top.map((s, i) => (
-            <RankingRow key={i} index={i + 1} nombre={s.nombre} valor={bs(s.total)} rawValue={s.total} max={sucursales_top[0].total} />
+            <RankingRow key={i} index={i + 1} nombre={s.nombre} valor={bs(s.total)}
+              rawValue={s.total} max={sucursales_top[0]?.total ?? 0} />
           ))}
         </Card>
         <Card title="Clientes con más compras">
           {clientes_top.map((c, i) => (
-            <RankingRow key={i} index={i + 1} nombre={c.nombre} valor={bs(c.total)} rawValue={c.total} max={clientes_top[0].total} />
+            <RankingRow key={i} index={i + 1} nombre={c.nombre} valor={bs(c.total)}
+              rawValue={c.total} max={clientes_top[0]?.total ?? 0} />
           ))}
         </Card>
       </div>
