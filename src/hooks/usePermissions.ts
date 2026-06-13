@@ -1,15 +1,18 @@
 import { useLoginStore } from "../components/store/loginStore";
+import { useLocationStore } from "../components/store/locationStore";
 
 export const LEVELS = {
   ADMIN: 1,
   MANAGER: 2,
   BRANCH_MANAGER: 3, // ← nuevo, sucursal fija
   SELLER: 4,
-  VIEWER: 5,     // ← renombrado, puede ver pero no editar
+  VIEWER: 5, // ← renombrado, puede ver pero no editar
 };
 
 export const usePermissions = () => {
-  const { level, location, selectedLocationId, setSelectedLocationId } = useLoginStore();
+  const { level, location, selectedLocationId, setSelectedLocationId } =
+    useLoginStore();
+  const { selectedLocation } = useLocationStore();
 
   const lvl = Number(level);
 
@@ -20,15 +23,15 @@ export const usePermissions = () => {
   const isViewer = lvl === LEVELS.VIEWER;
 
   // Puede cambiar entre sucursales
-  const canSwitchBranch = isAdmin || isManager || isViewer;
 
   // Solo ve su sucursal asignada (no puede cambiar)
   const hasFixedBranch = isBranchManager;
 
-  // locationId efectivo para el dashboard
-  const effectiveLocationId = hasFixedBranch
-    ? location?.id        // BranchManager siempre ve la suya
-    : selectedLocationId; // Los demás usan la seleccionada (null = todas)
+  const canSwitchBranch = isAdmin || isManager || isViewer;
+
+  const effectiveLocationId = canSwitchBranch
+    ? selectedLocation?.id
+    : location?.id;
 
   return {
     level: lvl,
@@ -59,7 +62,7 @@ export const usePermissions = () => {
     canCreateProduct: isAdmin || isManager,
     canEditProduct: isAdmin || isManager,
     canViewProfits: isAdmin,
-    canViewCosts : isAdmin || isManager || isViewer,
-    canApproveTransfers : isAdmin || isManager
+    canViewCosts: isAdmin || isManager || isViewer,
+    canApproveTransfers: isAdmin || isManager,
   };
 };

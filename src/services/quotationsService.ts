@@ -45,6 +45,12 @@ export const convertQuotationService = async (
       body: JSON.stringify(data),
     }
   );
-  if (!response.ok) throw new Error("No se pudo convertir la cotización");
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    console.error("Backend error:", response.status, errorBody);
+    throw new Error(errorBody?.message || "No se pudo convertir la cotización");
+  }
+
   return response.json();
 };

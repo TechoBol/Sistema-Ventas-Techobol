@@ -53,15 +53,17 @@ import {
   ModeTitleGroup,
   SegmentedControl,
   SegBtn,
+  PresentationRow,
+  AddPresentationRow,
+  AddPresentationButton,
 } from "../components/ui/Cart";
 import { socket } from "../services/SocketIOConnection";
 
 import { useCart } from "../hooks/useCart";
-import { useLoginStore } from "../components/store/loginStore";
 import Swal from "sweetalert2";
 import SaleForm from "../components/forms/SaleForm";
 import { errorToast } from "../services/toasts";
-
+import { usePermissions } from "../hooks/usePermissions";
 const fechaHoy = () => {
   const fecha = new Date().toLocaleDateString("es-BO", {
     weekday: "long",
@@ -74,8 +76,7 @@ const fechaHoy = () => {
 
 const Cart = () => {
   const { products } = useInventory();
-  const { location } = useLoginStore();
-
+  const { effectiveLocationId } = usePermissions();
   /* ── Modos de Operación Centralizados ── */
   const [mode, setMode] = useState("venta"); // 'venta' | 'cotizacion' | 'reserva'
 
@@ -89,7 +90,7 @@ const Cart = () => {
   const [query, setQuery] = useState("");
   const [dropOpen, setDropOpen] = useState(false);
   const searchRef = useRef(null);
-
+  console.log(effectiveLocationId)
   const filtered =
     query.trim() === ""
       ? (products ?? []).slice(0, 50)
@@ -124,55 +125,98 @@ const Cart = () => {
     return baseSalePrice;
   };
 
+  const buildLine = (product, unit) => ({
+    id: `${product.id}-${unit.id}`,
+    productId: product.id,
+    code: product.code,
+    name: product.name,
+    quantity: 1,
+    itemDiscount: 0,
+    productUnits: product.productUnits,
+    selectedUnitId: unit.id,
+    equivalence: Number(unit.equivalence),
+    unitName: unit.unit.name,
+    baseSalePrice: Number(unit.salePrice),
+    unitPrice: Number(unit.salePrice),
+    quantityDiscount: product.quantityDiscount || 0,
+    bossDiscount: product.bossDiscount || 0,
+    purchasePrice: Number(product.purchasePrice || 0),
+    stock:
+      product?.inventories?.find((inv) => inv.locationId === effectiveLocationId)
+        ?.quantity || 0,
+    baseUnitName: product.baseUnit?.name || "unid.",
+  });
+
   const addToCart = (product) => {
     setCartItems((prev) => {
-      const exists = prev.find((i) => i.productId === product.id);
+      const existingLine = prev.find((i) => i.productId === product.id);
+
+      if (existingLine) {
+        return prev.map((i) =>
+          i.id === existingLine.id ? { ...i, quantity: i.quantity + 1 } : i,
+        );
+      }
+
       const defaultUnit =
         product.productUnits.find((u) => u.isDefault) ||
         product.productUnits[0];
 
-      if (exists) {
-        return prev.map((i) =>
-          i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i,
-        );
-      }
-
-      return [
-        ...prev,
-        {
-          productId: product.id,
-          code: product.code,
-          name: product.name,
-          quantity: 1,
-          itemDiscount: 0,
-          productUnits: product.productUnits,
-          selectedUnitId: defaultUnit.id,
-          equivalence: Number(defaultUnit.equivalence),
-          unitName: defaultUnit.unit.name,
-          baseSalePrice: Number(defaultUnit.salePrice),
-          unitPrice: Number(defaultUnit.salePrice),
-          quantityDiscount: product.quantityDiscount || 0,
-          bossDiscount: product.bossDiscount || 0,
-          purchasePrice: Number(product.purchasePrice || 0),
-          stock:
-            product?.inventories?.find((inv) => inv.locationId === location.id)
-              ?.quantity || 0,
-        },
-      ];
+      return [...prev, buildLine(product, defaultUnit)];
     });
     setQuery("");
     setDropOpen(false);
   };
 
-  const changeUnit = (index, productUnitId) => {
-    setCartItems((prev) =>
-      prev.map((item, i) => {
-        if (i !== index) return item;
-        const selectedUnit = item.productUnits.find(
-          (u) => u.id === Number(productUnitId),
+  const addPresentation = (productId) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    setCartItems((prev) => {
+      const usedUnitIds = prev
+        .filter((i) => i.productId === productId)
+        .map((i) => i.selectedUnitId);
+
+      const availableUnit = product.productUnits.find(
+        (u) => !usedUnitIds.includes(u.id),
+      );
+
+      if (!availableUnit) {
+        errorToast(
+          "Ya se agregaron todas las presentaciones disponibles para este producto.",
         );
+        return prev;
+      }
+
+      return [...prev, buildLine(product, availableUnit)];
+    });
+  };
+
+  const changeUnit = (itemId, productUnitId) => {
+    setCartItems((prev) => {
+      const current = prev.find((i) => i.id === itemId);
+      if (!current) return prev;
+
+      const newUnitId = Number(productUnitId);
+
+      // Evitar que dos líneas del mismo producto usen la misma presentación
+      const conflict = prev.find(
+        (i) =>
+          i.productId === current.productId &&
+          i.id !== itemId &&
+          i.selectedUnitId === newUnitId,
+      );
+      if (conflict) {
+        errorToast("Esta presentación ya está agregada para este producto.");
+        return prev;
+      }
+
+      const selectedUnit = current.productUnits.find((u) => u.id === newUnitId);
+
+      return prev.map((item) => {
+        if (item.id !== itemId) return item;
         return {
           ...item,
+          id: `${item.productId}-${selectedUnit.id}`,
           selectedUnitId: selectedUnit.id,
           equivalence: Number(selectedUnit.equivalence),
           unitName: selectedUnit.unit.name,
@@ -184,20 +228,20 @@ const Cart = () => {
             item.bossDiscount,
           ),
         };
-      }),
-    );
+      });
+    });
   };
 
-  const removeItem = (productId) =>
-    setCartItems((p) => p.filter((i) => i.productId !== productId));
-  const removeItemFromCart = (productId) =>
-    setCartItems((p) => p.filter((i) => i.productId !== productId));
-  const setItemDiscount = (productId, val) =>
+  const removeItem = (itemId) =>
+    setCartItems((p) => p.filter((i) => i.id !== itemId));
+
+  //const removeItemFromCart = (productId) =>
+  //setCartItems((p) => p.filter((i) => i.productId !== productId));
+
+  const setItemDiscount = (itemId, val) =>
     setCartItems((p) =>
       p.map((i) =>
-        i.productId === productId
-          ? { ...i, itemDiscount: Number(val) || 0 }
-          : i,
+        i.id === itemId ? { ...i, itemDiscount: Number(val) || 0 } : i,
       ),
     );
 
@@ -254,7 +298,7 @@ const Cart = () => {
     setIsProcessing(true);
 
     console.log("CUSTOMER DATA:", customerData);
-    
+
     try {
       // 1. Armamos el objeto con la información del cliente + parámetros financieros requeridos por el hook
       const dataPayload = {
@@ -312,7 +356,8 @@ const Cart = () => {
       console.error(err);
       Swal.fire({
         title: "Error",
-        text: `No se pudo procesar la operación en modo ${mode}.`,
+        text:
+          err.message || `No se pudo procesar la operación en modo ${mode}.`,
         icon: "error",
       });
     } finally {
@@ -326,6 +371,7 @@ const Cart = () => {
     { id: "Deposito bancario", label: "Banco", icon: <CreditCard size={20} /> },
     { id: "QR", label: "Código QR", icon: <QrCode size={20} /> },
   ];
+
   useEffect(() => {
     const handleMarginUpdate = ({
       id,
@@ -337,7 +383,6 @@ const Cart = () => {
         prev.map((item) => {
           if (item.productId !== id) return item;
 
-          // Recalcular el nuevo precio base igual que en useInventory
           const costIva = Number(item.purchasePrice || 0) * 1.1494;
           const newBaseSalePrice = Math.round(
             costIva * (1 + porcentajeGanancia / 100),
@@ -362,6 +407,7 @@ const Cart = () => {
     socket.on("updateProductMargin", handleMarginUpdate);
     return () => socket.off("updateProductMargin", handleMarginUpdate);
   }, []);
+
   return (
     <ModeShell className={`mode-${mode}`}>
       <Wrapper>
@@ -432,23 +478,23 @@ const Cart = () => {
                         <DropCode>{p?.code || "-"}</DropCode>
                         <DropName>{p?.name || "-"}</DropName>
                         <DropCantidad>
-  {Number(
-    p?.inventories?.find(
-      (inv) => inv.locationId === location.id,
-    )?.quantity || 0,
-  ).toLocaleString("es-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  })}
-</DropCantidad>
+                          {Number(
+                            p?.inventories?.find(
+                              (inv) => inv.locationId === effectiveLocationId,
+                            )?.quantity || 0,
+                          ).toLocaleString("es-US", {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 1,
+                          })}
+                        </DropCantidad>
 
-<DropPrice>
-  {Number(p?.salePrice || 0).toLocaleString("es-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}{" "}
-  Bs
-</DropPrice>
+                        <DropPrice>
+                          {Number(p?.salePrice || 0).toLocaleString("es-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}{" "}
+                          Bs
+                        </DropPrice>
                       </DropItem>
                     ))
                   )}
@@ -484,173 +530,271 @@ const Cart = () => {
                         </td>
                       </tr>
                     ) : (
-                      cartItems.map((item, index) => (
-                        <TR key={item.productId}>
-                          <TD style={{ color: "#94a3b8", fontSize: 13 }}>
-                            {item.code}
-                          </TD>
-                          <TD style={{ fontWeight: 500 }}>{item.name}</TD>
-                          <TD>
-                            <select
-                              value={item.selectedUnitId}
-                              onChange={(e) =>
-                                changeUnit(index, e.target.value)
-                              }
-                              style={{
-                                padding: "6px 10px",
-                                borderRadius: 8,
-                                border: "1px solid #E2E8F0",
-                                background: "#fff",
-                                fontSize: 13,
-                              }}
-                            >
-                              {item.productUnits.map((unit) => (
-                                <option key={unit.id} value={unit.id}>
-                                  {unit.unit.name}
-                                </option>
-                              ))}
-                            </select>
-                          </TD>
-                          <TD style={{ textAlign: "center" }}>
-                            <input
-                              type="number"
-                              min="1"
-                              max={item.stock}
-                              value={item.quantity}
-                              onChange={(e) => {
-                                const valorIngresado = Number(e.target.value);
+                      Object.values(
+                        cartItems.reduce((groups, item) => {
+                          if (!groups[item.productId]) {
+                            groups[item.productId] = [];
+                          }
+                          groups[item.productId].push(item);
+                          return groups;
+                        }, {}),
+                      ).map((group) => {
+                        const usedUnitIds = group.map((i) => i.selectedUnitId);
+                        const hasMorePresentations =
+                          group[0].productUnits.length > usedUnitIds.length;
 
-                                if (e.target.value === "") {
-                                  setCartItems((p) =>
-                                    p.map((i) =>
-                                      i.productId === item.productId
-                                        ? { ...i, quantity: "" }
-                                        : i,
-                                    ),
-                                  );
-                                  return;
-                                }
+                        return group.map((item, idx) => {
+                          const RowComponent = idx === 0 ? TR : PresentationRow;
 
-                                if (valorIngresado > item.stock) {
-                                  errorToast(
-                                    `Stock insuficiente. Máximo disponible: ${item.stock} unids.`,
-                                  );
-                                  setCartItems((p) =>
-                                    p.map((i) =>
-                                      i.productId === item.productId
-                                        ? {
-                                            ...i,
-                                            quantity: item.stock,
-                                            unitPrice: calcUnitPrice(
-                                              i.baseSalePrice,
-                                              item.stock,
-                                              i.quantityDiscount,
-                                              i.bossDiscount,
-                                            ),
-                                          }
-                                        : i,
-                                    ),
-                                  );
-                                  return;
-                                }
+                          const usedByOthers = group
+                            .filter((g) => g.id !== item.id)
+                            .reduce(
+                              (acc, g) =>
+                                acc + (Number(g.quantity) || 0) * g.equivalence,
+                              0,
+                            );
 
-                                if (valorIngresado >= 1) {
-                                  const qty = Math.floor(valorIngresado);
-                                  setCartItems((p) =>
-                                    p.map((i) =>
-                                      i.productId === item.productId
-                                        ? {
-                                            ...i,
-                                            quantity: qty,
-                                            unitPrice: calcUnitPrice(
-                                              i.baseSalePrice,
-                                              qty,
-                                              i.quantityDiscount,
-                                              i.bossDiscount,
-                                            ),
-                                          }
-                                        : i,
-                                    ),
-                                  );
-                                }
-                              }}
-                              onBlur={(e) => {
-                                if (
-                                  e.target.value === "" ||
-                                  Number(e.target.value) < 1
-                                ) {
-                                  setCartItems((p) =>
-                                    p.map((i) =>
-                                      i.productId === item.productId
-                                        ? {
-                                            ...i,
-                                            quantity: 1,
-                                            unitPrice: calcUnitPrice(
-                                              i.baseSalePrice,
-                                              1,
-                                              i.quantityDiscount,
-                                              i.bossDiscount,
-                                            ),
-                                          }
-                                        : i,
-                                    ),
-                                  );
-                                }
-                              }}
-                              style={{
-                                width: "70px",
-                                padding: "6px 8px",
-                                borderRadius: "8px",
-                                border: "1px solid #E2E8F0",
-                                textAlign: "center",
-                                fontSize: "14px",
-                                fontWeight: "600",
-                                outline: "none",
-                                boxSizing: "border-box",
-                              }}
-                            />
-                          </TD>
-                          <TD style={{ textAlign: "right" }}>
-                            {item.unitPrice.toFixed(2)} Bs
-                          </TD>
-                          <TD style={{ textAlign: "right" }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "flex-end",
-                                gap: 4,
-                              }}
-                            >
-                              <DiscountInput
-                                type="number"
-                                min="0"
-                                value={item.itemDiscount || ""}
-                                placeholder="0"
-                                onChange={(e) => {
-                                  const v = Number(e.target.value) || 0;
-                                  const max = item.unitPrice * item.quantity;
-                                  setItemDiscount(
-                                    item.productId,
-                                    Math.min(v, max),
-                                  );
-                                }}
-                              />
-                              <span style={{ fontSize: 13, color: "#94a3b8" }}>
-                                Bs
-                              </span>
-                            </div>
-                          </TD>
-                          <TD>{itemSubtotal(item).toFixed(2)} Bs</TD>
-                          <TD style={{ textAlign: "center" }}>
-                            <DeleteButton
-                              onClick={() => removeItem(item.productId)}
-                            >
-                              <Trash2 size={16} />
-                            </DeleteButton>
-                          </TD>
-                        </TR>
-                      ))
+                          const remainingStock = item.stock - usedByOthers;
+                          const maxInThisUnit = (
+                            remainingStock / item.equivalence
+                          ).toFixed(2);
+
+                          return (
+                            <React.Fragment key={item.id}>
+                              <RowComponent>
+                                <TD style={{ color: "#94a3b8", fontSize: 13 }}>
+                                  {idx === 0 ? item.code : ""}
+                                </TD>
+                                <TD
+                                  style={{ fontWeight: idx === 0 ? 500 : 400 }}
+                                >
+                                  {idx === 0 ? (
+                                    item.name
+                                  ) : (
+                                    <span
+                                      style={{
+                                        color: "#94a3b8",
+                                        fontSize: 12,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 4,
+                                        paddingLeft: 12,
+                                      }}
+                                    >
+                                      ↳ presentación
+                                    </span>
+                                  )}
+                                </TD>
+                                <TD>
+                                  <select
+                                    value={item.selectedUnitId}
+                                    onChange={(e) =>
+                                      changeUnit(item.id, e.target.value)
+                                    }
+                                    style={{
+                                      padding: "6px 10px",
+                                      borderRadius: 8,
+                                      border: "1px solid #E2E8F0",
+                                      background: "#fff",
+                                      fontSize: 13,
+                                    }}
+                                  >
+                                    {item.productUnits
+                                      .filter(
+                                        (unit) =>
+                                          unit.id === item.selectedUnitId ||
+                                          !usedUnitIds.includes(unit.id),
+                                      )
+                                      .map((unit) => (
+                                        <option key={unit.id} value={unit.id}>
+                                          {unit.unit.name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                  <div
+                                    style={{
+                                      fontSize: 11,
+                                      marginTop: 4,
+                                      color:
+                                        Number(maxInThisUnit) < item.quantity
+                                          ? "#dc2626"
+                                          : "#94a3b8",
+                                    }}
+                                  >
+                                    Stock: {remainingStock.toFixed(2)}{" "}
+                                    {item.baseUnitName}
+                                    {item.equivalence !== 1 && (
+                                      <>
+                                        {" "}
+                                        · máx {maxInThisUnit} {item.unitName}
+                                      </>
+                                    )}
+                                  </div>
+                                </TD>
+                                <TD style={{ textAlign: "center" }}>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max={item.stock}
+                                    value={item.quantity}
+                                    onChange={(e) => {
+                                      const valorIngresado = Number(
+                                        e.target.value,
+                                      );
+
+                                      if (e.target.value === "") {
+                                        setCartItems((p) =>
+                                          p.map((i) =>
+                                            i.id === item.id
+                                              ? { ...i, quantity: "" }
+                                              : i,
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      if (valorIngresado > item.stock) {
+                                        errorToast(
+                                          `Stock insuficiente. Máximo disponible: ${item.stock} unids.`,
+                                        );
+                                        setCartItems((p) =>
+                                          p.map((i) =>
+                                            i.id === item.id
+                                              ? {
+                                                  ...i,
+                                                  quantity: item.stock,
+                                                  unitPrice: calcUnitPrice(
+                                                    i.baseSalePrice,
+                                                    item.stock,
+                                                    i.quantityDiscount,
+                                                    i.bossDiscount,
+                                                  ),
+                                                }
+                                              : i,
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      if (valorIngresado >= 1) {
+                                        const qty = Math.floor(valorIngresado);
+                                        setCartItems((p) =>
+                                          p.map((i) =>
+                                            i.id === item.id
+                                              ? {
+                                                  ...i,
+                                                  quantity: qty,
+                                                  unitPrice: calcUnitPrice(
+                                                    i.baseSalePrice,
+                                                    qty,
+                                                    i.quantityDiscount,
+                                                    i.bossDiscount,
+                                                  ),
+                                                }
+                                              : i,
+                                          ),
+                                        );
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      if (
+                                        e.target.value === "" ||
+                                        Number(e.target.value) < 1
+                                      ) {
+                                        setCartItems((p) =>
+                                          p.map((i) =>
+                                            i.id === item.id
+                                              ? {
+                                                  ...i,
+                                                  quantity: 1,
+                                                  unitPrice: calcUnitPrice(
+                                                    i.baseSalePrice,
+                                                    1,
+                                                    i.quantityDiscount,
+                                                    i.bossDiscount,
+                                                  ),
+                                                }
+                                              : i,
+                                          ),
+                                        );
+                                      }
+                                    }}
+                                    style={{
+                                      width: "70px",
+                                      padding: "6px 8px",
+                                      borderRadius: "8px",
+                                      border: "1px solid #E2E8F0",
+                                      textAlign: "center",
+                                      fontSize: "14px",
+                                      fontWeight: "600",
+                                      outline: "none",
+                                      boxSizing: "border-box",
+                                    }}
+                                  />
+                                </TD>
+                                <TD style={{ textAlign: "right" }}>
+                                  {item.unitPrice.toFixed(2)} Bs
+                                </TD>
+                                <TD style={{ textAlign: "right" }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "flex-end",
+                                      gap: 4,
+                                    }}
+                                  >
+                                    <DiscountInput
+                                      type="number"
+                                      min="0"
+                                      value={item.itemDiscount || ""}
+                                      placeholder="0"
+                                      onChange={(e) => {
+                                        const v = Number(e.target.value) || 0;
+                                        const max =
+                                          item.unitPrice * item.quantity;
+                                        setItemDiscount(
+                                          item.id,
+                                          Math.min(v, max),
+                                        );
+                                      }}
+                                    />
+                                    <span
+                                      style={{ fontSize: 13, color: "#94a3b8" }}
+                                    >
+                                      Bs
+                                    </span>
+                                  </div>
+                                </TD>
+                                <TD>{itemSubtotal(item).toFixed(2)} Bs</TD>
+                                <TD style={{ textAlign: "center" }}>
+                                  <DeleteButton
+                                    onClick={() => removeItem(item.id)}
+                                  >
+                                    <Trash2 size={16} />
+                                  </DeleteButton>
+                                </TD>
+                              </RowComponent>
+
+                              {idx === group.length - 1 &&
+                                hasMorePresentations && (
+                                  <AddPresentationRow>
+                                    <TD colSpan={8} style={{ fontWeight: 400 }}>
+                                      <AddPresentationButton
+                                        type="button"
+                                        onClick={() =>
+                                          addPresentation(item.productId)
+                                        }
+                                      >
+                                        <Plus size={14} /> Añadir presentación
+                                      </AddPresentationButton>
+                                    </TD>
+                                  </AddPresentationRow>
+                                )}
+                            </React.Fragment>
+                          );
+                        });
+                      })
                     )}
                   </TBody>
                 </Table>

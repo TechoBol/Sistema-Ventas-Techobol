@@ -55,7 +55,7 @@ export default function CreateTransferModal({
   const oriDropdownRef = useRef(null);
 
   const permissions = usePermissions();
-  const viewTo = permissions.isAdmin;
+  const viewTo = permissions.isAdmin || permissions.isManager;
   // ── cerrar al click afuera ──────────────────────────────────────────
   useEffect(() => {
     const handle = (e) => {

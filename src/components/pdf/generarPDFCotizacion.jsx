@@ -32,11 +32,16 @@ const drawEmpresa = (doc, cotizacion) => {
   doc.setFontSize(15);
   doc.text("MEGADIS S.R.L.", 14, 18);
 
+  doc.setFontSize(10);
+  doc.text(cotizacion.location?.name || "", 14, 25);
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.text(cotizacion.location?.address || "Dirección no registrada", 14, 28);
-  doc.text("Teléfono: 69417829", 14, 34);
-  doc.text("Cochabamba - Bolivia", 14, 40);
+
+  doc.text(cotizacion.location?.address || "Dirección no registrada", 14, 32);
+
+  doc.text("Teléfono: 69417829", 14, 38);
+  doc.text("Cochabamba - Bolivia", 14, 44);
 };
 
 // =====================================================
@@ -56,7 +61,17 @@ const drawTablaProductos = (doc, cotizacion, startY) => {
 
   autoTable(doc, {
     startY,
-    head: [["CÓDIGO", "CANT.", "UNIDAD", "DESCRIPCIÓN", "P. UNIT.", "DESC.", "SUBTOTAL"]],
+    head: [
+      [
+        "CÓDIGO",
+        "CANT.",
+        "UNIDAD",
+        "DESCRIPCIÓN",
+        "P. UNIT.",
+        "DESC.",
+        "SUBTOTAL",
+      ],
+    ],
     body,
     theme: "plain",
     styles: { fontSize: 8, cellPadding: 3, textColor: [0, 0, 0] },
@@ -81,10 +96,20 @@ const drawTablaProductos = (doc, cotizacion, startY) => {
       doc.setLineWidth(0.2);
       if (row.section === "head") {
         doc.line(cell.x, cell.y, cell.x + cell.width, cell.y);
-        doc.line(cell.x, cell.y + cell.height, cell.x + cell.width, cell.y + cell.height);
+        doc.line(
+          cell.x,
+          cell.y + cell.height,
+          cell.x + cell.width,
+          cell.y + cell.height,
+        );
       }
       if (row.section === "body") {
-        doc.line(cell.x, cell.y + cell.height, cell.x + cell.width, cell.y + cell.height);
+        doc.line(
+          cell.x,
+          cell.y + cell.height,
+          cell.x + cell.width,
+          cell.y + cell.height,
+        );
       }
     },
   });
@@ -105,22 +130,47 @@ const drawTotales = (doc, cotizacion, finalY) => {
 
   doc.setLineWidth(0.2);
   doc.rect(boxX, boxY, labelWidth + valueWidth, rowHeight * 3);
-  doc.line(boxX, boxY + rowHeight, boxX + labelWidth + valueWidth, boxY + rowHeight);
-  doc.line(boxX, boxY + rowHeight * 2, boxX + labelWidth + valueWidth, boxY + rowHeight * 2);
+  doc.line(
+    boxX,
+    boxY + rowHeight,
+    boxX + labelWidth + valueWidth,
+    boxY + rowHeight,
+  );
+  doc.line(
+    boxX,
+    boxY + rowHeight * 2,
+    boxX + labelWidth + valueWidth,
+    boxY + rowHeight * 2,
+  );
   doc.line(boxX + labelWidth, boxY, boxX + labelWidth, boxY + rowHeight * 3);
 
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
 
   doc.text("SUBTOTAL Bs", boxX + 5, boxY + 5.5);
-  doc.text(Number(cotizacion.subtotal).toFixed(2), boxX + labelWidth + valueWidth - 4, boxY + 5.5, { align: "right" });
+  doc.text(
+    Number(cotizacion.subtotal).toFixed(2),
+    boxX + labelWidth + valueWidth - 4,
+    boxY + 5.5,
+    { align: "right" },
+  );
 
   doc.text("DESCUENTO Bs", boxX + 4, boxY + 13.5);
-  doc.text(Number(cotizacion.discount).toFixed(2), boxX + labelWidth + valueWidth - 4, boxY + 13.5, { align: "right" });
+  doc.text(
+    Number(cotizacion.discount).toFixed(2),
+    boxX + labelWidth + valueWidth - 4,
+    boxY + 13.5,
+    { align: "right" },
+  );
 
   doc.setFont("helvetica", "bold");
   doc.text("TOTAL Bs", boxX + 8, boxY + 21.5);
-  doc.text(Number(cotizacion.total).toFixed(2), boxX + labelWidth + valueWidth - 4, boxY + 21.5, { align: "right" });
+  doc.text(
+    Number(cotizacion.total).toFixed(2),
+    boxX + labelWidth + valueWidth - 4,
+    boxY + 21.5,
+    { align: "right" },
+  );
 
   return boxY;
 };
@@ -147,84 +197,102 @@ const generarDocumentoCotizacion = (doc, cotizacion) => {
   let y = 70;
 
   // Fila 1: Vendedor | Sucursal | Fecha
-  drawFila(doc, [
-    {
-      label: "Vendedor:",
-      value: `${cotizacion.employee?.name || ""} ${cotizacion.employee?.lastName || ""}`.trim(),
-      labelX: 14,
-      valueX: 32,
-      maxValueWidth: 57,
-    },
-    {
-      label: "Sucursal:",
-      value: cotizacion.location?.name,
-      labelX: 95,
-      valueX: 113,
-      maxValueWidth: 35,
-    },
-    {
-      label: "Fecha:",
-      value: new Date(cotizacion.createdAt).toLocaleDateString("es-BO"),
-      labelX: 152,
-      valueX: 166,
-      maxValueWidth: 34,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "Vendedor:",
+        value: `${cotizacion.employee?.name || ""} ${
+          cotizacion.employee?.lastName || ""
+        }`.trim(),
+        labelX: 14,
+        valueX: 32,
+        maxValueWidth: 57,
+      },
+      {
+        label: "Sucursal:",
+        value: cotizacion.location?.name,
+        labelX: 95,
+        valueX: 113,
+        maxValueWidth: 35,
+      },
+      {
+        label: "Fecha:",
+        value: new Date(cotizacion.createdAt).toLocaleDateString("es-BO"),
+        labelX: 152,
+        valueX: 166,
+        maxValueWidth: 34,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
   // Fila 2: Cliente | Teléfono
-  drawFila(doc, [
-    {
-      label: "Cliente:",
-      value: cotizacion.customer?.name || "S/N",
-      labelX: 14,
-      valueX: 32,
-      maxValueWidth: 57,
-    },
-    {
-      label: "Teléfono:",
-      value: cotizacion.customer?.phone,
-      labelX: 95,
-      valueX: 113,
-      maxValueWidth: 87,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "Cliente:",
+        value: cotizacion.customer?.name || "S/N",
+        labelX: 14,
+        valueX: 32,
+        maxValueWidth: 57,
+      },
+      {
+        label: "Teléfono:",
+        value: cotizacion.customer?.phone,
+        labelX: 95,
+        valueX: 113,
+        maxValueWidth: 87,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
   // Fila 3: CI/NIT | Razón Social
-  drawFila(doc, [
-    {
-      label: "CI/NIT:",
-      value: cotizacion.customerNitSnapshot,
-      labelX: 14,
-      valueX: 32,
-      maxValueWidth: 57,
-    },
-    {
-      label: "Razón Social:",
-      value: cotizacion.customerNitCompanySnapshot,
-      labelX: 95,
-      valueX: 120,
-      maxValueWidth: 80,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "CI/NIT:",
+        value: cotizacion.customerNitSnapshot,
+        labelX: 14,
+        valueX: 32,
+        maxValueWidth: 57,
+      },
+      {
+        label: "Razón Social:",
+        value: cotizacion.customerNitCompanySnapshot,
+        labelX: 95,
+        valueX: 120,
+        maxValueWidth: 80,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
   // Fila 4: Válida hasta
-  drawFila(doc, [
-    {
-      label: "Válida hasta:",
-      value: cotizacion.expiresAt
-        ? new Date(cotizacion.expiresAt).toLocaleDateString("es-BO")
-        : "Sin vencimiento",
-      labelX: 14,
-      valueX: 40,
-      maxValueWidth: 80,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "Válida hasta:",
+        value: cotizacion.expiresAt
+          ? new Date(cotizacion.expiresAt).toLocaleDateString("es-BO")
+          : "Sin vencimiento",
+        labelX: 14,
+        valueX: 40,
+        maxValueWidth: 80,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 

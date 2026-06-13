@@ -7,17 +7,50 @@ import autoTable from "jspdf-autotable";
 
 const numeroALetras = (num) => {
   const unidades = [
-    "", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho",
-    "nueve", "diez", "once", "doce", "trece", "catorce", "quince",
-    "dieciséis", "diecisiete", "dieciocho", "diecinueve",
+    "",
+    "uno",
+    "dos",
+    "tres",
+    "cuatro",
+    "cinco",
+    "seis",
+    "siete",
+    "ocho",
+    "nueve",
+    "diez",
+    "once",
+    "doce",
+    "trece",
+    "catorce",
+    "quince",
+    "dieciséis",
+    "diecisiete",
+    "dieciocho",
+    "diecinueve",
   ];
   const decenas = [
-    "", "", "veinte", "treinta", "cuarenta", "cincuenta",
-    "sesenta", "setenta", "ochenta", "noventa",
+    "",
+    "",
+    "veinte",
+    "treinta",
+    "cuarenta",
+    "cincuenta",
+    "sesenta",
+    "setenta",
+    "ochenta",
+    "noventa",
   ];
   const centenas = [
-    "", "cien", "doscientos", "trescientos", "cuatrocientos", "quinientos",
-    "seiscientos", "setecientos", "ochocientos", "novecientos",
+    "",
+    "cien",
+    "doscientos",
+    "trescientos",
+    "cuatrocientos",
+    "quinientos",
+    "seiscientos",
+    "setecientos",
+    "ochocientos",
+    "novecientos",
   ];
 
   if (num === 0) return "cero 00/100 bolivianos";
@@ -37,7 +70,9 @@ const numeroALetras = (num) => {
     if (n === 100) return "cien";
     const c = Math.floor(n / 100);
     const resto = n % 100;
-    return resto === 0 ? centenas[c] : `${centenas[c]} ${convertirGrupo(resto)}`;
+    return resto === 0
+      ? centenas[c]
+      : `${centenas[c]} ${convertirGrupo(resto)}`;
   };
 
   const convertir = (n) => {
@@ -51,7 +86,10 @@ const numeroALetras = (num) => {
     return "";
   };
 
-  return `${convertir(entero)} ${String(decimales).padStart(2, "0")}/100 bolivianos`;
+  return `${convertir(entero)} ${String(decimales).padStart(
+    2,
+    "0",
+  )}/100 bolivianos`;
 };
 
 // =====================================================
@@ -88,11 +126,16 @@ const drawEmpresa = (doc, venta) => {
   doc.setFontSize(15);
   doc.text("MEGADIS S.R.L.", 14, 18);
 
+  doc.setFontSize(10);
+  doc.text(venta.location?.name || "", 14, 25);
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.text(venta.location?.address || "Dirección no registrada", 14, 28);
-  doc.text("Teléfono: 69417829", 14, 34);
-  doc.text("Cochabamba - Bolivia", 14, 40);
+
+  doc.text(venta.location?.address || "Dirección no registrada", 14, 32);
+
+  doc.text("Teléfono: 69417829", 14, 38);
+  doc.text("Cochabamba - Bolivia", 14, 44);
 };
 
 // =====================================================
@@ -112,7 +155,17 @@ const drawTablaProductos = (doc, venta, startY) => {
 
   autoTable(doc, {
     startY,
-    head: [["CÓDIGO", "CANT.", "UNIDAD", "DESCRIPCIÓN", "P. UNIT.", "DESC.", "SUBTOTAL"]],
+    head: [
+      [
+        "CÓDIGO",
+        "CANT.",
+        "UNIDAD",
+        "DESCRIPCIÓN",
+        "P. UNIT.",
+        "DESC.",
+        "SUBTOTAL",
+      ],
+    ],
     body,
     theme: "plain",
     styles: {
@@ -141,10 +194,20 @@ const drawTablaProductos = (doc, venta, startY) => {
       doc.setLineWidth(0.2);
       if (row.section === "head") {
         doc.line(cell.x, cell.y, cell.x + cell.width, cell.y);
-        doc.line(cell.x, cell.y + cell.height, cell.x + cell.width, cell.y + cell.height);
+        doc.line(
+          cell.x,
+          cell.y + cell.height,
+          cell.x + cell.width,
+          cell.y + cell.height,
+        );
       }
       if (row.section === "body") {
-        doc.line(cell.x, cell.y + cell.height, cell.x + cell.width, cell.y + cell.height);
+        doc.line(
+          cell.x,
+          cell.y + cell.height,
+          cell.x + cell.width,
+          cell.y + cell.height,
+        );
       }
     },
   });
@@ -165,22 +228,47 @@ const drawTotales = (doc, venta, finalY) => {
 
   doc.setLineWidth(0.2);
   doc.rect(boxX, boxY, labelWidth + valueWidth, rowHeight * 3);
-  doc.line(boxX, boxY + rowHeight, boxX + labelWidth + valueWidth, boxY + rowHeight);
-  doc.line(boxX, boxY + rowHeight * 2, boxX + labelWidth + valueWidth, boxY + rowHeight * 2);
+  doc.line(
+    boxX,
+    boxY + rowHeight,
+    boxX + labelWidth + valueWidth,
+    boxY + rowHeight,
+  );
+  doc.line(
+    boxX,
+    boxY + rowHeight * 2,
+    boxX + labelWidth + valueWidth,
+    boxY + rowHeight * 2,
+  );
   doc.line(boxX + labelWidth, boxY, boxX + labelWidth, boxY + rowHeight * 3);
 
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
 
   doc.text("SUBTOTAL Bs", boxX + 5, boxY + 5.5);
-  doc.text(Number(venta.subtotal).toFixed(2), boxX + labelWidth + valueWidth - 4, boxY + 5.5, { align: "right" });
+  doc.text(
+    Number(venta.subtotal).toFixed(2),
+    boxX + labelWidth + valueWidth - 4,
+    boxY + 5.5,
+    { align: "right" },
+  );
 
   doc.text("DESCUENTO Bs", boxX + 4, boxY + 13.5);
-  doc.text(Number(venta.discount).toFixed(2), boxX + labelWidth + valueWidth - 4, boxY + 13.5, { align: "right" });
+  doc.text(
+    Number(venta.discount).toFixed(2),
+    boxX + labelWidth + valueWidth - 4,
+    boxY + 13.5,
+    { align: "right" },
+  );
 
   doc.setFont("helvetica", "bold");
   doc.text("TOTAL Bs", boxX + 8, boxY + 21.5);
-  doc.text(Number(venta.total).toFixed(2), boxX + labelWidth + valueWidth - 4, boxY + 21.5, { align: "right" });
+  doc.text(
+    Number(venta.total).toFixed(2),
+    boxX + labelWidth + valueWidth - 4,
+    boxY + 21.5,
+    { align: "right" },
+  );
 
   return boxY;
 };
@@ -211,84 +299,100 @@ const generarNotaEntrega = (doc, venta, copia) => {
   let y = 70;
 
   // Fila 1: Cód. Cliente | Cód. Venta | Fecha
-  drawFila(doc, [
-    {
-      label: "Cód. Cliente:",
-      value: venta.customer?.code,
-      labelX: 14,
-      valueX: 40,
-      maxValueWidth: 45,
-    },
-    {
-      label: "Cód. Venta:",
-      value: venta.code,
-      labelX: 95,
-      valueX: 115,
-      maxValueWidth: 40,
-    },
-    {
-      label: "Fecha:",
-      value: new Date(venta.date).toLocaleDateString("es-BO"),
-      labelX: 152,
-      valueX: 166,
-      maxValueWidth: 34,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "Cód. Cliente:",
+        value: venta.customer?.code,
+        labelX: 14,
+        valueX: 40,
+        maxValueWidth: 45,
+      },
+      {
+        label: "Cód. Venta:",
+        value: venta.code,
+        labelX: 95,
+        valueX: 115,
+        maxValueWidth: 40,
+      },
+      {
+        label: "Fecha:",
+        value: new Date(venta.date).toLocaleDateString("es-BO"),
+        labelX: 152,
+        valueX: 166,
+        maxValueWidth: 34,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
   // Fila 2: Cliente | Vendedor
-  drawFila(doc, [
-    {
-      label: "Cliente:",
-      value: venta.customer?.name,
-      labelX: 14,
-      valueX: 34,
-      maxValueWidth: 55,
-    },
-    {
-      label: "Vendedor:",
-      value: venta.employee
-        ? `${venta.employee.name} ${venta.employee.lastName}`
-        : null,
-      labelX: 95,
-      valueX: 113,
-      maxValueWidth: 87,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "Cliente:",
+        value: venta.customer?.name,
+        labelX: 14,
+        valueX: 34,
+        maxValueWidth: 55,
+      },
+      {
+        label: "Vendedor:",
+        value: venta.employee
+          ? `${venta.employee.name} ${venta.employee.lastName}`
+          : null,
+        labelX: 95,
+        valueX: 113,
+        maxValueWidth: 87,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
   // Fila 3: CI/NIT | Razón Social
-  drawFila(doc, [
-    {
-      label: "CI/NIT:",
-      value: venta.customerNitSnapshot,
-      labelX: 14,
-      valueX: 34,
-      maxValueWidth: 55,
-    },
-    {
-      label: "Razón Social: ",
-      value: venta.customerNitCompanySnapshot,
-      labelX: 95,
-      valueX: 120,
-      maxValueWidth: 80,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "CI/NIT:",
+        value: venta.customerNitSnapshot,
+        labelX: 14,
+        valueX: 34,
+        maxValueWidth: 55,
+      },
+      {
+        label: "Razón Social: ",
+        value: venta.customerNitCompanySnapshot,
+        labelX: 95,
+        valueX: 120,
+        maxValueWidth: 80,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
   // Fila 4: Teléfono | Dirección en la misma fila
-  drawFila(doc, [
-    {
-      label: "Teléfono:",
-      value: venta.customer?.phone,
-      labelX: 14,
-      valueX: 34,
-      maxValueWidth: 55,
-    },
-  ], y);
+  drawFila(
+    doc,
+    [
+      {
+        label: "Teléfono:",
+        value: venta.customer?.phone,
+        labelX: 14,
+        valueX: 34,
+        maxValueWidth: 55,
+      },
+    ],
+    y,
+  );
 
   y += 8;
 
