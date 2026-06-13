@@ -63,24 +63,6 @@ function GeneralDataStep({ formData, onChange }) {
             Se usará para convertir los valores de USD a bolivianos.
           </WizardHelperText>
         </WizardField>
-
-        <WizardField>
-          <WizardLabel>Tipo de cambio nav</WizardLabel>
-          <WizardInput
-            type="number"
-            min="0"
-            step="0.0001"
-            placeholder="Ej: 6.86"
-            value={formData.bankExchangeRate}
-            onChange={(event) =>
-              onChange("bankExchangeRate", event.target.value)
-            }
-          />
-          <WizardHelperText>
-            Campo opcional si se necesita registrar el tipo de cambio aplicado
-            por banco.
-          </WizardHelperText>
-        </WizardField>
       </WizardFormGrid>
     </StepPanel>
   );

@@ -114,10 +114,10 @@ const createDefaultAdditionalCosts = () => [
   },
 ];
 
-const createDefaultBankPayments = (officialExchangeRate = "6.96") => [
+const createDefaultBankPayments = () => [
   {
     ...emptyBankPayment,
-    bankExchangeRate: officialExchangeRate,
+    bankExchangeRate: "",
   },
 ];
 
@@ -176,9 +176,6 @@ const mapApiDataToWizardState = (importation) => {
       reference: importation?.referenceNumber || "",
       date: getDateInputValue(importation?.importationDate),
       officialExchangeRate,
-      bankExchangeRate: importation?.bankExchangeRate
-        ? String(importation.bankExchangeRate)
-        : "",
       maritimeFreightExchangeRate:
         snapshot.exchangeDifference?.maritimeFreightExchangeRate
           ? String(snapshot.exchangeDifference.maritimeFreightExchangeRate)
@@ -247,9 +244,7 @@ const mapApiDataToWizardState = (importation) => {
               payment.commissionUsd ?? "",
             itfEntryUsd: payment.itfEntryUsd ?? "",
           }))
-        : createDefaultBankPayments(
-            officialExchangeRate
-          ),
+        : createDefaultBankPayments(),
 
     bankFiscalCredit: {
       commission: {
@@ -292,12 +287,11 @@ const createInitialWizardState = () => ({
     reference: "",
     date: "",
     officialExchangeRate: "6.96",
-    bankExchangeRate: "",
     maritimeFreightExchangeRate: "",
   },
   products: [{ ...emptyProduct }],
   expenses: createDefaultExpenses(),
-  bankPayments: createDefaultBankPayments("6.96"),
+  bankPayments: createDefaultBankPayments(),
   bankFiscalCredit: createDefaultBankFiscalCredit(),
   additionalCosts: createDefaultAdditionalCosts(),
 });

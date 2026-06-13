@@ -73,7 +73,7 @@ function BanksStep({
       ...bankPayments,
       {
         ...emptyBankPayment,
-        bankExchangeRate: officialExchangeRate || "",
+        bankExchangeRate: "",
       },
     ]);
   };
