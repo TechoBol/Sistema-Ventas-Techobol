@@ -12,9 +12,9 @@ export const createSaleService = async (data: any, token: string) => {
   );
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => response.text());
+    const errorBody = await response.json().catch(() => null);
     console.error("Backend error:", response.status, errorBody);
-    throw new Error("No se pudo realizar la venta");
+    throw new Error(errorBody?.message || "No se pudo realizar la venta");
   }
 
   return response.json();
@@ -34,7 +34,9 @@ export const createQuotationService = async (data: any, token: string) => {
   );
 
   if (!response.ok) {
-    throw new Error("No se pudo crear la cotización");
+    const errorBody = await response.json().catch(() => null);
+    console.error("Backend error:", response.status, errorBody);
+    throw new Error(errorBody?.message || "No se pudo crear la cotización");
   }
 
   return response.json();
