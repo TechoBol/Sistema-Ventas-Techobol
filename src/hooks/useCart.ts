@@ -1,18 +1,24 @@
 import { useState } from "react";
 import { useLoginStore } from "../components/store/loginStore";
-import { createSaleService, createQuotationService } from "../services/cartService";
+import {
+  createSaleService,
+  createQuotationService,
+} from "../services/cartService";
 import { useAmazonS3 } from "./useAmazonS3";
 import { generarDocumentoVenta } from "../components/pdf/generarPDF.jsx";
 import { generarFacturaVenta } from "../components/pdf/generarPDFFactura.jsx";
 import { generarDocumentoCotizacion_ } from "../components/pdf/generarPDFCotizacion.jsx";
 import { socketTesoreria } from "../services/SocketIOConnection.ts";
 import { useCashFlow } from "./useCashFlow";
+import { useLocationStore } from "../components/store/locationStore";
 
 export const useCart = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { token, location } = useLoginStore();
+  const { selectedLocation } = useLocationStore();
+
   const { uploadPDF, uploadPDFCotizacion, uploadPDFFactura } = useAmazonS3();
   const { addCashFlow } = useCashFlow();
 
@@ -39,7 +45,7 @@ export const useCart = () => {
     cartItems: any[],
     subtotal: number,
     discount: number,
-    total: number
+    total: number,
   ) => {
     try {
       setLoading(true);
@@ -65,7 +71,7 @@ export const useCart = () => {
           : null;
 
         const payload = {
-          locationId: location.id,
+          locationId: selectedLocation?.id || location.id,
           products: cartItems,
           subtotal,
           total,
@@ -82,12 +88,12 @@ export const useCart = () => {
           notes: data.notes || null,
           expiresAt,
           customerId: data.customerId || undefined,
-          nitId: data.nitId ?? null, 
+          nitId: data.nitId ?? null,
         };
 
         const result = await createQuotationService(payload, token);
         const quotation = result.quotation;
-        console.log(quotation)
+        console.log(quotation);
         // PDF cotización
         const pdfBlob = generarDocumentoCotizacion_(quotation);
         const file = new File([pdfBlob], `${quotation.code}.pdf`, {
@@ -107,11 +113,11 @@ export const useCart = () => {
         subtotal,
         discount,
         total,
-        locationId: location.id,
+        locationId: selectedLocation?.id || location.id,
         metodoPago: data.paymentMethod,
         nitId: data.nitId ?? null,
       };
-      
+
       console.log("PAYLOAD SALE:", payload);
 
       const venta = await createSaleService(payload, token);
@@ -130,13 +136,16 @@ export const useCart = () => {
         const fileFactura = new File(
           [pdfBlobFactura],
           `factura_${sale.code}.pdf`,
-          { type: "application/pdf" }
+          { type: "application/pdf" },
         );
         await uploadPDFFactura(fileFactura, sale.code);
       }
 
       // 3. Flujo de caja para pagos digitales
-      if (data.paymentMethod === "Deposito bancario" || data.paymentMethod === "QR") {
+      if (
+        data.paymentMethod === "Deposito bancario" ||
+        data.paymentMethod === "QR"
+      ) {
         const payloadCashFlow = {
           date: sale.date,
           account: data.paymentMethod === "QR" ? "Banco BCP" : data.bankName,

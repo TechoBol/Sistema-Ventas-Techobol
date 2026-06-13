@@ -60,11 +60,10 @@ import {
 import { socket } from "../services/SocketIOConnection";
 
 import { useCart } from "../hooks/useCart";
-import { useLoginStore } from "../components/store/loginStore";
 import Swal from "sweetalert2";
 import SaleForm from "../components/forms/SaleForm";
 import { errorToast } from "../services/toasts";
-
+import { usePermissions } from "../hooks/usePermissions";
 const fechaHoy = () => {
   const fecha = new Date().toLocaleDateString("es-BO", {
     weekday: "long",
@@ -77,8 +76,7 @@ const fechaHoy = () => {
 
 const Cart = () => {
   const { products } = useInventory();
-  const { location } = useLoginStore();
-
+  const { effectiveLocationId } = usePermissions();
   /* ── Modos de Operación Centralizados ── */
   const [mode, setMode] = useState("venta"); // 'venta' | 'cotizacion' | 'reserva'
 
@@ -92,16 +90,16 @@ const Cart = () => {
   const [query, setQuery] = useState("");
   const [dropOpen, setDropOpen] = useState(false);
   const searchRef = useRef(null);
-
+  console.log(effectiveLocationId)
   const filtered =
     query.trim() === ""
       ? (products ?? []).slice(0, 50)
       : (products ?? []).filter((p) => {
-        const name = p?.name?.toLowerCase?.() || "";
-        const code = p?.code?.toLowerCase?.() || "";
-        const q = query.toLowerCase();
-        return name.includes(q) || code.includes(q);
-      });
+          const name = p?.name?.toLowerCase?.() || "";
+          const code = p?.code?.toLowerCase?.() || "";
+          const q = query.toLowerCase();
+          return name.includes(q) || code.includes(q);
+        });
 
   useEffect(() => {
     const handler = (e) => {
@@ -144,7 +142,7 @@ const Cart = () => {
     bossDiscount: product.bossDiscount || 0,
     purchasePrice: Number(product.purchasePrice || 0),
     stock:
-      product?.inventories?.find((inv) => inv.locationId === location.id)
+      product?.inventories?.find((inv) => inv.locationId === effectiveLocationId)
         ?.quantity || 0,
     baseUnitName: product.baseUnit?.name || "unid.",
   });
@@ -154,7 +152,6 @@ const Cart = () => {
       const existingLine = prev.find((i) => i.productId === product.id);
 
       if (existingLine) {
-        // Ya existe el producto: solo aumentamos cantidad de la primera línea
         return prev.map((i) =>
           i.id === existingLine.id ? { ...i, quantity: i.quantity + 1 } : i,
         );
@@ -184,7 +181,9 @@ const Cart = () => {
       );
 
       if (!availableUnit) {
-        errorToast("Ya se agregaron todas las presentaciones disponibles para este producto.");
+        errorToast(
+          "Ya se agregaron todas las presentaciones disponibles para este producto.",
+        );
         return prev;
       }
 
@@ -211,9 +210,7 @@ const Cart = () => {
         return prev;
       }
 
-      const selectedUnit = current.productUnits.find(
-        (u) => u.id === newUnitId,
-      );
+      const selectedUnit = current.productUnits.find((u) => u.id === newUnitId);
 
       return prev.map((item) => {
         if (item.id !== itemId) return item;
@@ -359,7 +356,8 @@ const Cart = () => {
       console.error(err);
       Swal.fire({
         title: "Error",
-        text: err.message || `No se pudo procesar la operación en modo ${mode}.`,
+        text:
+          err.message || `No se pudo procesar la operación en modo ${mode}.`,
         icon: "error",
       });
     } finally {
@@ -482,7 +480,7 @@ const Cart = () => {
                         <DropCantidad>
                           {Number(
                             p?.inventories?.find(
-                              (inv) => inv.locationId === location.id,
+                              (inv) => inv.locationId === effectiveLocationId,
                             )?.quantity || 0,
                           ).toLocaleString("es-US", {
                             minimumFractionDigits: 0,
@@ -550,10 +548,16 @@ const Cart = () => {
 
                           const usedByOthers = group
                             .filter((g) => g.id !== item.id)
-                            .reduce((acc, g) => acc + (Number(g.quantity) || 0) * g.equivalence, 0);
+                            .reduce(
+                              (acc, g) =>
+                                acc + (Number(g.quantity) || 0) * g.equivalence,
+                              0,
+                            );
 
                           const remainingStock = item.stock - usedByOthers;
-                          const maxInThisUnit = (remainingStock / item.equivalence).toFixed(2);
+                          const maxInThisUnit = (
+                            remainingStock / item.equivalence
+                          ).toFixed(2);
 
                           return (
                             <React.Fragment key={item.id}>
@@ -561,7 +565,9 @@ const Cart = () => {
                                 <TD style={{ color: "#94a3b8", fontSize: 13 }}>
                                   {idx === 0 ? item.code : ""}
                                 </TD>
-                                <TD style={{ fontWeight: idx === 0 ? 500 : 400 }}>
+                                <TD
+                                  style={{ fontWeight: idx === 0 ? 500 : 400 }}
+                                >
                                   {idx === 0 ? (
                                     item.name
                                   ) : (
@@ -609,12 +615,19 @@ const Cart = () => {
                                     style={{
                                       fontSize: 11,
                                       marginTop: 4,
-                                      color: Number(maxInThisUnit) < item.quantity ? "#dc2626" : "#94a3b8",
+                                      color:
+                                        Number(maxInThisUnit) < item.quantity
+                                          ? "#dc2626"
+                                          : "#94a3b8",
                                     }}
                                   >
-                                    Stock: {remainingStock.toFixed(2)} {item.baseUnitName}
+                                    Stock: {remainingStock.toFixed(2)}{" "}
+                                    {item.baseUnitName}
                                     {item.equivalence !== 1 && (
-                                      <> · máx {maxInThisUnit} {item.unitName}</>
+                                      <>
+                                        {" "}
+                                        · máx {maxInThisUnit} {item.unitName}
+                                      </>
                                     )}
                                   </div>
                                 </TD>
@@ -625,7 +638,9 @@ const Cart = () => {
                                     max={item.stock}
                                     value={item.quantity}
                                     onChange={(e) => {
-                                      const valorIngresado = Number(e.target.value);
+                                      const valorIngresado = Number(
+                                        e.target.value,
+                                      );
 
                                       if (e.target.value === "") {
                                         setCartItems((p) =>
@@ -646,15 +661,15 @@ const Cart = () => {
                                           p.map((i) =>
                                             i.id === item.id
                                               ? {
-                                                ...i,
-                                                quantity: item.stock,
-                                                unitPrice: calcUnitPrice(
-                                                  i.baseSalePrice,
-                                                  item.stock,
-                                                  i.quantityDiscount,
-                                                  i.bossDiscount,
-                                                ),
-                                              }
+                                                  ...i,
+                                                  quantity: item.stock,
+                                                  unitPrice: calcUnitPrice(
+                                                    i.baseSalePrice,
+                                                    item.stock,
+                                                    i.quantityDiscount,
+                                                    i.bossDiscount,
+                                                  ),
+                                                }
                                               : i,
                                           ),
                                         );
@@ -667,15 +682,15 @@ const Cart = () => {
                                           p.map((i) =>
                                             i.id === item.id
                                               ? {
-                                                ...i,
-                                                quantity: qty,
-                                                unitPrice: calcUnitPrice(
-                                                  i.baseSalePrice,
-                                                  qty,
-                                                  i.quantityDiscount,
-                                                  i.bossDiscount,
-                                                ),
-                                              }
+                                                  ...i,
+                                                  quantity: qty,
+                                                  unitPrice: calcUnitPrice(
+                                                    i.baseSalePrice,
+                                                    qty,
+                                                    i.quantityDiscount,
+                                                    i.bossDiscount,
+                                                  ),
+                                                }
                                               : i,
                                           ),
                                         );
@@ -690,15 +705,15 @@ const Cart = () => {
                                           p.map((i) =>
                                             i.id === item.id
                                               ? {
-                                                ...i,
-                                                quantity: 1,
-                                                unitPrice: calcUnitPrice(
-                                                  i.baseSalePrice,
-                                                  1,
-                                                  i.quantityDiscount,
-                                                  i.bossDiscount,
-                                                ),
-                                              }
+                                                  ...i,
+                                                  quantity: 1,
+                                                  unitPrice: calcUnitPrice(
+                                                    i.baseSalePrice,
+                                                    1,
+                                                    i.quantityDiscount,
+                                                    i.bossDiscount,
+                                                  ),
+                                                }
                                               : i,
                                           ),
                                         );
@@ -736,14 +751,17 @@ const Cart = () => {
                                       placeholder="0"
                                       onChange={(e) => {
                                         const v = Number(e.target.value) || 0;
-                                        const max = item.unitPrice * item.quantity;
+                                        const max =
+                                          item.unitPrice * item.quantity;
                                         setItemDiscount(
                                           item.id,
                                           Math.min(v, max),
                                         );
                                       }}
                                     />
-                                    <span style={{ fontSize: 13, color: "#94a3b8" }}>
+                                    <span
+                                      style={{ fontSize: 13, color: "#94a3b8" }}
+                                    >
                                       Bs
                                     </span>
                                   </div>
@@ -758,18 +776,21 @@ const Cart = () => {
                                 </TD>
                               </RowComponent>
 
-                              {idx === group.length - 1 && hasMorePresentations && (
-                                <AddPresentationRow>
-                                  <TD colSpan={8} style={{ fontWeight: 400 }}>
-                                    <AddPresentationButton
-                                      type="button"
-                                      onClick={() => addPresentation(item.productId)}
-                                    >
-                                      <Plus size={14} /> Añadir presentación
-                                    </AddPresentationButton>
-                                  </TD>
-                                </AddPresentationRow>
-                              )}
+                              {idx === group.length - 1 &&
+                                hasMorePresentations && (
+                                  <AddPresentationRow>
+                                    <TD colSpan={8} style={{ fontWeight: 400 }}>
+                                      <AddPresentationButton
+                                        type="button"
+                                        onClick={() =>
+                                          addPresentation(item.productId)
+                                        }
+                                      >
+                                        <Plus size={14} /> Añadir presentación
+                                      </AddPresentationButton>
+                                    </TD>
+                                  </AddPresentationRow>
+                                )}
                             </React.Fragment>
                           );
                         });
@@ -793,8 +814,9 @@ const Cart = () => {
                       {paymentMethodsData.map((method) => (
                         <div
                           key={method.id}
-                          className={`payment-tile-card ${paymentMethod === method.id ? "active" : ""
-                            }`}
+                          className={`payment-tile-card ${
+                            paymentMethod === method.id ? "active" : ""
+                          }`}
                           onClick={() => setPaymentMethod(method.id)}
                         >
                           <div className="tile-icon">{method.icon}</div>
@@ -993,7 +1015,7 @@ const Cart = () => {
           />
         )}
       </Wrapper>
-    </ModeShell >
+    </ModeShell>
   );
 };
 
