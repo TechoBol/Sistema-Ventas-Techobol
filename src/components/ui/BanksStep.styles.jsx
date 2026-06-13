@@ -120,11 +120,3 @@ export const BankSummaryCard = styled.div`
     font-size: 14px;
   }
 `;
-
-export const BankHelpText = styled.span`
-  display: block;
-  margin-top: 4px;
-  color: #94a3b8;
-  font-size: 11px;
-  line-height: 1.35;
-`;

@@ -26,6 +26,9 @@ export const getSectionTotalUsd = (items = []) => {
 export const calculateBankPayments = ({
   payments = [],
   officialExchangeRate = 0,
+  products = [],
+  expenses = {},
+  maritimeFreightExchangeRate = 0,
 }) => {
   const safePayments = Array.isArray(payments) ? payments : [];
   const rows = safePayments.map((payment, index) => {
@@ -149,6 +152,51 @@ export const calculateBankPayments = ({
       totalOperationBs: 0,
     }
   );
+  {/* tipo de cambio */}
+  const officialRate = Number(officialExchangeRate || 0);
+  const maritimeRate = Number(maritimeFreightExchangeRate || 0);
+  const safeProductsForExchange = Array.isArray(products) ? products : [];
+  const safeFreights = Array.isArray(expenses?.freights) ? expenses.freights : [];
+  const totalProductsUsdForExchange = roundToFourDecimals(
+    safeProductsForExchange.reduce(
+      (total, product) => total + getProductSubtotalUsd(product),
+      0
+    )
+  );
+  const maritimeFreight = safeFreights.find((item, index) => {
+    const name = String(item?.name || "").toLowerCase();
+    return (
+      name.includes("naviero") ||
+      name.includes("flete i")
+    );
+  });
+  const maritimeFreightUsd = Number(
+    maritimeFreight?.amount ??
+      maritimeFreight?.amountUsd ??
+      0
+  );
+  const totalFreightsUsdForExchange = getSectionTotalUsd(safeFreights);
+  const otherFreightsUsd = roundToFourDecimals(totalFreightsUsdForExchange - maritimeFreightUsd);
+  const totalInsurancesUsdForExchange = getSectionTotalUsd(expenses?.insurances);
+  const totalPortCostsUsdForExchange = getSectionTotalUsd(expenses?.portCosts);
+  const freightExchangeRate = maritimeRate > 0 ? maritimeRate : officialRate;
+  const totalRegisteredDimBs = roundToFourDecimals(
+    totalProductsUsdForExchange * officialRate +
+      totalFreightsUsdForExchange * officialRate +
+      totalInsurancesUsdForExchange * officialRate +
+      totalPortCostsUsdForExchange * officialRate
+  );
+  const totalRealPaymentsBs = roundToFourDecimals(
+    totals.totalPaymentBs +
+      maritimeFreightUsd * freightExchangeRate +
+      otherFreightsUsd * officialRate +
+      totalInsurancesUsdForExchange * officialRate +
+      totalPortCostsUsdForExchange * officialRate
+  );
+  totals.totalRegisteredDimBs = totalRegisteredDimBs;
+  totals.totalRealPaymentsBs = totalRealPaymentsBs;
+  totals.totalExchangeDifferenceBs = roundToFourDecimals(totalRealPaymentsBs - totalRegisteredDimBs);
+  {/* fin - tipo de cambio */}
   return {
     rows,
     totals,
@@ -210,11 +258,17 @@ export const calculateAdditionalCost = (
 export const buildBankAdditionalCosts = (
   bankPayments,
   officialExchangeRate,
-  bankFiscalCredit = {}
+  bankFiscalCredit = {},
+  products = [],
+  expenses = {},
+  maritimeFreightExchangeRate = 0
 ) => {
   const bankCalculation = calculateBankPayments({
     payments: bankPayments,
     officialExchangeRate,
+    products,
+    expenses,
+    maritimeFreightExchangeRate,
   });
   return [
     {
@@ -239,6 +293,26 @@ export const buildBankAdditionalCosts = (
       bankCostType: "itf",
       locked: true,
     },
+    /* tipo de cambio */
+    {
+      concept: "Diferencia tipo de cambio",
+      amount: officialExchangeRate > 0
+        ? roundToFourDecimals(
+            bankCalculation.totals.totalExchangeDifferenceBs / officialExchangeRate
+          )
+        : 0,
+      amountBs: bankCalculation.totals.totalExchangeDifferenceBs,
+      currency: "USD",
+      hasFiscalCredit: Boolean(
+        bankFiscalCredit?.exchangeDifference?.hasFiscalCredit
+      ),
+      creditRate: Number(
+        bankFiscalCredit?.exchangeDifference?.creditRate || 0
+      ),
+      source: "BANK",
+      bankCostType: "exchangeDifference",
+      locked: true,
+    },
   ];
 };
 
@@ -259,6 +333,10 @@ export const calculateImportation = ({
   const bankCalculation = calculateBankPayments({
     payments: bankPayments,
     officialExchangeRate,
+    products,
+    expenses,
+    maritimeFreightExchangeRate:
+      generalData?.maritimeFreightExchangeRate,
   });
 
   /* Las filas bancarias se construyen automáticamente */
@@ -269,7 +347,10 @@ export const calculateImportation = ({
   const bankAdditionalCosts = buildBankAdditionalCosts(
     bankPayments,
     officialExchangeRate,
-    bankFiscalCredit
+    bankFiscalCredit,
+    products,
+    expenses,
+    generalData?.maritimeFreightExchangeRate
   );
 
   const allAdditionalCosts = [

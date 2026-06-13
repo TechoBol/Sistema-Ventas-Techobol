@@ -45,14 +45,27 @@ function BanksStep({
   bankPayments,
   onChangeBankPayments,
   officialExchangeRate,
+  products = [],
+  expenses = {},
+  maritimeFreightExchangeRate,
+  onChangeMaritimeFreightExchangeRate,
 }) {
   const calculations = useMemo(
     () =>
       calculateBankPayments({
         payments: bankPayments,
         officialExchangeRate,
+        products,
+        expenses,
+        maritimeFreightExchangeRate,
       }),
-    [bankPayments, officialExchangeRate]
+    [
+      bankPayments,
+      officialExchangeRate,
+      products,
+      expenses,
+      maritimeFreightExchangeRate,
+    ]
   );
 
   const handleAddPayment = () => {
@@ -230,6 +243,53 @@ function BanksStep({
         <BankSummaryCard $highlight>
           <span>ITF total Bs</span>
           <strong>{formatBs(calculations.totals.totalItfBs)}</strong>
+        </BankSummaryCard>
+      </BankSummaryGrid>
+
+      {/* tipo de cambio naviero */}
+      <div style={{ marginTop: "24px", maxWidth: "300px" }}>
+        <span
+          style={{
+            display: "block",
+            marginBottom: "6px",
+            fontSize: "12px",
+            fontWeight: 700,
+            color: "#475569",
+          }}
+        >
+          T/C flete naviero
+        </span>
+        <WizardInput
+          type="number"
+          min="0"
+          step="0.0001"
+          placeholder="Opcional"
+          value={maritimeFreightExchangeRate || ""}
+          onChange={(event) =>
+            onChangeMaritimeFreightExchangeRate?.(event.target.value)
+          }
+        />
+      </div>
+
+      <BankSummaryGrid>
+        {/* tipo de cambio */}
+        <BankSummaryCard>
+          <span>Total registro DIM Bs</span>
+          <strong>
+            {formatBs(calculations.totals.totalRegisteredDimBs)}
+          </strong>
+        </BankSummaryCard>
+        <BankSummaryCard>
+          <span>Total real pagos Bs</span>
+          <strong>
+            {formatBs(calculations.totals.totalRealPaymentsBs)}
+          </strong>
+        </BankSummaryCard>
+        <BankSummaryCard $highlight>
+          <span>Diferencia tipo de cambio Bs</span>
+          <strong>
+            {formatBs(calculations.totals.totalExchangeDifferenceBs)}
+          </strong>
         </BankSummaryCard>
       </BankSummaryGrid>
     </StepPanel>

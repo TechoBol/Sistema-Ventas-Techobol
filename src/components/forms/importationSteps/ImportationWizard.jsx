@@ -105,14 +105,6 @@ const createDefaultAdditionalCosts = () => [
     source: "MANUAL",
   },
   {
-    concept: "Diferencia tipo de cambio",
-    amount: "",
-    currency: "BS",
-    hasFiscalCredit: false,
-    creditRate: "13",
-    source: "MANUAL",
-  },
-  {
     concept: "Pago transporte interno diferencia",
     amount: "",
     currency: "USD",
@@ -135,6 +127,11 @@ const createDefaultBankFiscalCredit = () => ({
     creditRate: "13",
   },
   itf: {
+    hasFiscalCredit: false,
+    creditRate: "13",
+  },
+  /* tipo de cambio */
+  exchangeDifference: {
     hasFiscalCredit: false,
     creditRate: "13",
   },
@@ -182,6 +179,10 @@ const mapApiDataToWizardState = (importation) => {
       bankExchangeRate: importation?.bankExchangeRate
         ? String(importation.bankExchangeRate)
         : "",
+      maritimeFreightExchangeRate:
+        snapshot.exchangeDifference?.maritimeFreightExchangeRate
+          ? String(snapshot.exchangeDifference.maritimeFreightExchangeRate)
+          : "",
     },
 
     products:
@@ -259,6 +260,11 @@ const mapApiDataToWizardState = (importation) => {
         hasFiscalCredit: Boolean(snapshot.bankFiscalCredit?.itf?.hasFiscalCredit),
         creditRate: String(snapshot.bankFiscalCredit?.itf?.creditRate ?? "13"),
       },
+      /* tipo de cambio */
+      exchangeDifference: {
+        hasFiscalCredit: Boolean(snapshot.bankFiscalCredit?.exchangeDifference?.hasFiscalCredit),
+        creditRate: String(snapshot.bankFiscalCredit?.exchangeDifference?.creditRate ?? "13"),
+      },
     },
 
     additionalCosts:
@@ -287,6 +293,7 @@ const createInitialWizardState = () => ({
     date: "",
     officialExchangeRate: "6.96",
     bankExchangeRate: "",
+    maritimeFreightExchangeRate: "",
   },
   products: [{ ...emptyProduct }],
   expenses: createDefaultExpenses(),
@@ -410,8 +417,12 @@ function ImportationWizard({
         <BanksStep
           bankPayments={bankPayments}
           onChangeBankPayments={setBankPayments}
-          officialExchangeRate={
-            generalData.officialExchangeRate
+          officialExchangeRate={generalData.officialExchangeRate}
+          products={products}
+          expenses={expenses}
+          maritimeFreightExchangeRate={generalData.maritimeFreightExchangeRate}
+          onChangeMaritimeFreightExchangeRate={(value) =>
+            handleGeneralDataChange("maritimeFreightExchangeRate", value)
           }
         />
       );
