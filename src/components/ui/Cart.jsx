@@ -573,6 +573,45 @@ export const CustomerEmpty = styled.div`
   color: #94a3b8;
 `;
 
+/* ─── Venta por presentacion ────────────────────────────────────────── */
+export const PresentationRow = styled(TR)`
+  border-left: 2px solid var(--mode-color);
+  background: #fafafa;
+
+  td:first-child {
+    padding-left: 24px;
+  }
+`;
+
+export const AddPresentationRow = styled(TR)`
+  background: #fafafa;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+`;
+
+export const AddPresentationButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid ${border};
+  background: ${white};
+  color: ${textSecondary};
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: var(--mode-color);
+    color: var(--mode-color);
+    background: var(--mode-bg-hover);
+  }
+`;
+
 /* ─── backward-compat aliases ────────────────────────────────────────── */
 export const BackButton = styled.button` display: none; `;
 export const ProductList = styled.div` display: none; `;
